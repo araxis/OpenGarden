@@ -32,7 +32,7 @@ module sensor_holder_body() {
 
         translate([
             3,
-            (sensor_holder_width - (sensor_probe_width + clearance_loose))/2,
+            (sensor_holder_width - (sensor_probe_width + clearance_loose)) / 2,
             8
         ])
         sensor_channel();
