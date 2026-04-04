@@ -9,73 +9,25 @@ use <../modules/electronics_plate.scad>
 
 // ===================================
 // MVP OpenGrid Node Assembly
-// Carrier + removable insert + accessories
+// Mechanical Step 3 fit-first assembly
 // ===================================
 
-
-// -----------------------------------
-// Derived placement helpers
-// -----------------------------------
 carrier_inner_width = carrier_outer_width - 2 * carrier_wall_thickness;
 carrier_inner_depth = carrier_outer_depth - 2 * carrier_wall_thickness;
 
-// center of carrier cavity in XY
 insert_center_x = carrier_wall_thickness + carrier_inner_width / 2;
 insert_center_y = carrier_wall_thickness + carrier_inner_depth / 2;
+insert_top_z    = insert_height + insert_flange_thickness;
 
-// insert top Z
-insert_top_z = insert_height + insert_flange_thickness;
-
-
-// -----------------------------------
-// Insert placement
-// Pot insert is modeled centered in X/Y, starting at Z=0
-// So we translate its center into the carrier cavity center
-// -----------------------------------
 module placed_insert() {
     translate([
         insert_center_x,
         insert_center_y,
-        0
+        0.2
     ])
     pot_insert(include_flange = true);
 }
 
-
-// -----------------------------------
-// Sensor holder placement
-// Simple preview position clipped near right/top region
-// Fine-tuning comes in Mechanical Step 3
-// -----------------------------------
-module placed_sensor_holder() {
-    translate([
-        carrier_outer_width - 14,
-        insert_center_y + 18,
-        insert_top_z - sensor_holder_height + 2
-    ])
-    sensor_holder();
-}
-
-
-// -----------------------------------
-// Tube clip placement
-// Simple preview position on opposite side
-// -----------------------------------
-module placed_tube_clip() {
-    translate([
-        2,
-        insert_center_y - 14,
-        insert_top_z - 12
-    ])
-    tube_clip();
-}
-
-
-// -----------------------------------
-// Electronics plate placement
-// Separate dry-zone plate mounted beside carrier
-// Keep some spacing for visual clarity
-// -----------------------------------
 module placed_electronics_plate() {
     translate([
         -electronics_plate_thick - og_plate_thickness - 12,
@@ -88,16 +40,12 @@ module placed_electronics_plate() {
     );
 }
 
-
-// -----------------------------------
-// Full assembly
-// -----------------------------------
 module mvp_opengrid_node(
     show_carrier = true,
     show_insert = true,
-    show_sensor = true,
-    show_tube = true,
-    show_electronics = true
+    show_sensor = false,
+    show_tube = false,
+    show_electronics = false
 ) {
     if (show_carrier)
         carrier_frame(
@@ -110,10 +58,20 @@ module mvp_opengrid_node(
         placed_insert();
 
     if (show_sensor)
-        placed_sensor_holder();
+        translate([
+            carrier_outer_width - 14,
+            insert_center_y + 18,
+            insert_top_z - sensor_holder_height + 2
+        ])
+        sensor_holder();
 
     if (show_tube)
-        placed_tube_clip();
+        translate([
+            2,
+            insert_center_y - 14,
+            insert_top_z - 12
+        ])
+        tube_clip();
 
     if (show_electronics)
         placed_electronics_plate();
