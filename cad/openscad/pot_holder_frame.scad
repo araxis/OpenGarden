@@ -10,38 +10,41 @@ include <BOSL2/std.scad>
 $fn = 32;
 
 
-// ----------------------------
+
 // OpenGrid-driven sizing
-// ----------------------------
+
 gridPitch = 28;
 
 // Holder / pot size in openGrid units
+
 potUnitsX = 6;
 potUnitsY = 6;
 potUnitsZ = 5;
 
 // Fit / tolerance
+
 fitClearanceXY = 0.8;
 
 // Derived pot opening size
+
 potOpeningWidth  = potUnitsX * gridPitch - fitClearanceXY;
 potOpeningDepth  = potUnitsY * gridPitch - fitClearanceXY;
 potHeight        = potUnitsZ * gridPitch;
 
 
-// ----------------------------
+
 // Holder structure
-// ----------------------------
+
 frameWall       = 8;     // frame thickness
 supportLip      = 6;     // bottom support lip height
 backThickness   = 6.5;   // multiconnect back thickness
 frontBeamHeight = 10;    // top/front stabilizer beam
 cornerRadius    = 1;
+seatLedge = 8;           // inward ledge width that supports pot
 
 
-// ----------------------------
 // Multiconnect / openGrid slot settings
-// ----------------------------
+
 slotTolerance = 1.00;
 slotQuickRelease = false;
 dimpleScale = 1;
@@ -94,9 +97,9 @@ module pot_holder_frame() {
             translate([-holderWidth/2, 0, potHeight - frameWall])
                 frame_ring(holderWidth, holderDepth, frameWall, frameWall);
 
-            // Bottom support frame
+       // Bottom seating ledge
             translate([-holderWidth/2, 0, -supportLip])
-                frame_ring(holderWidth, holderDepth, supportLip, frameWall);
+                seating_ledge();
 
             // 4 vertical corner posts
             corner_posts();
@@ -156,7 +159,35 @@ module frame_ring(outerW, outerD, height, wall) {
             );
     }
 }
+// ----------------------------
+// Bottom seating ledge
+// Pot rests on this ring
+// ----------------------------
+module seating_ledge() {
+    difference() {
+        cuboid(
+            [holderWidth, holderDepth, supportLip],
+            rounding = cornerRadius,
+            edges = FRONT,
+            except_edges = BOT,
+            anchor = FRONT + LEFT + BOT
+        );
 
+        translate([
+            frameWall + seatLedge,
+            frameWall + seatLedge,
+            -0.1
+        ])
+        cuboid(
+            [
+                holderWidth - 2 * (frameWall + seatLedge),
+                holderDepth - 2 * (frameWall + seatLedge),
+                supportLip + 0.2
+            ],
+            anchor = FRONT + LEFT + BOT
+        );
+    }
+}
 
 // ----------------------------
 // 4 corner posts
