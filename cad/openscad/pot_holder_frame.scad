@@ -8,13 +8,13 @@ Connection_Type = "Multiconnect - openGrid"; // [Multiconnect - Multiboard, Mult
 
 /* [Internal Dimensions] */
 //Height (in mm) from the top of the back to the base of the internal floor
-potHeight = 100.0; //.1
+potHolderHeight = 100.0; //.1
 //Width (in mm) of the internal dimension or item you wish to hold
-potWidth = 70.0; //.1
+potHolderWidth = 70.0; //.1
 //Length (i.e., distance from back) (in mm) of the internal dimension or item you wish to hold
-potDepth = 70.0; //.1
+potHolderDepth = 70.0; //.1
 
-potTopEdgeOffset = 0;
+drainPanHeight = potHolderHeight * 0.4;
 /* [Additional Customization] */
 
 //Thickness of bin walls (in mm)
@@ -44,12 +44,6 @@ onRampEveryXSlots = 1;
 //Distance from the back of the item holder to where the multiconnect stops (i.e., where the dimple is) (by mm)
 multiconnectStopDistanceFromBack = 13;
 
-potSeatThickness = 2;
-potSeatWidth = 2;
-potSeatHeight = 20;
-
-
-
 
 /* [Hidden] */
 
@@ -61,34 +55,28 @@ distanceBetweenSlots =
 Connection_Standard = "Multiconnect";
    
   
-PotHolder();
+//PotHolder();
 
-module PotHolder(potWidth = potWidth,
-                 potDepth = potDepth,
-                 potHeight = potHeight,
+module PotHolder(potHolderWidth = potHolderWidth,
+                 potHolderDepth = potHolderDepth,
+                 potHolderHeight = potHolderHeight,
+                 drainPanHeight = drainPanHeight,
                  baseThickness = baseThickness,
                  wallThickness = wallThickness,
-                 frontChamfer = frontChamfer,
-                 potSeatWidth = potSeatWidth,
-                 potSeatHeight = potSeatHeight,
-                 potSeatThickness = potSeatThickness,
-                 potTopEdgeOffset = potTopEdgeOffset) {
+                 frontChamfer = frontChamfer) {
 
     //Calculated
-    totalWidth = potWidth + wallThickness*2;
-    totalHeight = potHeight + baseThickness + potTopEdgeOffset;
+    totalWidth = potHolderWidth + wallThickness*2;
+    totalHeight = potHolderHeight + baseThickness ;
     union(){
             back(0.01)
-                PotFrame(
-                    potWidth = potWidth,
-                    potDepth = potDepth,
-                    potHeight = potHeight,
+                DrainPan(
+                    width = potHolderWidth,
+                    depth = potHolderDepth,
+                    height = drainPanHeight,
                     baseThickness = baseThickness,
                     wallThickness = wallThickness,
-                    frontChamfer = frontChamfer,
-                    potSeatWidth = potSeatWidth,
-                    potSeatHeight = potSeatHeight,
-                    potSeatThickness = potSeatThickness);
+                    frontChamfer = frontChamfer);
             translate([-max(totalWidth,distanceBetweenSlots)/2,0.01,-baseThickness])
             makebackPlate(
                     backWidth = totalWidth, 
@@ -99,33 +87,19 @@ module PotHolder(potWidth = potWidth,
 }
  
 
-module PotFrame(potWidth,potDepth,potHeight,baseThickness,
-                wallThickness,
-                frontChamfer,
-                potSeatWidth,
-                potSeatHeight,
-                potSeatThickness
-                ){
-    translate(v = [0,potDepth/2,0])
+module DrainPan(width,depth,height,baseThickness,wallThickness,frontChamfer){
+    translate(v = [0,depth/2,0])
         down(baseThickness)
          rect_tube(
-            size= [potWidth + wallThickness*2,potDepth + wallThickness*2],
-            h = potHeight + baseThickness,
+            size= [width + wallThickness*2,depth + wallThickness*2],
+            h = height + baseThickness,
             wall= wallThickness,
             chamfer= [frontChamfer,frontChamfer,0,0],
             ichamfer= [frontChamfer,frontChamfer,0,0] );
 
 
     //bottom
-   cuboid([potWidth+0.01, potDepth+0.01,baseThickness], chamfer=frontChamfer, edges = [BACK+RIGHT, BACK+LEFT], anchor=TOP+FRONT);
-     up(potSeatHeight)
-       rect_tube(
-            size=[potWidth+0.01,potDepth+0.01],
-            h = potSeatThickness,
-            wall= potSeatWidth,
-            chamfer=[frontChamfer,frontChamfer,0,0],
-            ichamfer=[frontChamfer,frontChamfer,0,0],
-           anchor=FRONT+DOWN);
+   cuboid([width+0.01, depth+0.01, baseThickness], chamfer=frontChamfer, edges = [BACK+RIGHT, BACK+LEFT], anchor=TOP+FRONT);
 }
 //BEGIN MODULES
 //Slotted back Module
