@@ -2,27 +2,27 @@
 
 ## Purpose
 
-This document summarizes practical self-watering system architectures for a modular plant holder/pot system. It is written to help choose an MVP approach and avoid common design mistakes before investing too much time in CAD, electronics, or control software.
+This document summarizes practical self-watering system architectures for a modular plant holder/pot system. It is written to help choose an MVP approach and avoid common design mistakes before spending too much time on CAD, electronics, or control logic.
 
 ---
 
 ## What “self-watering” really means
 
-A self-watering system is any setup that reduces manual watering by controlling how water moves from a storage area into the plant root zone.
+A self-watering system reduces manual watering by controlling how water moves from stored water into the plant root zone.
 
-There are two big categories:
+There are two main categories:
 
 1. **Passive systems**
    - water moves without powered control
-   - simpler, cheaper, and more reliable
+   - simpler, cheaper, and usually more reliable
    - harder to tune precisely
 
 2. **Active systems**
    - water is moved by pump, valve, or controlled dosing
    - more flexible and measurable
-   - more parts, more failure modes
+   - more parts and more failure modes
 
-For this project, it is useful to think in layers:
+For this project, it helps to think in layers:
 
 - **Holder**: the outer structural part mounted to openGrid
 - **Insert / inner pot**: the plant container
@@ -32,9 +32,9 @@ For this project, it is useful to think in layers:
 
 ---
 
-## Main implementation approaches
-
 ## 1. Wick-based self-watering
+
+![Wick-based self-watering](images/01_wick_system.png)
 
 ### How it works
 A wick connects the water reservoir to the soil or growing medium. Water rises into the root zone through capillary action.
@@ -76,6 +76,8 @@ A wick connects the water reservoir to the soil or growing medium. Water rises i
 
 ## 2. False-bottom reservoir / self-watering planter
 
+![False-bottom reservoir planter](images/02_false_bottom_reservoir.png)
+
 ### How it works
 The pot has a lower water chamber and an upper soil chamber separated by a platform. Water rises through wicking columns, media contact, or capillary bridges.
 
@@ -114,6 +116,8 @@ The pot has a lower water chamber and an upper soil chamber separated by a platf
 
 ## 3. Capillary mat or absorbent bed
 
+![Capillary mat system](images/03_capillary_mat.png)
+
 ### How it works
 The pot or insert sits on an absorbent mat that pulls water from a reservoir and distributes it across a surface.
 
@@ -139,6 +143,8 @@ For an openGrid-mounted vertical modular holder, this is usually less attractive
 ---
 
 ## 4. Gravity-fed drip system
+
+![Gravity-fed drip system](images/04_gravity_drip.png)
 
 ### How it works
 Water flows from a reservoir above the plant through tubing and a drip outlet. Flow may be passive or controlled by a valve.
@@ -168,6 +174,8 @@ Water flows from a reservoir above the plant through tubing and a drip outlet. F
 ---
 
 ## 5. Pump-based timed watering
+
+![Pump-based timed watering](images/05_pump_based.png)
 
 ### How it works
 A small pump delivers water from a reservoir into the pot on demand. The system can be timer-based or threshold-based.
@@ -208,6 +216,8 @@ This is the strongest match for the long-term OpenGarden direction.
 
 ## 6. Pump + reservoir hybrid with passive backup
 
+![Hybrid passive + active system](images/06_hybrid.png)
+
 ### How it works
 A passive reservoir or wick provides baseline moisture, while a pump handles corrective watering or refill events.
 
@@ -234,67 +244,52 @@ This is a strong future direction, but not the first MVP.
 
 ## Control strategies
 
-## 1. Pure passive
+### 1. Pure passive
 No electronics. Reservoir and transfer mechanism do all the work.
 
-### Pros
+**Pros**
 - minimal failure modes
 - easiest first build
 
-### Cons
+**Cons**
 - little control
 - hard to adapt per plant
 
----
-
-## 2. Timed active watering
+### 2. Timed active watering
 Pump runs for a configured duration at fixed intervals.
 
-### Pros
+**Pros**
 - simple
 - easy to implement
 - no sensor calibration needed
 
-### Cons
+**Cons**
 - does not adapt to environment
 - can over-water or under-water
 
-### Best use
-Very early active MVPs.
-
----
-
-## 3. Threshold-based watering
+### 3. Threshold-based watering
 A sensor is read and the pump waters only when moisture drops below a threshold.
 
-### Pros
+**Pros**
 - adaptive
 - closer to real need
 
-### Cons
+**Cons**
 - sensors drift
 - calibration is annoying
 - cheap sensors are unreliable
 
-### Best use
-Second active MVP after plumbing works.
-
----
-
-## 4. Rule-based watering
+### 4. Rule-based watering
 Use multiple signals such as moisture, temperature, light schedule, time since last watering, and plant profile.
 
-### Pros
+**Pros**
 - powerful
 - scalable
 - good fit for ESP32 + backend + dashboard
 
-### Cons
+**Cons**
 - easy to overcomplicate
 - harder to debug
-
-### Best use
-After the basic hardware is proven.
 
 ---
 
@@ -311,7 +306,9 @@ After the basic hardware is proven.
 
 ---
 
-## Reservoir design considerations
+## 7. Reservoir design considerations
+
+![Reservoir design considerations](images/07_reservoir_design.png)
 
 For a self-watering system, reservoir design matters as much as the watering mechanism.
 
@@ -331,7 +328,9 @@ For a self-watering system, reservoir design matters as much as the watering mec
 
 ---
 
-## Insert / inner pot design considerations
+## 8. Insert / inner pot design considerations
+
+![Insert design considerations](images/08_insert_design.png)
 
 The insert is usually where the plant actually lives, so it should be treated as a separate design problem.
 
@@ -418,7 +417,7 @@ Options:
 
 ## Recommended implementation paths
 
-## Path A — Fastest passive MVP
+### Path A — Fastest passive MVP
 Build:
 - current holder
 - simple insert
@@ -426,16 +425,14 @@ Build:
 - wick opening or wicking basket
 - overflow hole
 
-### Why choose it
+**Why choose it**
 - lowest complexity
 - fastest to test the physical form factor
 
-### Why not choose it
+**Why not choose it**
 - does not exercise the smart system direction much
 
----
-
-## Path B — Practical smart MVP
+### Path B — Practical smart MVP
 Build:
 - current holder
 - simple insert
@@ -445,25 +442,23 @@ Build:
 - ESP32 control
 - optional moisture sensor later
 
-### Why choose it
+**Why choose it**
 - best match to OpenGarden direction
 - lets mechanical and software systems evolve together
 
-### Why not choose it
+**Why not choose it**
 - more debugging early
 
----
-
-## Path C — Hybrid future version
+### Path C — Hybrid future version
 Build later:
 - passive moisture support
 - active corrective watering
 - telemetry and plant profiles
 
-### Why choose it
+**Why choose it**
 - strongest long-term product behavior
 
-### Why not choose it now
+**Why not choose it now**
 - too much complexity for first implementation
 
 ---
