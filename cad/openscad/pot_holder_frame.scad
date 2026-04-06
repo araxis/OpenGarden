@@ -1,301 +1,189 @@
+
+
 include <BOSL2/std.scad>
 
-// ===================================
-// OpenGarden - Simple Pot Holder
-// Fixed for: Multiconnect - openGrid
-// Grid-driven sizing
-// Simplified and maintainable MVP version
-// ===================================
+/*[Slot Types]*/
+//How do you intend to mount to a surface and which surface?
+Connection_Type = "Multiconnect - openGrid"; // [Multiconnect - Multiboard, Multiconnect - openGrid, Multiconnect - Custom Size]
 
-$fn = 32;
+/* [Internal Dimensions] */
+//Height (in mm) from the top of the back to the base of the internal floor
+potHeight = 100.0; //.1
+//Width (in mm) of the internal dimension or item you wish to hold
+potWidth = 70.0; //.1
+//Length (i.e., distance from back) (in mm) of the internal dimension or item you wish to hold
+potDepth = 70.0; //.1
 
+potTopEdgeOffset = 0;
+/* [Additional Customization] */
 
+//Thickness of bin walls (in mm)
+wallThickness = 2; //.1
+//Thickness of bin  (in mm)
+baseThickness = 3; //.1
+frontChamfer = 5;
 
-// OpenGrid-driven sizing
-
-gridPitch = 28;
-
-// Holder / pot size in openGrid units
-
-potUnitsX = 6;
-potUnitsY = 6;
-potUnitsZ = 5;
-
-// Fit / tolerance
-
-fitClearanceXY = 0.8;
-
-// Derived pot opening size
-
-potOpeningWidth  = potUnitsX * gridPitch - fitClearanceXY;
-potOpeningDepth  = potUnitsY * gridPitch - fitClearanceXY;
-potHeight        = potUnitsZ * gridPitch;
-
-
-
-// Holder structure
-
-frameWall       = 8;     // frame thickness
-supportLip      = 6;     // bottom support lip height
-backThickness   = 6.5;   // multiconnect back thickness
-frontBeamHeight = 10;    // top/front stabilizer beam
-cornerRadius    = 1;
-seatLedge = 8;           // inward ledge width that supports pot
-
-
-// Multiconnect / openGrid slot settings
-
-slotTolerance = 1.00;
-slotQuickRelease = false;
-dimpleScale = 1;
-slotDepthMicroadjustment = 0;
-onRampEnabled = true;
+/*[Slot Customization]*/
 onRampHalfOffset = true;
+//Distance between Multiconnect slots on the back (25mm is standard for MultiBoard)
+customDistanceBetweenSlots = 25;
+//Reduce the number of slots
+subtractedSlots = 0;
+//QuickRelease removes the small indent in the top of the slots that lock the part into place
+slotQuickRelease = true;
+//Dimple scale tweaks the size of the dimple in the slot for printers that need a larger dimple to print correctly
+dimpleScale = 1; //[0.5:.05:1.5]
+//Scale the size of slots in the back (1.015 scale is default for a tight fit. Increase if your finding poor fit. )
+slotTolerance = 1.00; //[0.925:0.005:1.075]
+//Move the slot in (positive) or out (negative)
+slotDepthMicroadjustment = 0; //[-.5:0.05:.5]
+//enable a slot on-ramp for easy mounting of tall items
+onRampEnabled = false;
+//frequency of slots for on-ramp. 1 = every slot; 2 = every 2 slots; etc.
 onRampEveryXSlots = 1;
-Multiconnect_Stop_Distance_From_Back = 13;
+//Distance from the back of the item holder to where the multiconnect stops (i.e., where the dimple is) (by mm)
+multiconnectStopDistanceFromBack = 13;
+
+potSeatThickness = 2;
+potSeatWidth = 2;
+potSeatHeight = 20;
 
 
-// ----------------------------
-// Derived holder dimensions
-// ----------------------------
-holderWidth  = potOpeningWidth + frameWall * 2;
-holderDepth  = potOpeningDepth + frameWall * 2;
-holderHeight = potHeight + supportLip;
-
-// Back plate snapped to grid
-backWidth  = ceil(holderWidth / gridPitch) * gridPitch;
-backHeight = ceil(holderHeight / gridPitch) * gridPitch;
 
 
-// ----------------------------
-// Main assembly
-// ----------------------------
-union() {
-    // Pot holder frame
-    translate([0, 0.01, 0])
-        pot_holder_frame();
+/* [Hidden] */
 
-    // Back plate with openGrid multiconnect slots
-    translate([-backWidth/2, 0.01, -supportLip])
-        make_back_plate(
-            backWidth = backWidth,
-            backHeight = backHeight,
-            backThickness = backThickness,
-            distanceBetweenSlots = gridPitch
-        );
-}
+distanceBetweenSlots = 
+    Connection_Type == "Multiconnect - openGrid" ? 28 :
+    Connection_Type == "Multiconnect - Custom Size" ? customDistanceBetweenSlots :
+    25; //default for multipoint
 
+Connection_Standard = "Multiconnect";
+   
+  
+PotHolder();
 
-// ----------------------------
-// Pot holder frame
-// Centered on X, extends forward in Y
-// ----------------------------
-module pot_holder_frame() {
-    difference() {
-        union() {
-            // Top frame ring
-            translate([-holderWidth/2, 0, potHeight - frameWall])
-                frame_ring(holderWidth, holderDepth, frameWall, frameWall);
+module PotHolder(potWidth = potWidth,
+                 potDepth = potDepth,
+                 potHeight = potHeight,
+                 baseThickness = baseThickness,
+                 wallThickness = wallThickness,
+                 frontChamfer = frontChamfer,
+                 potSeatWidth = potSeatWidth,
+                 potSeatHeight = potSeatHeight,
+                 potSeatThickness = potSeatThickness,
+                 potTopEdgeOffset = potTopEdgeOffset) {
 
-       // Bottom seating ledge
-            translate([-holderWidth/2, 0, -supportLip])
-                seating_ledge();
-
-            // 4 vertical corner posts
-            corner_posts();
-
-            // Rear wall beam tying frame into back plate
-            translate([-holderWidth/2, 0, -supportLip])
-                cuboid(
-                    [holderWidth, frameWall, holderHeight + supportLip],
-                    rounding = cornerRadius,
-                    edges = FRONT,
-                    except_edges = BOT,
-                    anchor = FRONT + LEFT + BOT
-                );
-
-            // Small front top beam for stiffness
-            translate([-holderWidth/2, holderDepth - frameWall, potHeight - frontBeamHeight])
-                cuboid(
-                    [holderWidth, frameWall, frontBeamHeight],
-                    rounding = cornerRadius,
-                    edges = FRONT,
-                    except_edges = BOT,
-                    anchor = FRONT + LEFT + BOT
-                );
-        }
-
-        // Open front access cut
-        translate([
-            -potOpeningWidth/2,
-            holderDepth - frameWall - 0.1,
-            10
-        ])
-        cuboid(
-            [potOpeningWidth, frameWall + 0.2, potHeight - 20],
-            anchor = FRONT + LEFT + BOT
-        );
+    //Calculated
+    totalWidth = potWidth + wallThickness*2;
+    totalHeight = potHeight + baseThickness + potTopEdgeOffset;
+    union(){
+            back(0.01)
+                PotFrame(
+                    potWidth = potWidth,
+                    potDepth = potDepth,
+                    potHeight = potHeight,
+                    baseThickness = baseThickness,
+                    wallThickness = wallThickness,
+                    frontChamfer = frontChamfer,
+                    potSeatWidth = potSeatWidth,
+                    potSeatHeight = potSeatHeight,
+                    potSeatThickness = potSeatThickness);
+            translate([-max(totalWidth,distanceBetweenSlots)/2,0.01,-baseThickness])
+            makebackPlate(
+                    backWidth = totalWidth, 
+                    backHeight = totalHeight, 
+                    distanceBetweenSlots = distanceBetweenSlots,
+                    backThickness=6.5);
     }
 }
+ 
+
+module PotFrame(potWidth,potDepth,potHeight,baseThickness,
+                wallThickness,
+                frontChamfer,
+                potSeatWidth,
+                potSeatHeight,
+                potSeatThickness
+                ){
+    translate(v = [0,potDepth/2,0])
+        down(baseThickness)
+         rect_tube(
+            size= [potWidth + wallThickness*2,potDepth + wallThickness*2],
+            h = potHeight + baseThickness,
+            wall= wallThickness,
+            chamfer= [frontChamfer,frontChamfer,0,0],
+            ichamfer= [frontChamfer,frontChamfer,0,0] );
 
 
-// ----------------------------
-// Frame ring helper
-// ----------------------------
-module frame_ring(outerW, outerD, height, wall) {
-    difference() {
-        cuboid(
-            [outerW, outerD, height],
-            rounding = cornerRadius,
-            edges = FRONT,
-            except_edges = BOT,
-            anchor = FRONT + LEFT + BOT
-        );
-
-        translate([wall, wall, -0.1])
-            cuboid(
-                [outerW - 2 * wall, outerD - 2 * wall, height + 0.2],
-                anchor = FRONT + LEFT + BOT
-            );
-    }
+    //bottom
+   cuboid([potWidth+0.01, potDepth+0.01,baseThickness], chamfer=frontChamfer, edges = [BACK+RIGHT, BACK+LEFT], anchor=TOP+FRONT);
+     up(potSeatHeight)
+       rect_tube(
+            size=[potWidth+0.01,potDepth+0.01],
+            h = potSeatThickness,
+            wall= potSeatWidth,
+            chamfer=[frontChamfer,frontChamfer,0,0],
+            ichamfer=[frontChamfer,frontChamfer,0,0],
+           anchor=FRONT+DOWN);
 }
-// ----------------------------
-// Bottom seating ledge
-// Pot rests on this ring
-// ----------------------------
-module seating_ledge() {
-    difference() {
-        cuboid(
-            [holderWidth, holderDepth, supportLip],
-            rounding = cornerRadius,
-            edges = FRONT,
-            except_edges = BOT,
-            anchor = FRONT + LEFT + BOT
-        );
-
-        translate([
-            frameWall + seatLedge,
-            frameWall + seatLedge,
-            -0.1
-        ])
-        cuboid(
-            [
-                holderWidth - 2 * (frameWall + seatLedge),
-                holderDepth - 2 * (frameWall + seatLedge),
-                supportLip + 0.2
-            ],
-            anchor = FRONT + LEFT + BOT
-        );
-    }
-}
-
-// ----------------------------
-// 4 corner posts
-// ----------------------------
-module corner_posts() {
-    postH = potHeight - frameWall;
-
-    // back-left
-    translate([-holderWidth/2, 0, -supportLip])
-        cuboid(
-            [frameWall, frameWall, postH + supportLip],
-            anchor = FRONT + LEFT + BOT
-        );
-
-    // back-right
-    translate([holderWidth/2 - frameWall, 0, -supportLip])
-        cuboid(
-            [frameWall, frameWall, postH + supportLip],
-            anchor = FRONT + LEFT + BOT
-        );
-
-    // front-left
-    translate([-holderWidth/2, holderDepth - frameWall, -supportLip])
-        cuboid(
-            [frameWall, frameWall, postH + supportLip],
-            anchor = FRONT + LEFT + BOT
-        );
-
-    // front-right
-    translate([holderWidth/2 - frameWall, holderDepth - frameWall, -supportLip])
-        cuboid(
-            [frameWall, frameWall, postH + supportLip],
-            anchor = FRONT + LEFT + BOT
-        );
-}
-
-
-// ============================
-// Back plate + Multiconnect
-// Only for openGrid spacing = 28
-// ============================
-module make_back_plate(backWidth, backHeight, backThickness, distanceBetweenSlots)
+//BEGIN MODULES
+//Slotted back Module
+module makebackPlate(backWidth, backHeight, distanceBetweenSlots, backThickness, edgeRounding = 1)
 {
-    slotCount = floor(backWidth / distanceBetweenSlots);
-
-    difference() {
-        translate([0, -backThickness, 0])
-            cuboid(
-                size = [backWidth, backThickness, backHeight],
-                rounding = 1,
-                edges = FRONT,
-                except_edges = BOT,
-                anchor = FRONT + LEFT + BOT,
-                $fn = 24
-            );
-
-        // Center slots across back plate
-        for (slotNum = [0 : 1 : slotCount - 1]) {
-            translate([
-                distanceBetweenSlots/2
-                    + (backWidth/distanceBetweenSlots - slotCount) * distanceBetweenSlots/2
-                    + slotNum * distanceBetweenSlots,
-                -2.35 + slotDepthMicroadjustment,
-                backHeight - Multiconnect_Stop_Distance_From_Back
-            ])
-            multiConnectSlotTool(backHeight + supportLip);
-        }
-    }
+    //slot count calculates how many slots can fit on the back. Based on internal width for buffer. 
+    //slot width needs to be at least the distance between slot for at least 1 slot to generate
+    let (backWidth = max(backWidth,distanceBetweenSlots), backHeight = max(backHeight, 25),slotCount = floor(backWidth/distanceBetweenSlots)- subtractedSlots){
+            difference() {
+                translate(v = [0,-backThickness,0]) 
+                cuboid(size = [backWidth,backThickness,backHeight], rounding=edgeRounding, edges=FRONT, except_edges=BOT, anchor=FRONT+LEFT+BOT, $fn = 25);
+                //Loop through slots and center on the item
+                //Note: I kept doing math until it looked right. It's possible this can be simplified.
+                for (slotNum = [0:1:slotCount-1]) {
+                    translate(v = [distanceBetweenSlots/2+(backWidth/distanceBetweenSlots-slotCount)*distanceBetweenSlots/2+slotNum*distanceBetweenSlots,-2.35+slotDepthMicroadjustment,backHeight-multiconnectStopDistanceFromBack]) {
+    multiConnectSlotTool(backHeight);
+                    
+                    }
+                }
+            }
+    }   
 }
 
-
-// ============================
-// Original multiconnect slot tool
-// Kept because fit matters
-// ============================
+//Create Slot Tool
 module multiConnectSlotTool(totalHeight) {
-    distanceOffset = onRampHalfOffset ? gridPitch / 2 : 0;
-
-    scale(slotTolerance)
+    //In slotTool, added a new variable distanceOffset which is set by the option:
+    distanceOffset = onRampHalfOffset ? distanceBetweenSlots / 2 : 0;
+    scale(v = slotTolerance)
+    //slot minus optional dimple with optional on-ramp
     let (slotProfile = [[0,0],[10.15,0],[10.15,1.2121],[7.65,3.712],[7.65,5],[0,5]])
     difference() {
         union() {
-            // Round top
-            rotate([90,0,0])
-                rotate_extrude($fn=50)
+            //round top
+            rotate(a = [90,0,0,]) 
+                rotate_extrude($fn=50) 
                     polygon(points = slotProfile);
-
-            // Long slot
-            rotate([180,0,0])
-                linear_extrude(height = totalHeight + 1)
-                    union() {
+            //long slot
+            translate(v = [0,0,0]) 
+                rotate(a = [180,0,0]) 
+                linear_extrude(height = totalHeight+1) 
+                    union(){
                         polygon(points = slotProfile);
-                        mirror([1,0,0]) polygon(points = slotProfile);
+                        mirror([1,0,0])
+                            polygon(points = slotProfile);
                     }
-
-            // Optional on-ramp
-            if (onRampEnabled)
-                for (y = [1 : onRampEveryXSlots : totalHeight / gridPitch])
-                    translate([0, -5, (-y * gridPitch) + distanceOffset])
-                        rotate([-90,0,0])
+            //on-ramp
+            if(onRampEnabled)
+                for(y = [1:onRampEveryXSlots:totalHeight/distanceBetweenSlots])
+                    //then modify the translate within the on-ramp code to include the offset
+                    translate(v = [0,-5,(-y*distanceBetweenSlots)+distanceOffset])
+                        rotate(a = [-90,0,0]) 
                             cylinder(h = 5, r1 = 12, r2 = 10.15);
         }
-
-        // Locking dimple
-        if (!slotQuickRelease)
-            scale(dimpleScale)
-                rotate([90,0,0])
-                    rotate_extrude($fn=50)
-                        polygon(points = [[0,0],[0,1.5],[1.5,0]]);
+        //dimple
+        if (slotQuickRelease == false)
+            scale(v = dimpleScale) 
+            rotate(a = [90,0,0,]) 
+                rotate_extrude($fn=50) 
+                    polygon(points = [[0,0],[0,1.5],[1.5,0]]);
     }
 }
