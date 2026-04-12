@@ -15,6 +15,7 @@ width = 70.0; //.1
 depth = 70.0; //.1
 
 holdHeight = height * .3;
+seatHeight = 5;
 /* [Additional Customization] */
 
 //Thickness of bin walls (in mm)
@@ -62,7 +63,8 @@ module PotHolder(width = width,
                  holdHeight = holdHeight,
                  baseThickness = baseThickness,
                  wallThickness = wallThickness,
-                 frontChamfer = frontChamfer) {
+                 frontChamfer = frontChamfer,
+                 seatHeight = seatHeight) {
 
     //Calculated
     totalWidth = width + wallThickness*2;
@@ -75,7 +77,8 @@ module PotHolder(width = width,
                     height = holdHeight,
                     baseThickness = baseThickness,
                     wallThickness = wallThickness,
-                    frontChamfer = frontChamfer);
+                    frontChamfer = frontChamfer,
+                    seatHeight = seatHeight);
             translate([-max(totalWidth,distanceBetweenSlots)/2,0.01,-baseThickness])
             makebackPlate(
                     backWidth = totalWidth, 
@@ -86,7 +89,7 @@ module PotHolder(width = width,
 }
  
 
-module DrainPan(width,depth,height,baseThickness,wallThickness,frontChamfer){
+module DrainPan(width,depth,height,baseThickness,wallThickness,frontChamfer, seatHeight = seatHeight){
    hole_w = (width - wallThickness *2 );
    hole_d = (depth - wallThickness * 2);   
    diff("hole")
@@ -96,7 +99,7 @@ module DrainPan(width,depth,height,baseThickness,wallThickness,frontChamfer){
       anchor = FORWARD+BOTTOM)
         tag("hole")cuboid([hole_w,hole_d,height+1],chamfer = frontChamfer,edges=[BACK+LEFT,BACK+RIGHT])
             position(TOP)
-              prismoid([hole_w,hole_d],[width,depth],height=3
+              prismoid([hole_w,hole_d],[width,depth],height=seatHeight
                  , chamfer=[frontChamfer,frontChamfer,0,0],anchor =TOP);
          
 

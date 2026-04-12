@@ -2,7 +2,7 @@ include <BOSL2/std.scad>
 
 $fn =100;
 
-height = 30;
+height = 100;
 width = 70.0;
 depth = 70.0;
 wallThickness = 2;
@@ -12,7 +12,7 @@ holeAreaPadding = 25;
 holeRows = 4;
 holeCols = 4;
 holeDiameter = 5;
-ringHeight = 5;
+seatHeight = 5;
 
 
 PotInsert(width, depth, height);
@@ -24,45 +24,43 @@ module PotInsert(width,depth,height,
          holeRows = holeRows,
          holeCols = holeCols,
          holeDiameter = holeDiameter,
-         ringHeight = ringHeight){
+         seatHeight = seatHeight){
 w = width + wallThickness * 2;
 d= depth + wallThickness * 2;
 h= height;
+
  rect_tube(
             size= [w, d],
             h = h ,
             wall= wallThickness,
             chamfer= [chamfer,chamfer,0,0],
             ichamfer= [chamfer,chamfer,0,0],
-            anchor = FRONT+BOTTOM );
+            anchor = FRONT+BOTTOM );    
+            Base(w,d,seatHeight,holeAreaPadding,holeRows,holeCols,holeDiameter);
            
-      Base(w,d,baseThickness,ringHeight,holeAreaPadding,holeRows,holeCols,holeDiameter);
-
 }
 
-module Base(width,depth,thinkness,ringHeight,holeAreaPadding,holeRows,holeCols,holeDiameter){
+module Base(width,depth,thinkness,holeAreaPadding,holeRows,holeCols,holeDiameter){
     //ring
-   ring_w = (width - wallThickness *2 ) - 0.25;
-   ring_d = (depth - wallThickness *2 ) - 0.25;
-   difference(){
-           prismoid([ring_w,ring_d],[width,depth],height=thinkness, anchor = TOP + FRONT,
-                chamfer=[frontChamfer,frontChamfer,0,0])
-                 align(BOTTOM)
-                   Ring(ring_w,ring_d,ringHeight, anchor= TOP);           
-           back(width/2)
-            grid_copies(n=[holeRows,holeCols], size=[width-holeAreaPadding,depth-holeAreaPadding]) cyl(d=           holeDiameter,h=30,anchor = CENTER);
-         }      
-
+   ring_w = (width - wallThickness *2 ) - 0.4;
+   ring_d = (depth - wallThickness *2 ) - 0.4;
+difference(){
+    prismoid([ring_w,ring_d],[width,depth],height=thinkness,anchor = TOP + FRONT,chamfer=[frontChamfer,frontChamfer,0,0]);
+      //attach(BOTTOM,TOP,overlap = .1);
+       // Ring(ring_w,ring_d,3);
+ back(width/2)
+  grid_copies(n=[holeRows,holeCols], size=[width-holeAreaPadding,depth-holeAreaPadding])
+          cyl(d=holeDiameter,h=30);      
+   }    
 }
 
-module Ring(w,d,h,anchor){
+module Ring(w,d,h){
  rect_tube(
             size1= [w,d],
             size2 =[w,d],
             h = h ,
             wall= wallThickness,
             chamfer= [frontChamfer,frontChamfer,0,0],
-            ichamfer= [frontChamfer,frontChamfer,0,0],
-           anchor = anchor );
+            ichamfer= [frontChamfer,frontChamfer,0,0]);
 }
 
