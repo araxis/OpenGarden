@@ -8,21 +8,21 @@ Connection_Type = "Multiconnect - openGrid"; // [Multiconnect - Multiboard, Mult
 
 /* [Internal Dimensions] */
 //Height (in mm) from the top of the back to the base of the internal floor
-potHolderHeight = 100.0; //.1
+height = 100.0; //.1
 //Width (in mm) of the internal dimension or item you wish to hold
-potHolderWidth = 70.0; //.1
+width = 70.0; //.1
 //Length (i.e., distance from back) (in mm) of the internal dimension or item you wish to hold
-potHolderDepth = 70.0; //.1
+depth = 70.0; //.1
 
-drainPanHeight = potHolderHeight * 0.4;
+holdHeight = height * .3;
 /* [Additional Customization] */
 
 //Thickness of bin walls (in mm)
 wallThickness = 2; //.1
-//Thickness of bin  (in mm)
-baseThickness = 3; //.1
-frontChamfer = 5;
 
+//Thickness of bin  (in mm)
+baseThickness = 2; //.1
+frontChamfer = 5;
 /*[Slot Customization]*/
 onRampHalfOffset = true;
 //Distance between Multiconnect slots on the back (25mm is standard for MultiBoard)
@@ -44,7 +44,6 @@ onRampEveryXSlots = 1;
 //Distance from the back of the item holder to where the multiconnect stops (i.e., where the dimple is) (by mm)
 multiconnectStopDistanceFromBack = 13;
 
-
 /* [Hidden] */
 
 distanceBetweenSlots = 
@@ -55,25 +54,25 @@ distanceBetweenSlots =
 Connection_Standard = "Multiconnect";
    
   
-//PotHolder();
+PotHolder();
 
-module PotHolder(potHolderWidth = potHolderWidth,
-                 potHolderDepth = potHolderDepth,
-                 potHolderHeight = potHolderHeight,
-                 drainPanHeight = drainPanHeight,
+module PotHolder(width = width,
+                 depth = depth,
+                 height = height,
+                 holdHeight = holdHeight,
                  baseThickness = baseThickness,
                  wallThickness = wallThickness,
                  frontChamfer = frontChamfer) {
 
     //Calculated
-    totalWidth = potHolderWidth + wallThickness*2;
-    totalHeight = potHolderHeight + baseThickness ;
+    totalWidth = width + wallThickness*2;
+    totalHeight = height + baseThickness;
     union(){
-            back(0.01)
+            back(.01)
                 DrainPan(
-                    width = potHolderWidth,
-                    depth = potHolderDepth,
-                    height = drainPanHeight,
+                    width = width + wallThickness * 2,
+                    depth = depth + wallThickness * 2,
+                    height = holdHeight,
                     baseThickness = baseThickness,
                     wallThickness = wallThickness,
                     frontChamfer = frontChamfer);
@@ -88,18 +87,22 @@ module PotHolder(potHolderWidth = potHolderWidth,
  
 
 module DrainPan(width,depth,height,baseThickness,wallThickness,frontChamfer){
-    translate(v = [0,depth/2,0])
-        down(baseThickness)
-         rect_tube(
-            size= [width + wallThickness*2,depth + wallThickness*2],
-            h = height + baseThickness,
-            wall= wallThickness,
-            chamfer= [frontChamfer,frontChamfer,0,0],
-            ichamfer= [frontChamfer,frontChamfer,0,0] );
+   hole_w = (width - wallThickness *2 );
+   hole_d = (depth - wallThickness * 2);   
+   diff("hole")
+      cuboid(size= [width,depth,height],
+      chamfer = frontChamfer,
+      edges=[BACK+LEFT,BACK+RIGHT],
+      anchor = FORWARD+BOTTOM)
+        tag("hole")cuboid([hole_w,hole_d,height+1],chamfer = frontChamfer,edges=[BACK+LEFT,BACK+RIGHT])
+            position(TOP)
+              prismoid([hole_w,hole_d],[width,depth],height=3
+                 , chamfer=[frontChamfer,frontChamfer,0,0],anchor =TOP);
+         
 
 
     //bottom
-   cuboid([width+0.01, depth+0.01, baseThickness], chamfer=frontChamfer, edges = [BACK+RIGHT, BACK+LEFT], anchor=TOP+FRONT);
+   cuboid([width, depth, baseThickness], chamfer=frontChamfer, edges = [BACK+RIGHT, BACK+LEFT], anchor=TOP+FRONT);
 }
 //BEGIN MODULES
 //Slotted back Module
@@ -110,7 +113,7 @@ module makebackPlate(backWidth, backHeight, distanceBetweenSlots, backThickness,
     let (backWidth = max(backWidth,distanceBetweenSlots), backHeight = max(backHeight, 25),slotCount = floor(backWidth/distanceBetweenSlots)- subtractedSlots){
             difference() {
                 translate(v = [0,-backThickness,0]) 
-                cuboid(size = [backWidth,backThickness,backHeight], rounding=edgeRounding, edges=FRONT, except_edges=BOT, anchor=FRONT+LEFT+BOT, $fn = 25);
+                cuboid(size = [backWidth,backThickness,backHeight], rounding=edgeRounding, edges=FRONT, except_edges=BOT, anchor=FRONT+LEFT+BOT, $fn = 60);
                 //Loop through slots and center on the item
                 //Note: I kept doing math until it looked right. It's possible this can be simplified.
                 for (slotNum = [0:1:slotCount-1]) {
