@@ -9,5 +9,5 @@ holdHeight = height * .3;
 potHeight = height- holdHeight;
 
 PotHolder(width,depth,height,holdHeight);
-up(holdHeight) 
+up(holdHeight+30) 
     PotInsert(width,depth,potHeight);

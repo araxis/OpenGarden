@@ -17,14 +17,16 @@ seatHeight = 5;
 
 PotInsert(width, depth, height);
 
-module PotInsert(width,depth,height,
-         chamfer = frontChamfer,
-         baseThickness = baseThickness,
-         holeAreaPadding = holeAreaPadding,
-         holeRows = holeRows,
-         holeCols = holeCols,
-         holeDiameter = holeDiameter,
-         seatHeight = seatHeight){
+module PotInsert(width, depth, height,
+             wallThickness = wallThickness,
+             chamfer = frontChamfer,
+             baseThickness = baseThickness,
+             holeAreaPadding = holeAreaPadding,
+             holeRows = holeRows,
+             holeCols = holeCols,
+             holeDiameter = holeDiameter,
+             seatHeight = seatHeight){
+             
 w = width + wallThickness * 2;
 d= depth + wallThickness * 2;
 h= height;
@@ -35,23 +37,35 @@ h= height;
             wall= wallThickness,
             chamfer= [chamfer,chamfer,0,0],
             ichamfer= [chamfer,chamfer,0,0],
-            anchor = FRONT+BOTTOM );    
-            Base(w,d,seatHeight,holeAreaPadding,holeRows,holeCols,holeDiameter);
+            anchor = FRONT+BOTTOM )
+         attach(BOTTOM,TOP)    
+            Base(w,d,seatHeight,wallThickness,baseThickness,chamfer,holeAreaPadding,holeRows,holeCols,holeDiameter);
            
 }
 
-module Base(width,depth,thinkness,holeAreaPadding,holeRows,holeCols,holeDiameter){
+module Base(width, depth, height,wallThickness,baseThickness, chamfer, holeAreaPadding, holeRows, holeCols, holeDiameter){
     //ring
    ring_w = (width - wallThickness *2 ) - 0.4;
    ring_d = (depth - wallThickness *2 ) - 0.4;
-difference(){
-    prismoid([ring_w,ring_d],[width,depth],height=thinkness,anchor = TOP + FRONT,chamfer=[frontChamfer,frontChamfer,0,0]);
-      //attach(BOTTOM,TOP,overlap = .1);
-       // Ring(ring_w,ring_d,3);
- back(width/2)
-  grid_copies(n=[holeRows,holeCols], size=[width-holeAreaPadding,depth-holeAreaPadding])
-          cyl(d=holeDiameter,h=30);      
-   }    
+diff("hole")   
+        rect_tube(
+            size1= [ring_w, ring_d],
+            size2= [width, depth],
+            h = height ,
+            wall= wallThickness,
+            chamfer= [chamfer,chamfer,0,0],
+            ichamfer= [chamfer,chamfer,0,0],
+            anchor = FRONT+BOTTOM)
+                attach(BOTTOM,TOP,overlap=0.1)
+                    prismoid([ring_w,ring_d],
+                        [ring_w,ring_d],
+                        height=baseThickness,
+                        anchor = TOP + FRONT,
+                        chamfer=[chamfer,chamfer,0,0])
+                            tag("hole") 
+                                grid_copies(n=[holeRows,holeCols], size=[width-holeAreaPadding,depth-holeAreaPadding])
+                                        cyl(d=holeDiameter,h=30);      
+       
 }
 
 module Ring(w,d,h){
