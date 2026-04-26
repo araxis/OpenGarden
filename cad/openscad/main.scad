@@ -14,7 +14,7 @@ Print_Spacing = 20; // [5:1:80]
 
 /*[Pot Size]*/
 // Total outside height used by the holder/drain and pot insert assembly.
-Pot_Height = 100.0; // [40:0.5:150]
+Pot_Height = 100.0; // [40:0.5:450]
 // Outside width of the pot and holder.
 Pot_Width = 70.0; // [30:0.5:450]
 // Outside depth of the pot and holder.

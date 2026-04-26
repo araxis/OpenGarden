@@ -66,8 +66,8 @@ module PotInsert(
 
 module Base(width, depth, height, wallThickness, baseThickness, chamfer, chamferBackSide, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter) {
   //ring
-  ring_w = (width - wallThickness * 2) - 0.4;
-  ring_d = (depth - wallThickness * 2) - 0.4;
+  ring_w = (width - wallThickness * 2) - 0.3;
+  ring_d = (depth - wallThickness * 2) - 0.3;
   side_chamfer = side_chamfers(chamfer, chamferBackSide);
   diff("hole")
     rect_tube(
