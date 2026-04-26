@@ -21,9 +21,16 @@ cad/openscad/
 `main.scad` is the entry point for previewing or exporting:
 
 - `Assembly`
+- `Freestanding Pot`
 - `Print Layout`
 - `Holder Only`
+- `Drain Only`
 - `Pot Insert Only`
+
+The `OpenGrid_Support` flag selects whether shared modes are for the OpenGrid-mounted holder or the freestanding drain/pot pair:
+
+- `OpenGrid_Support = true`: `Assembly` and `Print Layout` use the holder and pot insert.
+- `OpenGrid_Support = false`: `Assembly` and `Print Layout` use the drain pan and pot insert.
 
 ---
 
