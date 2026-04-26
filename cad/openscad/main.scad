@@ -31,9 +31,11 @@ Wall_Thickness = 2; // [1:0.25:8]
 Base_Thickness = 2; // [1:0.25:8]
 
 /*[Drain Hole Pattern]*/
-// Number of drain hole rows in the pot insert base.
+// Shape of the drain hole layout in the pot insert base.
+Hole_Pattern = "Rectangle"; // [Rectangle, Circle]
+// Rectangle: row count. Circle: ring count.
 Hole_Rows = 4; // [1:1:10]
-// Number of drain hole columns in the pot insert base.
+// Rectangle: column count. Circle: holes per ring.
 Hole_Columns = 4; // [1:1:10]
 // Diameter of each drain hole.
 Hole_Diameter = 5; // [1:0.5:15]
@@ -62,6 +64,7 @@ frontChamfer = Front_Chamfer;
 chamferBackSide = Chamfer_Back_Side;
 holdHeight = height * holdHeightRatio;
 potHeight = height - holdHeight;
+holePattern = Hole_Pattern;
 holeRows = Hole_Rows;
 holeCols = Hole_Columns;
 holeDiameter = Hole_Diameter;
@@ -89,6 +92,7 @@ if (outputMode == "Assembly") {
   PotInsert(
     width, depth, potHeight, chamferBackSide=chamferBackSide, anchor=BOTTOM + FRONT,
     holeAreaPadding=holeAreaPadding,
+    holePattern=holePattern,
     holeRows=holeRows,
     holeCols=holeCols,
     holeDiameter=holeDiameter
@@ -102,6 +106,7 @@ module PotAssembly() {
         PotInsert(
           width, depth, potHeight, chamferBackSide=false,
           holeAreaPadding=holeAreaPadding,
+          holePattern=holePattern,
           holeRows=holeRows,
           holeCols=holeCols,
           holeDiameter=holeDiameter
@@ -125,6 +130,7 @@ module FreestandingPot() {
       PotInsert(
         width, depth, potHeight, chamferBackSide=chamferBackSide,
         holeAreaPadding=holeAreaPadding,
+        holePattern=holePattern,
         holeRows=holeRows,
         holeCols=holeCols,
         holeDiameter=holeDiameter
@@ -139,6 +145,7 @@ module PrintLayout() {
       PotInsert(
         width, depth, potHeight, chamferBackSide=false, anchor=BOTTOM + FRONT,
         holeAreaPadding=holeAreaPadding,
+        holePattern=holePattern,
         holeRows=holeRows,
         holeCols=holeCols,
         holeDiameter=holeDiameter
@@ -158,6 +165,7 @@ module PrintLayout() {
       PotInsert(
         width, depth, potHeight, chamferBackSide=chamferBackSide, anchor=BOTTOM + FRONT,
         holeAreaPadding=holeAreaPadding,
+        holePattern=holePattern,
         holeRows=holeRows,
         holeCols=holeCols,
         holeDiameter=holeDiameter
