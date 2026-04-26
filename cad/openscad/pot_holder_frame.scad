@@ -92,6 +92,7 @@ module PotHolder(
                     baseThickness=baseThickness,
                     wallThickness=wallThickness,
                     frontChamfer=frontChamfer,
+                    chamferBackSide=false,
                     seatHeight=seatHeight,
                     anchor=BOTTOM + FRONT
                   );
