@@ -29,6 +29,7 @@ module DrainPan(
 ) {
   hole_w = (width - wallThickness * 2);
   hole_d = (depth - wallThickness * 2);
+  cavity_h = height - baseThickness + 0.1;
   chamfer_edges = chamferBackSide
     ? [BACK + LEFT, BACK + RIGHT, FRONT + LEFT, FRONT + RIGHT]
     : [BACK + LEFT, BACK + RIGHT];
@@ -39,22 +40,28 @@ module DrainPan(
 
   attachable(anchor, spin, orient, size=[width, depth, height], anchors=anchors) {
     down(height / 2) fwd(depth / 2)
-        union() {
-          diff("hole")
-            cuboid(
-              size=[width, depth, height],
-              chamfer=frontChamfer,
-              edges=chamfer_edges,
-              anchor=FORWARD + BOTTOM
-            )
-              tag("hole") cuboid([hole_w, hole_d, height + 1], chamfer=frontChamfer, edges=chamfer_edges)
+        diff("hole")
+          cuboid(
+            size=[width, depth, height],
+            chamfer=frontChamfer,
+            edges=chamfer_edges,
+            anchor=FORWARD + BOTTOM
+          )
+            tag("hole")
+              up(baseThickness / 2)
+                cuboid(
+                  [hole_w, hole_d, cavity_h],
+                  chamfer=frontChamfer,
+                  edges=chamfer_edges
+                )
                   position(TOP)
                     prismoid(
-                      [hole_w, hole_d], [width, depth], height=seatHeight, chamfer=side_chamfers(frontChamfer, chamferBackSide), anchor=TOP
+                      [hole_w, hole_d],
+                      [width, depth],
+                      height=seatHeight,
+                      chamfer=side_chamfers(frontChamfer, chamferBackSide),
+                      anchor=TOP
                     );
-          //bottom
-          cuboid([width, depth, baseThickness], chamfer=frontChamfer, edges=chamfer_edges, anchor=BOTTOM + FRONT);
-        }
     children();
   }
 }
