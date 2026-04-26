@@ -35,7 +35,7 @@ Base_Thickness = 2; // [1:0.25:8]
 Hole_Pattern = "Rectangle"; // [Rectangle, Circle]
 // Rectangle: row count. Circle: ring count.
 Hole_Rows = 4; // [1:1:10]
-// Rectangle: column count. Circle: holes per ring.
+// Rectangle: column count. Circle: holes added per ring.
 Hole_Columns = 4; // [1:1:10]
 // Diameter of each drain hole.
 Hole_Diameter = 5; // [1:0.5:15]

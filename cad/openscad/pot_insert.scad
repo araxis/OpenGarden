@@ -101,7 +101,7 @@ module DrainHolePattern(width, depth, holeAreaPadding, holePattern, holeRows, ho
     radius = min(span_x, span_y) / 2;
     for (ring = [0:rows - 1]) {
       ring_radius = rows <= 1 ? 0 : ring * radius / (rows - 1);
-      holes = ring == 0 ? 1 : cols;
+      holes = ring == 0 ? 1 : cols * ring;
       for (hole = [0:holes - 1])
         translate([
           ring_radius * cos(360 * hole / holes),
