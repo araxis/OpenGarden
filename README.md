@@ -1,0 +1,98 @@
+# OpenGarden
+
+OpenGarden is a modular self-watering planter project built around OpenGrid-style mechanical mounting, 3D-printed parts, and a future ESP32-based watering controller.
+
+The current work is focused on the mechanical CAD for a wall-mounted holder, drain/reservoir area, and removable pot insert. Electronics, firmware, backend, and UI folders are reserved for later phases.
+
+## Current Status
+
+- OpenSCAD CAD modules for the holder, drain pan, back plate, and pot insert
+- BOSL2 attachable anchors for assembling the pot insert into the holder
+- Main OpenSCAD entry point with assembly and print/export layouts
+- Research and design notes for self-watering strategies
+
+## Repository Layout
+
+```text
+OpenGarden/
+  cad/
+    openscad/                 OpenSCAD CAD source files
+  docs/
+    mechanical/               Mechanical design notes
+    self_watering_research/   Research notes and reference images
+    self_watering_design.md   Current system design direction
+  assets/                     Project assets
+  backend/                    Reserved for backend services
+  electronics/                Reserved for circuit/electronics files
+  firmware/                   Reserved for ESP32 firmware
+  scripts/                    Reserved for helper scripts
+  ui/                         Reserved for user interface work
+```
+
+## CAD Workflow
+
+The main CAD entry point is:
+
+```text
+cad/openscad/main.scad
+```
+
+Open it in OpenSCAD Nightly and use the `outputMode` customizer value:
+
+```scad
+outputMode = "Assembly"; // [Assembly, Print Layout, Holder Only, Pot Insert Only]
+```
+
+Modes:
+
+- `Assembly`: shows the holder and pot insert assembled for fit checking
+- `Print Layout`: places the holder and pot insert side by side for easier STL export and printing
+- `Holder Only`: exports just the holder
+- `Pot Insert Only`: exports just the removable insert
+
+The print layout spacing can be adjusted with:
+
+```scad
+printSpacing = 20;
+```
+
+## CAD Dependencies
+
+The OpenSCAD files use [BOSL2](https://github.com/BelfrySCAD/BOSL2). The project has been tested with OpenSCAD Nightly.
+
+Expected local OpenSCAD path on the current development machine:
+
+```text
+C:\Program Files\OpenSCAD (Nightly)
+```
+
+To export from the command line:
+
+```powershell
+& 'C:\Program Files\OpenSCAD (Nightly)\openscad.com' -o output.stl cad\openscad\main.scad
+```
+
+To export a specific mode:
+
+```powershell
+& 'C:\Program Files\OpenSCAD (Nightly)\openscad.com' -D 'outputMode="Print Layout"' -o print-layout.stl cad\openscad\main.scad
+```
+
+## Design Direction
+
+The project is moving toward an active pump-based self-watering system:
+
+- removable pot insert
+- drain/reservoir section
+- OpenGrid-compatible mounting
+- future ESP32 pump control
+- later support for moisture or water-level sensors
+
+See [docs/self_watering_design.md](docs/self_watering_design.md) for the current design notes.
+
+## Development Notes
+
+- Keep CAD modules reusable and avoid rendering sample objects from library files.
+- Define shared BOSL2 anchor names in `cad/openscad/anchor_names.scad`.
+- Use `main.scad` as the output/export entry point.
+- Validate OpenSCAD changes by exporting the relevant `outputMode` values.
