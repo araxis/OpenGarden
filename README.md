@@ -4,6 +4,8 @@ OpenGarden is a modular self-watering planter project built around OpenGrid-styl
 
 The current work is focused on the mechanical CAD for a wall-mounted holder, drain/reservoir area, and removable pot insert. Electronics, firmware, backend, and UI folders are reserved for later phases.
 
+![OpenGarden assembled CAD view](docs/images/cad/opengarden-assembly.png)
+
 ## Current Status
 
 - OpenSCAD CAD modules for the holder, drain pan, back plate, and pot insert
@@ -49,6 +51,8 @@ Modes:
 - `Print Layout`: places the holder and pot insert side by side for easier STL export and printing
 - `Holder Only`: exports just the holder
 - `Pot Insert Only`: exports just the removable insert
+
+![OpenGarden print layout CAD view](docs/images/cad/opengarden-print-layout.png)
 
 The print layout spacing can be adjusted with:
 

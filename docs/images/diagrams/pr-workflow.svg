@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1150" height="360" viewBox="0 0 1150 360" role="img" aria-labelledby="title desc">
+  <title id="title">Pull request workflow</title>
+  <desc id="desc">Branch, commit, push, open pull request, review, then merge to master.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/>
+    </marker>
+    <style>
+      .bg { fill: #f8fafc; }
+      .box { fill: #ffffff; stroke: #334155; stroke-width: 2; rx: 10; }
+      .main { fill: #ecfdf5; stroke: #059669; }
+      .title { font: 700 24px Arial, sans-serif; fill: #0f172a; }
+      .label { font: 700 16px Arial, sans-serif; fill: #0f172a; }
+      .small { font: 13px Arial, sans-serif; fill: #334155; }
+      .arrow { stroke: #334155; stroke-width: 2.2; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect class="bg" width="1150" height="360"/>
+  <text class="title" x="50" y="52">Repository Workflow</text>
+
+  <rect class="box" x="50" y="130" width="155" height="90"/>
+  <text class="label" x="84" y="168">Create Branch</text>
+  <text class="small" x="82" y="194">feat/, fix/, docs/</text>
+
+  <rect class="box" x="255" y="130" width="155" height="90"/>
+  <text class="label" x="303" y="168">Commit</text>
+  <text class="small" x="282" y="194">Conventional Commits</text>
+
+  <rect class="box" x="460" y="130" width="155" height="90"/>
+  <text class="label" x="520" y="168">Push</text>
+  <text class="small" x="486" y="194">feature branch only</text>
+
+  <rect class="box" x="665" y="130" width="155" height="90"/>
+  <text class="label" x="715" y="168">Open PR</text>
+  <text class="small" x="695" y="194">target master</text>
+
+  <rect class="box" x="870" y="130" width="155" height="90"/>
+  <text class="label" x="924" y="168">Review</text>
+  <text class="small" x="904" y="194">verify changes</text>
+
+  <rect class="box main" x="500" y="265" width="185" height="60"/>
+  <text class="label" x="542" y="302">Merge to master</text>
+
+  <path class="arrow" d="M205 175 H255"/>
+  <path class="arrow" d="M410 175 H460"/>
+  <path class="arrow" d="M615 175 H665"/>
+  <path class="arrow" d="M820 175 H870"/>
+  <path class="arrow" d="M948 220 C910 280 780 295 685 295"/>
+  <text class="small" x="50" y="290">Rule: no direct feature pushes to master.</text>
+</svg>

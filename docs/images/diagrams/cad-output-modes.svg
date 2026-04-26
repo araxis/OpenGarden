@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+  <title id="title">OpenSCAD output modes</title>
+  <desc id="desc">main.scad outputMode values and what each mode exports.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/>
+    </marker>
+    <style>
+      .bg { fill: #f8fafc; }
+      .box { fill: #ffffff; stroke: #334155; stroke-width: 2; rx: 10; }
+      .entry { fill: #e0f2fe; stroke: #0284c7; }
+      .export { fill: #ecfdf5; stroke: #059669; }
+      .title { font: 700 26px Arial, sans-serif; fill: #0f172a; }
+      .label { font: 700 17px Arial, sans-serif; fill: #0f172a; }
+      .small { font: 14px Arial, sans-serif; fill: #334155; }
+      .arrow { stroke: #334155; stroke-width: 2.2; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="520"/>
+  <text class="title" x="60" y="58">CAD Output Modes</text>
+
+  <rect class="box entry" x="80" y="190" width="240" height="120"/>
+  <text class="label" x="125" y="235">main.scad</text>
+  <text class="small" x="125" y="265">outputMode selector</text>
+
+  <rect class="box export" x="460" y="70" width="250" height="90"/>
+  <text class="label" x="500" y="110">Assembly</text>
+  <text class="small" x="500" y="136">fit-check view</text>
+
+  <rect class="box export" x="800" y="70" width="250" height="90"/>
+  <text class="label" x="840" y="110">Print Layout</text>
+  <text class="small" x="840" y="136">separated parts</text>
+
+  <rect class="box export" x="460" y="330" width="250" height="90"/>
+  <text class="label" x="500" y="370">Holder Only</text>
+  <text class="small" x="500" y="396">single part export</text>
+
+  <rect class="box export" x="800" y="330" width="250" height="90"/>
+  <text class="label" x="840" y="370">Pot Insert Only</text>
+  <text class="small" x="840" y="396">single part export</text>
+
+  <path class="arrow" d="M320 235 C385 140 410 115 460 115"/>
+  <path class="arrow" d="M320 245 C520 180 650 115 800 115"/>
+  <path class="arrow" d="M320 265 C385 350 410 375 460 375"/>
+  <path class="arrow" d="M320 275 C520 335 650 375 800 375"/>
+</svg>

@@ -6,6 +6,8 @@ This step redesigns the mechanical architecture around OpenGrid as the structura
 
 The previous pot-first approach was rejected because the system requires a real load-bearing attachment to OpenGrid. The corrected design uses a carrier-first model.
 
+![OpenGarden module hierarchy](../../images/diagrams/module-hierarchy.svg)
+
 ## Module hierarchy
 
 - OpenGrid interface abstraction
@@ -38,3 +40,5 @@ The current OpenSCAD implementation is in `cad/openscad/`:
 - `anchor_names.scad`: shared BOSL2 anchor-name constants
 
 The holder and insert are assembled using named BOSL2 anchors so the CAD can show both the fit-check assembly and a separated print layout.
+
+![OpenGarden assembly CAD view](../../images/cad/opengarden-assembly.png)
