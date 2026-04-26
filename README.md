@@ -103,7 +103,7 @@ See [docs/self_watering_design.md](docs/self_watering_design.md) for the current
 Use short-lived branches for changes:
 
 ```powershell
-git checkout -b codex/your-change-name
+git checkout -b feat/your-change-name
 ```
 
 Before opening a pull request, verify any CAD changes with OpenSCAD Nightly and include the tested `outputMode` values in the PR description. See [CONTRIBUTING.md](CONTRIBUTING.md) for the repository workflow.

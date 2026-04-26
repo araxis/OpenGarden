@@ -9,7 +9,7 @@ Do not push changes directly to `master`.
 Use a short-lived branch:
 
 ```powershell
-git checkout -b codex/your-change-name
+git checkout -b feat/your-change-name
 ```
 
 Then commit, push the branch, and open a pull request into `master`.
