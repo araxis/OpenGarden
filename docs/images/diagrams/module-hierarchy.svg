@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="620" viewBox="0 0 1100 620" role="img" aria-labelledby="title desc">
+  <title id="title">OpenGarden module hierarchy and load path</title>
+  <desc id="desc">OpenGrid carries the holder, the holder carries the removable pot insert, and the insert carries lightweight accessories.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1f2937"/>
+    </marker>
+    <style>
+      .bg { fill: #f8fafc; }
+      .box { fill: #ffffff; stroke: #1f2937; stroke-width: 2; rx: 10; }
+      .load { fill: #dcfce7; stroke: #16a34a; }
+      .wet { fill: #dbeafe; stroke: #2563eb; }
+      .dry { fill: #fef3c7; stroke: #d97706; }
+      .future { fill: #f1f5f9; stroke: #64748b; stroke-dasharray: 7 6; }
+      .title { font: 700 26px Arial, sans-serif; fill: #111827; }
+      .label { font: 700 18px Arial, sans-serif; fill: #111827; }
+      .small { font: 15px Arial, sans-serif; fill: #374151; }
+      .arrow { stroke: #1f2937; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect class="bg" width="1100" height="620"/>
+  <text class="title" x="60" y="58">Module Hierarchy</text>
+
+  <rect class="box load" x="80" y="120" width="230" height="100"/>
+  <text class="label" x="120" y="160">Level 0</text>
+  <text class="small" x="120" y="190">OpenGrid structure</text>
+
+  <rect class="box load" x="410" y="120" width="250" height="100"/>
+  <text class="label" x="450" y="160">Level 1</text>
+  <text class="small" x="450" y="190">holder / carrier frame</text>
+
+  <rect class="box wet" x="760" y="120" width="250" height="100"/>
+  <text class="label" x="800" y="160">Level 2</text>
+  <text class="small" x="800" y="190">removable pot insert</text>
+
+  <rect class="box wet" x="430" y="350" width="220" height="90"/>
+  <text class="label" x="460" y="388">Level 3</text>
+  <text class="small" x="460" y="415">sensor holder</text>
+
+  <rect class="box wet" x="760" y="350" width="220" height="90"/>
+  <text class="label" x="790" y="388">Level 3</text>
+  <text class="small" x="790" y="415">tube clip</text>
+
+  <rect class="box dry" x="80" y="350" width="230" height="90"/>
+  <text class="label" x="120" y="388">Dry Module</text>
+  <text class="small" x="120" y="415">electronics plate</text>
+
+  <rect class="box future" x="410" y="500" width="250" height="70"/>
+  <text class="label" x="445" y="540">Future pump / hub</text>
+
+  <path class="arrow" d="M310 170 H410"/>
+  <path class="arrow" d="M660 170 H760"/>
+  <path class="arrow" d="M885 220 V350"/>
+  <path class="arrow" d="M760 395 H650"/>
+  <path class="arrow" d="M195 350 V220"/>
+  <text class="small" x="120" y="485">Rule: load flows OpenGrid -> holder -> insert -> accessories.</text>
+  <text class="small" x="120" y="515">Rule: wet modules and dry electronics stay separate.</text>
+</svg>

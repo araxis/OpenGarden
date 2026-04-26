@@ -19,6 +19,8 @@ The MVP consists of a **single plant module** with independent components:
 * Tube nozzle clip (controlled water delivery)
 * Electronics mount (separate dry-zone component)
 
+![OpenGarden module hierarchy](../../images/diagrams/module-hierarchy.svg)
+
 Each part is designed to be:
 
 * Modular

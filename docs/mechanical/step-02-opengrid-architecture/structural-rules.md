@@ -4,6 +4,8 @@
 
 Defines mechanical and architectural constraints for all modules.
 
+![Wet and dry module separation](../../images/diagrams/wet-dry-separation.svg)
+
 ---
 
 ## 1. Load Path

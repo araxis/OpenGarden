@@ -2,6 +2,8 @@
 
 This repository uses pull requests for all feature, CAD, documentation, and workflow changes.
 
+![Pull request workflow](docs/images/diagrams/pr-workflow.svg)
+
 ## Branch Workflow
 
 Do not push changes directly to `master`.
