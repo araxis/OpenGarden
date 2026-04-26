@@ -11,6 +11,8 @@ The goal is to build a **modular, reliable, and maintainable system** that integ
 - ESP32-based control
 - Optional automation and telemetry
 
+![OpenGarden system architecture](images/diagrams/system-architecture.svg)
+
 ---
 
 ## System Architecture

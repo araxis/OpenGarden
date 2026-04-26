@@ -4,6 +4,8 @@
 
 Defines how OpenSCAD files are structured and organized.
 
+![OpenSCAD output modes](../../images/diagrams/cad-output-modes.svg)
+
 ---
 
 ## Current Folder Structure

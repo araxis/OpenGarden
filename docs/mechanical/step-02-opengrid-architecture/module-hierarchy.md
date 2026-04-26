@@ -6,6 +6,8 @@ The OpenGarden system is built using a **carrier-first architecture**.
 
 All modules are categorized based on their role and mounting level.
 
+![OpenGarden module hierarchy](../../images/diagrams/module-hierarchy.svg)
+
 ---
 
 ## Level 1 — OpenGrid Mounted Modules
