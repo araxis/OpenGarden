@@ -39,17 +39,20 @@ The main CAD entry point is:
 cad/openscad/main.scad
 ```
 
-Open it in OpenSCAD Nightly and use the `outputMode` customizer value:
+Open it in OpenSCAD Nightly and use the `Output_Mode` customizer value:
 
 ```scad
-outputMode = "Assembly"; // [Assembly, Print Layout, Holder Only, Pot Insert Only]
+Output_Mode = "Assembly"; // [Assembly, Freestanding Pot, Print Layout, Holder Only, Drain Only, Pot Insert Only]
+OpenGrid_Support = true;
 ```
 
 Modes:
 
-- `Assembly`: shows the holder and pot insert assembled for fit checking
-- `Print Layout`: places the holder and pot insert side by side for easier STL export and printing
+- `Assembly`: shows either the OpenGrid holder assembly or the freestanding drain/pot assembly, based on `OpenGrid_Support`
+- `Freestanding Pot`: assembles the drain pan and pot insert without the OpenGrid back plate
+- `Print Layout`: places the printable parts side by side; with `OpenGrid_Support = true` it shows the holder and pot insert, and with `OpenGrid_Support = false` it shows the drain pan and pot insert
 - `Holder Only`: exports just the holder
+- `Drain Only`: exports just the drain pan/reservoir section
 - `Pot Insert Only`: exports just the removable insert
 
 ![OpenGarden print layout CAD view](docs/images/cad/opengarden-print-layout.png)
@@ -57,7 +60,7 @@ Modes:
 The print layout spacing can be adjusted with:
 
 ```scad
-printSpacing = 20;
+Print_Spacing = 20;
 ```
 
 ## CAD Dependencies
@@ -79,7 +82,7 @@ To export from the command line:
 To export a specific mode:
 
 ```powershell
-& 'C:\Program Files\OpenSCAD (Nightly)\openscad.com' -D 'outputMode="Print Layout"' -o print-layout.stl cad\openscad\main.scad
+& 'C:\Program Files\OpenSCAD (Nightly)\openscad.com' -D 'Output_Mode="Print Layout"' -o print-layout.stl cad\openscad\main.scad
 ```
 
 ## Design Direction
@@ -99,7 +102,7 @@ See [docs/self_watering_design.md](docs/self_watering_design.md) for the current
 - Keep CAD modules reusable and avoid rendering sample objects from library files.
 - Define shared BOSL2 anchor names in `cad/openscad/anchor_names.scad`.
 - Use `main.scad` as the output/export entry point.
-- Validate OpenSCAD changes by exporting the relevant `outputMode` values.
+- Validate OpenSCAD changes by exporting the relevant `Output_Mode` values.
 - Do not push feature work directly to `master`; create a branch and open a pull request first.
 
 ## Contributing
@@ -110,4 +113,4 @@ Use short-lived branches for changes:
 git checkout -b feat/your-change-name
 ```
 
-Before opening a pull request, verify any CAD changes with OpenSCAD Nightly and include the tested `outputMode` values in the PR description. See [CONTRIBUTING.md](CONTRIBUTING.md) for the repository workflow.
+Before opening a pull request, verify any CAD changes with OpenSCAD Nightly and include the tested `Output_Mode` values in the PR description. See [CONTRIBUTING.md](CONTRIBUTING.md) for the repository workflow.

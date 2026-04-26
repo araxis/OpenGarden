@@ -8,6 +8,7 @@ width = 70.0;
 depth = 70.0;
 wallThickness = 2;
 frontChamfer = 5;
+chamferBackSide = false;
 baseThickness = 2;
 holeAreaPadding = 25;
 holeRows = 4;
@@ -21,6 +22,7 @@ module PotInsert(
   height,
   wallThickness = wallThickness,
   chamfer = frontChamfer,
+  chamferBackSide = chamferBackSide,
   baseThickness = baseThickness,
   holeAreaPadding = holeAreaPadding,
   holeRows = holeRows,
@@ -36,6 +38,7 @@ module PotInsert(
   d = depth;
   h = height;
   seat_z = -h / 2 + seatHeight + baseThickness;
+  side_chamfer = side_chamfers(chamfer, chamferBackSide);
   anchors = [
     named_anchor(POT_INSERT_ANCHOR_BOTTOM, [0, 0, seat_z], DOWN)
   ];
@@ -48,29 +51,30 @@ module PotInsert(
             size=[w, d],
             h=h,
             wall=wallThickness,
-            chamfer=[chamfer, chamfer, 0, 0],
-            ichamfer=[chamfer, chamfer, 0, 0],
+            chamfer=side_chamfer,
+            ichamfer=side_chamfer,
             anchor=FRONT + BOTTOM
           )
             attach(BOTTOM, TOP)
-              Base(w, d, seatHeight, wallThickness, baseThickness, chamfer, holeAreaPadding, holeRows, holeCols, holeDiameter);
+              Base(w, d, seatHeight, wallThickness, baseThickness, chamfer, chamferBackSide, holeAreaPadding, holeRows, holeCols, holeDiameter);
 
     children();
   }
 }
 
-module Base(width, depth, height, wallThickness, baseThickness, chamfer, holeAreaPadding, holeRows, holeCols, holeDiameter) {
+module Base(width, depth, height, wallThickness, baseThickness, chamfer, chamferBackSide, holeAreaPadding, holeRows, holeCols, holeDiameter) {
   //ring
   ring_w = (width - wallThickness * 2) - 0.4;
   ring_d = (depth - wallThickness * 2) - 0.4;
+  side_chamfer = side_chamfers(chamfer, chamferBackSide);
   diff("hole")
     rect_tube(
       size1=[ring_w, ring_d],
       size2=[width, depth],
       h=height,
       wall=wallThickness,
-      chamfer=[chamfer, chamfer, 0, 0],
-      ichamfer=[chamfer, chamfer, 0, 0],
+      chamfer=side_chamfer,
+      ichamfer=side_chamfer,
       anchor=FRONT + BOTTOM
     )
       attach(BOTTOM, TOP, overlap=0.1)
@@ -79,12 +83,33 @@ module Base(width, depth, height, wallThickness, baseThickness, chamfer, holeAre
           [ring_w, ring_d],
           height=baseThickness,
           anchor=TOP + FRONT,
-          chamfer=[chamfer, chamfer, 0, 0]
+          chamfer=side_chamfer
         )
           tag("hole")
-            grid_copies(n=[holeRows, holeCols], size=[width - holeAreaPadding, depth - holeAreaPadding])
-              cyl(d=holeDiameter, h=30);
+            DrainHolePattern(width, depth, holeAreaPadding, holeRows, holeCols, holeDiameter);
 }
+
+module DrainHolePattern(width, depth, holeAreaPadding, holeRows, holeCols, holeDiameter) {
+  rows = max(1, round(holeRows));
+  cols = max(1, round(holeCols));
+  span_x = max(0, width - holeAreaPadding);
+  span_y = max(0, depth - holeAreaPadding);
+
+  for (row = [0:rows - 1])
+    for (col = [0:cols - 1])
+      translate([
+        hole_offset(row, rows, span_x),
+        hole_offset(col, cols, span_y),
+        0
+      ])
+        cyl(d=holeDiameter, h=30);
+}
+
+function hole_offset(index, count, span) =
+  count <= 1 ? 0 : -span / 2 + index * span / (count - 1);
+
+function side_chamfers(chamfer, chamferBackSide) =
+  chamferBackSide ? [chamfer, chamfer, chamfer, chamfer] : [chamfer, chamfer, 0, 0];
 
 module Ring(w, d, h) {
   rect_tube(

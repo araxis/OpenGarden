@@ -2,39 +2,165 @@ include <BOSL2/std.scad>
 include <anchor_names.scad>
 use <pot_holder_frame.scad>
 use <pot_insert.scad>
+use <pot_drain.scad>
+
+/*[Output]*/
+// Preview/export target.
+Output_Mode = "Print Layout"; // [Assembly, Freestanding Pot, Print Layout, Holder Only, Drain Only, Pot Insert Only]
+// true: use the OpenGrid holder/back plate; false: use the freestanding drain pan.
+OpenGrid_Support = false;
+// Distance between separate parts in Print Layout mode.
+Print_Spacing = 20; // [5:1:80]
+
+/*[Pot Size]*/
+// Total outside height used by the holder/drain and pot insert assembly.
+Pot_Height = 100.0; // [40:0.5:150]
+// Outside width of the pot and holder.
+Pot_Width = 70.0; // [30:0.5:450]
+// Outside depth of the pot and holder.
+Pot_Depth = 70.0; // [30:0.5:450]
+// Fraction of the total height reserved for the lower drain/reservoir area.
+Reservoir_Height_Ratio = 0.3; // [0.1:0.01:0.6]
+
+/*[Walls and Seat]*/
+// Height of the insert support seat.
+Seat_Height = 5; // [1:0.5:5]
+// Wall thickness for printed pot/drain parts.
+Wall_Thickness = 2; // [1:0.25:8]
+// Thickness of the drain/insert base.
+Base_Thickness = 2; // [1:0.25:8]
+
+/*[Drain Hole Pattern]*/
+// Number of drain hole rows in the pot insert base.
+Hole_Rows = 4; // [1:1:10]
+// Number of drain hole columns in the pot insert base.
+Hole_Columns = 4; // [1:1:10]
+// Diameter of each drain hole.
+Hole_Diameter = 5; // [1:0.5:15]
+// Padding around the drain hole grid.
+Hole_Area_Padding = 25; // [0:0.5:80]
+
+/*[Chamfers]*/
+// Chamfer size on the front-facing side edges.
+Front_Chamfer = 5; // [0:0.5:20]
+// Applies back-side chamfers only when OpenGrid_Support is false.
+Chamfer_Back_Side = true;
+
+/*[Hidden]*/
 $fn = 100;
-
-/* [Output] */
-outputMode = "Assembly"; // [Assembly, Print Layout, Holder Only, Pot Insert Only]
-printSpacing = 20;
-
-/*[Pot Customization]*/
-// combo box for number
-height = 100.0;//[150]
-width = 70.0; 
-depth = 70.0; 
-holdHeight = height * .3;
+outputMode = Output_Mode;
+openGridSupport = OpenGrid_Support;
+printSpacing = Print_Spacing;
+height = Pot_Height;
+width = Pot_Width;
+depth = Pot_Depth;
+holdHeightRatio = Reservoir_Height_Ratio;
+seatHeight = Seat_Height;
+wallThickness = Wall_Thickness;
+baseThickness = Base_Thickness;
+frontChamfer = Front_Chamfer;
+chamferBackSide = Chamfer_Back_Side;
+holdHeight = height * holdHeightRatio;
 potHeight = height - holdHeight;
+holeRows = Hole_Rows;
+holeCols = Hole_Columns;
+holeDiameter = Hole_Diameter;
+holeAreaPadding = Hole_Area_Padding;
 
 if (outputMode == "Assembly") {
-    PotAssembly();
+  PotAssembly();
+} else if (outputMode == "Freestanding Pot") {
+  FreestandingPot();
 } else if (outputMode == "Print Layout") {
-    PrintLayout();
+  PrintLayout();
 } else if (outputMode == "Holder Only") {
-    PotHolder(width, depth, height, holdHeight, anchor = BOTTOM + FRONT);
+  PotHolder(width, depth, height, holdHeight, anchor=BOTTOM + FRONT);
+} else if (outputMode == "Drain Only") {
+  DrainPan(
+    width, depth, holdHeight,
+    baseThickness=baseThickness,
+    wallThickness=wallThickness,
+    frontChamfer=frontChamfer,
+    chamferBackSide=chamferBackSide,
+    seatHeight=seatHeight,
+    anchor=BOTTOM + FRONT
+  );
 } else if (outputMode == "Pot Insert Only") {
-    PotInsert(width, depth, potHeight, anchor = BOTTOM + FRONT);
+  PotInsert(
+    width, depth, potHeight, chamferBackSide=chamferBackSide, anchor=BOTTOM + FRONT,
+    holeAreaPadding=holeAreaPadding,
+    holeRows=holeRows,
+    holeCols=holeCols,
+    holeDiameter=holeDiameter
+  );
 }
 
 module PotAssembly() {
-  PotHolder(width, depth, height, holdHeight, anchor = BOTTOM + FRONT)
+  if (openGridSupport) {
+    PotHolder(width, depth, height, holdHeight, anchor=BOTTOM + FRONT)
+      attach(DRAIN_ANCHOR_TOP, POT_INSERT_ANCHOR_BOTTOM)
+        PotInsert(
+          width, depth, potHeight, chamferBackSide=false,
+          holeAreaPadding=holeAreaPadding,
+          holeRows=holeRows,
+          holeCols=holeCols,
+          holeDiameter=holeDiameter
+        );
+  } else {
+    FreestandingPot();
+  }
+}
+
+module FreestandingPot() {
+  DrainPan(
+    width, depth, holdHeight,
+    baseThickness=baseThickness,
+    wallThickness=wallThickness,
+    frontChamfer=frontChamfer,
+    chamferBackSide=chamferBackSide,
+    seatHeight=seatHeight,
+    anchor=BOTTOM + FRONT
+  )
     attach(DRAIN_ANCHOR_TOP, POT_INSERT_ANCHOR_BOTTOM)
-        PotInsert(width, depth, potHeight);
+      PotInsert(
+        width, depth, potHeight, chamferBackSide=chamferBackSide,
+        holeAreaPadding=holeAreaPadding,
+        holeRows=holeRows,
+        holeCols=holeCols,
+        holeDiameter=holeDiameter
+      );
 }
 
 module PrintLayout() {
-  PotHolder(width, depth, height, holdHeight, anchor = BOTTOM + FRONT);
+  if (openGridSupport) {
+    PotHolder(width, depth, height, holdHeight, anchor=BOTTOM + FRONT);
 
-  right(width + printSpacing)
-    PotInsert(width, depth, potHeight, anchor = BOTTOM + FRONT);
+    right(width + printSpacing)
+      PotInsert(
+        width, depth, potHeight, chamferBackSide=false, anchor=BOTTOM + FRONT,
+        holeAreaPadding=holeAreaPadding,
+        holeRows=holeRows,
+        holeCols=holeCols,
+        holeDiameter=holeDiameter
+      );
+  } else {
+    DrainPan(
+      width, depth, holdHeight,
+      baseThickness=baseThickness,
+      wallThickness=wallThickness,
+      frontChamfer=frontChamfer,
+      chamferBackSide=chamferBackSide,
+      seatHeight=seatHeight,
+      anchor=BOTTOM + FRONT
+    );
+
+    right(width + printSpacing)
+      PotInsert(
+        width, depth, potHeight, chamferBackSide=chamferBackSide, anchor=BOTTOM + FRONT,
+        holeAreaPadding=holeAreaPadding,
+        holeRows=holeRows,
+        holeCols=holeCols,
+        holeDiameter=holeDiameter
+      );
+  }
 }
