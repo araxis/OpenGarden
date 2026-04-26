@@ -6,8 +6,32 @@ Defines how OpenSCAD files are structured and organized.
 
 ---
 
-## Folder Structure
+## Current Folder Structure
 
+```text
+cad/openscad/
+  anchor_names.scad
+  back_plate.scad
+  main.scad
+  pot_drain.scad
+  pot_holder_frame.scad
+  pot_insert.scad
+```
+
+`main.scad` is the entry point for previewing or exporting:
+
+- `Assembly`
+- `Print Layout`
+- `Holder Only`
+- `Pot Insert Only`
+
+---
+
+## Target Folder Structure
+
+As the project grows, the CAD can move toward this structure:
+
+```text
 cad/openscad/
 
 - params/
@@ -27,6 +51,7 @@ cad/openscad/
 
 - main.scad
   - Entry point
+```
 
 ---
 

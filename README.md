@@ -96,3 +96,14 @@ See [docs/self_watering_design.md](docs/self_watering_design.md) for the current
 - Define shared BOSL2 anchor names in `cad/openscad/anchor_names.scad`.
 - Use `main.scad` as the output/export entry point.
 - Validate OpenSCAD changes by exporting the relevant `outputMode` values.
+- Do not push feature work directly to `master`; create a branch and open a pull request first.
+
+## Contributing
+
+Use short-lived branches for changes:
+
+```powershell
+git checkout -b codex/your-change-name
+```
+
+Before opening a pull request, verify any CAD changes with OpenSCAD Nightly and include the tested `outputMode` values in the PR description. See [CONTRIBUTING.md](CONTRIBUTING.md) for the repository workflow.

@@ -1,4 +1,4 @@
-Self-Watering System Design
+# Self-Watering System Design
 
 ## Overview
 
@@ -22,7 +22,7 @@ The system is divided into clear layers:
 - contains reservoir
 - provides structural support
 
-### 2. Insert (next module)
+### 2. Insert (current module)
 - holds plant and soil
 - interfaces with water system
 - removable
@@ -272,12 +272,16 @@ Plants require oxygen in the root zone.
 ## Current Status
 
 ### Completed
-- openGrid-mounted holder
-- reservoir space
-- refill access
+- OpenGrid-mounted holder
+- drain/reservoir space
+- removable pot insert
+- shared OpenSCAD anchors for holder/insert assembly
+- `main.scad` output modes for assembly, print layout, and single-part export
 
 ### Next Step
-👉 Design `pot_insert.scad`
+- validate the printed holder and pot insert fit
+- define overflow behavior and water line
+- decide where pump tubing should enter the insert
 
 ---
 
@@ -299,9 +303,12 @@ Features:
 ### Phase 1 (current)
 - holder design ✔
 - research ✔
+- pot insert design ✔
+- assembly and print export modes ✔
 
 ### Phase 2
-- insert design
+- print validation
+- overflow and refill design
 - basic pump integration
 
 ### Phase 3
