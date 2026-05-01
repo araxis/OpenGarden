@@ -68,6 +68,13 @@ module makebackPlate(
     backHeight = max(height, 25),
     fullSlotCount = floor(backWidth / distanceBetweenSlots),
     slotCount = max(0, fullSlotCount - subtractedSlots),
+    spreadSlotSpacing =
+      slotCount <= 1 ? 0
+      : max(
+          distanceBetweenSlots,
+          floor((backWidth - distanceBetweenSlots) / ((slotCount - 1) * distanceBetweenSlots)) * distanceBetweenSlots
+        ),
+    spreadSlotStartX = (backWidth - spreadSlotSpacing * (slotCount - 1)) / 2,
     slotStartX =
       slotPlacement == "Left" ? distanceBetweenSlots / 2
       : slotPlacement == "Right" ? backWidth - distanceBetweenSlots / 2 - (slotCount - 1) * distanceBetweenSlots
@@ -81,11 +88,8 @@ module makebackPlate(
               if (slotCount > 0) {
                 for (slotNum = [0:1:slotCount - 1]) {
                   let (
-                    spreadSlotIndex =
-                      slotCount == 1 ? (fullSlotCount - 1) / 2
-                      : round(slotNum * (fullSlotCount - 1) / (slotCount - 1)),
                     slotX =
-                      slotPlacement == "Spread" ? distanceBetweenSlots / 2 + spreadSlotIndex * distanceBetweenSlots
+                      slotPlacement == "Spread" ? spreadSlotStartX + slotNum * spreadSlotSpacing
                       : slotStartX + slotNum * distanceBetweenSlots
                   )
                   translate(v=[slotX, -2.35 + slotDepthMicroadjustment, backHeight - multiconnectStopDistanceFromBack])
