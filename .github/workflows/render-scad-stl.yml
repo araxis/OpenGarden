@@ -1,0 +1,61 @@
+name: Render OpenSCAD STL previews
+
+on:
+  pull_request:
+    paths:
+      - "cad/openscad/**/*.scad"
+      - ".github/workflows/render-scad-stl.yml"
+      - "scripts/render_changed_scad_stls.sh"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  render-stl:
+    name: Render changed SCAD files
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install OpenSCAD
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openscad
+
+      - name: Render STL previews
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          OUTPUT_DIR: artifacts/stl
+        run: bash scripts/render_changed_scad_stls.sh
+
+      - name: Write job summary
+        shell: bash
+        run: |
+          {
+            echo "## OpenSCAD STL previews"
+            echo
+            if compgen -G "artifacts/stl/*.stl" > /dev/null; then
+              echo "Generated STL files are attached as the \`openscad-stl-previews\` workflow artifact."
+              echo
+              echo "| STL file |"
+              echo "| --- |"
+              for file in artifacts/stl/*.stl; do
+                echo "| \`$(basename "$file")\` |"
+              done
+            else
+              echo "No STL files were generated."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload STL previews
+        uses: actions/upload-artifact@v4
+        with:
+          name: openscad-stl-previews
+          path: artifacts/stl/*.stl
+          if-no-files-found: ignore
