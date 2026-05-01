@@ -27,6 +27,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y openscad
 
+      - name: Install BOSL2
+        run: |
+          mkdir -p "$HOME/.local/share/OpenSCAD/libraries"
+          git clone --depth 1 https://github.com/BelfrySCAD/BOSL2.git "$HOME/.local/share/OpenSCAD/libraries/BOSL2"
+
       - name: Render STL previews
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.sha }}
