@@ -11,6 +11,8 @@ Output_Mode = "Print Layout"; // [Assembly, Freestanding Pot, Print Layout, Hold
 OpenGrid_Support = false;
 // Reduces the number of OpenGrid slots generated on the back plate.
 Subtracted_Slots = 0; // [0:1:10]
+// Where remaining OpenGrid slots sit after subtraction.
+Slot_Placement = "Center"; // [Center, Left, Right]
 // Distance between separate parts in Print Layout mode.
 Print_Spacing = 20; // [5:1:80]
 
@@ -55,6 +57,7 @@ $fn = 100;
 outputMode = Output_Mode;
 openGridSupport = OpenGrid_Support;
 subtractedSlots = Subtracted_Slots;
+slotPlacement = Slot_Placement;
 printSpacing = Print_Spacing;
 height = Pot_Height;
 width = Pot_Width;
@@ -80,7 +83,7 @@ if (outputMode == "Assembly") {
 } else if (outputMode == "Print Layout") {
   PrintLayout();
 } else if (outputMode == "Holder Only") {
-  PotHolder(width, depth, height, holdHeight, subtractedSlots=subtractedSlots, anchor=BOTTOM + FRONT);
+  PotHolder(width, depth, height, holdHeight, subtractedSlots=subtractedSlots, slotPlacement=slotPlacement, anchor=BOTTOM + FRONT);
 } else if (outputMode == "Drain Only") {
   DrainPan(
     width, depth, holdHeight,
@@ -104,7 +107,7 @@ if (outputMode == "Assembly") {
 
 module PotAssembly() {
   if (openGridSupport) {
-    PotHolder(width, depth, height, holdHeight, subtractedSlots=subtractedSlots, anchor=BOTTOM + FRONT)
+    PotHolder(width, depth, height, holdHeight, subtractedSlots=subtractedSlots, slotPlacement=slotPlacement, anchor=BOTTOM + FRONT)
       attach(DRAIN_ANCHOR_TOP, POT_INSERT_ANCHOR_BOTTOM)
         PotInsert(
           width, depth, potHeight, chamferBackSide=false,
@@ -142,7 +145,7 @@ module FreestandingPot() {
 
 module PrintLayout() {
   if (openGridSupport) {
-    PotHolder(width, depth, height, holdHeight, subtractedSlots=subtractedSlots, anchor=BOTTOM + FRONT);
+    PotHolder(width, depth, height, holdHeight, subtractedSlots=subtractedSlots, slotPlacement=slotPlacement, anchor=BOTTOM + FRONT);
 
     right(width + printSpacing)
       PotInsert(

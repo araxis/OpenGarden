@@ -61,6 +61,8 @@ Set `OpenGrid_Support = false` when printing a freestanding pot that does not mo
 
 Set `Chamfer_Back_Side = true` to apply the side chamfer to both sides of the freestanding drain pan and pot insert. OpenGrid holder mode keeps the holder-facing chamfer style.
 
+For OpenGrid holders, `Subtracted_Slots` reduces the back-plate slot count and `Slot_Placement` controls whether the remaining slots stay centered or move to the left/right side of the plate.
+
 The insert drain hole pattern can be set with `Hole_Pattern` and adjusted with `Hole_Rows`, `Hole_Columns`, `Hole_Diameter`, and `Hole_Area_Padding`. `Rectangle` uses rows and columns; `Circle` uses rows as ring count and columns as holes per ring.
 
 The print layout spacing can be adjusted with:
