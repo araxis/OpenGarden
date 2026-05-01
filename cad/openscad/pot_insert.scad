@@ -65,7 +65,7 @@ module PotInsert(
               anchor=FRONT + BOTTOM
             )
               attach(BOTTOM, TOP)
-                Base(w, d, seatHeight, wallThickness, baseThickness, chamfer, chamferBackSide, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter);
+                Base(w, d, seatHeight, wallThickness, baseThickness, chamfer, chamferBackSide, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRows, gridColumns, gridWallThickness);
 
             InsertGrid(w, d, h, wallThickness, gridRows, gridColumns, gridWallThickness);
           }
@@ -94,7 +94,23 @@ module InsertGrid(width, depth, height, wallThickness, gridRows, gridColumns, gr
   }
 }
 
-module Base(width, depth, height, wallThickness, baseThickness, chamfer, chamferBackSide, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter) {
+module Base(
+  width,
+  depth,
+  height,
+  wallThickness,
+  baseThickness,
+  chamfer,
+  chamferBackSide,
+  holeAreaPadding,
+  holePattern,
+  holeRows,
+  holeCols,
+  holeDiameter,
+  gridRows,
+  gridColumns,
+  gridWallThickness
+) {
   //ring
   ring_w = (width - wallThickness * 2) - 0.3;
   ring_d = (depth - wallThickness * 2) - 0.3;
@@ -118,10 +134,29 @@ module Base(width, depth, height, wallThickness, baseThickness, chamfer, chamfer
           chamfer=side_chamfer
         )
           tag("hole")
-            DrainHolePattern(width, depth, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter);
+            DrainHolePattern(width, depth, wallThickness, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRows, gridColumns, gridWallThickness);
 }
 
-module DrainHolePattern(width, depth, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter) {
+module DrainHolePattern(width, depth, wallThickness, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRows, gridColumns, gridWallThickness) {
+  grid_rows = max(1, round(gridRows));
+  grid_cols = max(1, round(gridColumns));
+  divider = max(0.4, gridWallThickness);
+  inner_w = max(0, width - wallThickness * 2);
+  inner_d = max(0, depth - wallThickness * 2);
+  cell_w = max(0, (inner_w - divider * (grid_cols - 1)) / grid_cols);
+  cell_d = max(0, (inner_d - divider * (grid_rows - 1)) / grid_rows);
+
+  for (grid_row = [0:grid_rows - 1])
+    for (grid_col = [0:grid_cols - 1])
+      translate([
+        -inner_w / 2 + cell_w / 2 + grid_col * (cell_w + divider),
+        -inner_d / 2 + cell_d / 2 + grid_row * (cell_d + divider),
+        0
+      ])
+        CellDrainHolePattern(cell_w, cell_d, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter);
+}
+
+module CellDrainHolePattern(width, depth, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter) {
   rows = max(1, round(holeRows));
   cols = max(1, round(holeCols));
   span_x = max(0, width - holeAreaPadding);

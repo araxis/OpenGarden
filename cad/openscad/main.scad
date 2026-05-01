@@ -35,15 +35,15 @@ Wall_Thickness = 2; // [1:0.25:8]
 Base_Thickness = 2; // [1:0.25:8]
 
 /*[Drain Hole Pattern]*/
-// Shape of the drain hole layout in the pot insert base.
+// Shape of the drain hole layout in each pot insert grid cell.
 Hole_Pattern = "Rectangle"; // [Rectangle, Circle]
-// Rectangle: row count. Circle: ring count.
+// Per cell. Rectangle: row count. Circle: ring count.
 Hole_Rows = 4; // [1:1:10]
-// Rectangle: column count. Circle: holes added per ring.
+// Per cell. Rectangle: column count. Circle: holes added per ring.
 Hole_Columns = 4; // [1:1:10]
 // Diameter of each drain hole.
 Hole_Diameter = 5; // [1:0.5:15]
-// Padding around the drain hole grid.
+// Padding around each cell's drain hole pattern.
 Hole_Area_Padding = 25; // [0:0.5:80]
 
 /*[Insert Grid]*/
