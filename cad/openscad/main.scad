@@ -9,6 +9,8 @@ use <pot_drain.scad>
 Output_Mode = "Print Layout"; // [Assembly, Freestanding Pot, Print Layout, Holder Only, Drain Only, Pot Insert Only]
 // true: use the OpenGrid holder/back plate; false: use the freestanding drain pan.
 OpenGrid_Support = false;
+// Reduces the number of OpenGrid slots generated on the back plate.
+Subtracted_Slots = 0; // [0:1:10]
 // Distance between separate parts in Print Layout mode.
 Print_Spacing = 20; // [5:1:80]
 
@@ -52,6 +54,7 @@ Chamfer_Back_Side = true;
 $fn = 100;
 outputMode = Output_Mode;
 openGridSupport = OpenGrid_Support;
+subtractedSlots = Subtracted_Slots;
 printSpacing = Print_Spacing;
 height = Pot_Height;
 width = Pot_Width;
@@ -77,7 +80,7 @@ if (outputMode == "Assembly") {
 } else if (outputMode == "Print Layout") {
   PrintLayout();
 } else if (outputMode == "Holder Only") {
-  PotHolder(width, depth, height, holdHeight, anchor=BOTTOM + FRONT);
+  PotHolder(width, depth, height, holdHeight, subtractedSlots=subtractedSlots, anchor=BOTTOM + FRONT);
 } else if (outputMode == "Drain Only") {
   DrainPan(
     width, depth, holdHeight,
@@ -101,7 +104,7 @@ if (outputMode == "Assembly") {
 
 module PotAssembly() {
   if (openGridSupport) {
-    PotHolder(width, depth, height, holdHeight, anchor=BOTTOM + FRONT)
+    PotHolder(width, depth, height, holdHeight, subtractedSlots=subtractedSlots, anchor=BOTTOM + FRONT)
       attach(DRAIN_ANCHOR_TOP, POT_INSERT_ANCHOR_BOTTOM)
         PotInsert(
           width, depth, potHeight, chamferBackSide=false,
@@ -128,7 +131,7 @@ module FreestandingPot() {
   )
     attach(DRAIN_ANCHOR_TOP, POT_INSERT_ANCHOR_BOTTOM)
       PotInsert(
-        width, depth, potHeight, chamferBackSide=chamferBackSide,
+        width, depth, potHeight, chamfer=frontChamfer, chamferBackSide=chamferBackSide,
         holeAreaPadding=holeAreaPadding,
         holePattern=holePattern,
         holeRows=holeRows,
@@ -139,11 +142,11 @@ module FreestandingPot() {
 
 module PrintLayout() {
   if (openGridSupport) {
-    PotHolder(width, depth, height, holdHeight, anchor=BOTTOM + FRONT);
+    PotHolder(width, depth, height, holdHeight, subtractedSlots=subtractedSlots, anchor=BOTTOM + FRONT);
 
     right(width + printSpacing)
       PotInsert(
-        width, depth, potHeight, chamferBackSide=false, anchor=BOTTOM + FRONT,
+        width, depth, potHeight, chamfer=frontChamfer, chamferBackSide=false, anchor=BOTTOM + FRONT,
         holeAreaPadding=holeAreaPadding,
         holePattern=holePattern,
         holeRows=holeRows,
@@ -163,7 +166,7 @@ module PrintLayout() {
 
     right(width + printSpacing)
       PotInsert(
-        width, depth, potHeight, chamferBackSide=chamferBackSide, anchor=BOTTOM + FRONT,
+        width, depth, potHeight, chamfer=frontChamfer, chamferBackSide=chamferBackSide, anchor=BOTTOM + FRONT,
         holeAreaPadding=holeAreaPadding,
         holePattern=holePattern,
         holeRows=holeRows,
