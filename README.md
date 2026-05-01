@@ -63,7 +63,7 @@ Set `Chamfer_Back_Side = true` to apply the side chamfer to both sides of the fr
 
 For OpenGrid holders, `Subtracted_Slots` reduces the back-plate slot count and `Slot_Placement` controls whether the remaining slots stay centered, move to the left/right side of the plate, or spread across valid OpenGrid positions.
 
-The insert drain hole pattern can be set with `Hole_Pattern` and adjusted with `Hole_Rows`, `Hole_Columns`, `Hole_Diameter`, and `Hole_Area_Padding`. The pattern is generated inside each pot insert grid cell. `Rectangle` uses rows and columns; `Circle` uses rows as ring count and columns as holes per ring.
+The insert drain hole pattern can be set with `Hole_Pattern` and adjusted with `Hole_Rows`, `Hole_Columns`, `Hole_Diameter`, and `Hole_Area_Padding`. The pattern is generated inside each pot insert grid cell. `Rectangle` uses rows and columns; `Circle` uses rows as a maximum ring count and columns as holes per ring. Circle mode may use fewer rings when a cell is too small to fit the requested rings cleanly.
 
 The pot insert interior is always treated as a grid. The default `Grid_Rows = 1` and `Grid_Columns = 1` creates one open compartment, while larger values add solid internal divider walls. `Grid_Wall_Thickness` controls the divider wall thickness.
 

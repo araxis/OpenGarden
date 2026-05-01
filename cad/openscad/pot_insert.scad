@@ -163,14 +163,18 @@ module CellDrainHolePattern(width, depth, holeAreaPadding, holePattern, holeRows
   span_y = max(0, depth - holeAreaPadding);
 
   if (holePattern == "Circle") {
-    radius = min(span_x, span_y) / 2;
-    for (ring = [0:rows - 1]) {
-      ring_radius = rows <= 1 ? 0 : ring * radius / (rows - 1);
+    radius = max(0, min(span_x, span_y) / 2 - holeDiameter / 2);
+    ring_spacing = holeDiameter * 1.15;
+    fitted_rows = radius <= 0 ? 1 : min(rows, floor(radius / ring_spacing) + 1);
+
+    for (ring = [0:fitted_rows - 1]) {
+      ring_radius = fitted_rows <= 1 ? 0 : ring * radius / (fitted_rows - 1);
       holes = ring == 0 ? 1 : cols * ring;
+      angle_offset = ring % 2 == 0 ? 180 / holes : 0;
       for (hole = [0:holes - 1])
         translate([
-          ring_radius * cos(360 * hole / holes),
-          ring_radius * sin(360 * hole / holes),
+          ring_radius * cos(angle_offset + 360 * hole / holes),
+          ring_radius * sin(angle_offset + 360 * hole / holes),
           0
         ])
           cyl(d=holeDiameter, h=30);
