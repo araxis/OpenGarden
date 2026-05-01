@@ -47,8 +47,6 @@ Hole_Diameter = 5; // [1:0.5:15]
 Hole_Area_Padding = 25; // [0:0.5:80]
 
 /*[Insert Grid]*/
-// Adds solid divider walls inside the pot insert.
-Grid_Enabled = false;
 // Number of front/back grid rows inside the insert.
 Grid_Rows = 1; // [1:1:8]
 // Number of left/right grid columns inside the insert.
@@ -85,7 +83,6 @@ holeRows = Hole_Rows;
 holeCols = Hole_Columns;
 holeDiameter = Hole_Diameter;
 holeAreaPadding = Hole_Area_Padding;
-gridEnabled = Grid_Enabled;
 gridRows = Grid_Rows;
 gridColumns = Grid_Columns;
 gridWallThickness = Grid_Wall_Thickness;
@@ -116,7 +113,6 @@ if (outputMode == "Assembly") {
     holeRows=holeRows,
     holeCols=holeCols,
     holeDiameter=holeDiameter,
-    gridEnabled=gridEnabled,
     gridRows=gridRows,
     gridColumns=gridColumns,
     gridWallThickness=gridWallThickness
@@ -134,7 +130,6 @@ module PotAssembly() {
           holeRows=holeRows,
           holeCols=holeCols,
           holeDiameter=holeDiameter,
-          gridEnabled=gridEnabled,
           gridRows=gridRows,
           gridColumns=gridColumns,
           gridWallThickness=gridWallThickness
@@ -162,7 +157,6 @@ module FreestandingPot() {
         holeRows=holeRows,
         holeCols=holeCols,
         holeDiameter=holeDiameter,
-        gridEnabled=gridEnabled,
         gridRows=gridRows,
         gridColumns=gridColumns,
         gridWallThickness=gridWallThickness
@@ -181,7 +175,6 @@ module PrintLayout() {
         holeRows=holeRows,
         holeCols=holeCols,
         holeDiameter=holeDiameter,
-        gridEnabled=gridEnabled,
         gridRows=gridRows,
         gridColumns=gridColumns,
         gridWallThickness=gridWallThickness
@@ -205,7 +198,6 @@ module PrintLayout() {
         holeRows=holeRows,
         holeCols=holeCols,
         holeDiameter=holeDiameter,
-        gridEnabled=gridEnabled,
         gridRows=gridRows,
         gridColumns=gridColumns,
         gridWallThickness=gridWallThickness

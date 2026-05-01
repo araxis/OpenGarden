@@ -16,7 +16,6 @@ holeRows = 4;
 holeCols = 4;
 holeDiameter = 5;
 seatHeight = 5;
-gridEnabled = false;
 gridRows = 1;
 gridColumns = 1;
 gridWallThickness = 2;
@@ -35,7 +34,6 @@ module PotInsert(
   holeCols = holeCols,
   holeDiameter = holeDiameter,
   seatHeight = seatHeight,
-  gridEnabled = gridEnabled,
   gridRows = gridRows,
   gridColumns = gridColumns,
   gridWallThickness = gridWallThickness,
@@ -69,8 +67,7 @@ module PotInsert(
               attach(BOTTOM, TOP)
                 Base(w, d, seatHeight, wallThickness, baseThickness, chamfer, chamferBackSide, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter);
 
-            if (gridEnabled)
-              InsertGrid(w, d, h, wallThickness, gridRows, gridColumns, gridWallThickness);
+            InsertGrid(w, d, h, wallThickness, gridRows, gridColumns, gridWallThickness);
           }
 
     children();
