@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   render-stl:
@@ -21,6 +21,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
 
       - name: Install OpenSCAD
         run: |
@@ -39,6 +41,28 @@ jobs:
           OUTPUT_DIR: artifacts/stl
         run: bash scripts/render_changed_scad_stls.sh
 
+      - name: Commit STL previews to pull request
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        shell: bash
+        run: |
+          mkdir -p previews/stl
+          rm -f previews/stl/*.stl
+
+          if compgen -G "artifacts/stl/*.stl" > /dev/null; then
+            cp artifacts/stl/*.stl previews/stl/
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add previews/stl
+
+          if git diff --cached --quiet; then
+            echo "No STL preview changes to commit."
+          else
+            git commit -m "chore(cad): update stl previews"
+            git push
+          fi
+
       - name: Write job summary
         shell: bash
         run: |
@@ -46,12 +70,16 @@ jobs:
             echo "## OpenSCAD STL previews"
             echo
             if compgen -G "artifacts/stl/*.stl" > /dev/null; then
-              echo "Generated STL files are attached as the \`openscad-stl-previews\` workflow artifact."
+              echo "Generated STL files are committed under \`previews/stl/\` so GitHub can show the STL viewer from the pull request."
+              echo
+              echo "They are also attached as the \`openscad-stl-previews\` workflow artifact."
               echo
               echo "| STL file |"
               echo "| --- |"
               for file in artifacts/stl/*.stl; do
-                echo "| \`$(basename "$file")\` |"
+                name="$(basename "$file")"
+                ref="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+                echo "| [\`$name\`](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/blob/$ref/previews/stl/$name) |"
               done
             else
               echo "No STL files were generated."
