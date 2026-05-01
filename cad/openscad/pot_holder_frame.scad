@@ -29,6 +29,7 @@ module PotHolder(
   depth = depth,
   height = height,
   holdHeight = holdHeight,
+  subtractedSlots = 0,
   baseThickness = baseThickness,
   wallThickness = wallThickness,
   backThickness = backThickness,
@@ -81,6 +82,7 @@ module PotHolder(
               width=width,
               height=height,
               thickness=backThickness,
+              subtractedSlots=subtractedSlots,
               anchor=BOTTOM + FRONT
             )
               position(BACK + BOTTOM)

@@ -49,7 +49,7 @@ module makebackPlate(
   height,
   thickness,
   distanceBetweenSlots = distanceBetweenSlots,
-  subtractedSlots = 0,
+  subtractedSlots = subtractedSlots,
   edgeRounding = 1,
   onRampHalfOffset = onRampHalfOffset,
   slotQuickRelease = slotQuickRelease,
