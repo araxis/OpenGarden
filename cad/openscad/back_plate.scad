@@ -20,7 +20,7 @@ customDistanceBetweenSlots = 25;
 //Reduce the number of slots
 subtractedSlots = 0;
 //Where remaining slots should sit when slots are subtracted
-slotPlacement = "Center"; // [Center, Left, Right]
+slotPlacement = "Center"; // [Center, Left, Right, Spread]
 //QuickRelease removes the small indent in the top of the slots that lock the part into place
 slotQuickRelease = true;
 //Dimple scale tweaks the size of the dimple in the slot for printers that need a larger dimple to print correctly
@@ -68,6 +68,13 @@ module makebackPlate(
     backHeight = max(height, 25),
     fullSlotCount = floor(backWidth / distanceBetweenSlots),
     slotCount = max(0, fullSlotCount - subtractedSlots),
+    spreadSlotSpacing =
+      slotCount <= 1 ? 0
+      : max(
+          distanceBetweenSlots,
+          floor((backWidth - distanceBetweenSlots) / ((slotCount - 1) * distanceBetweenSlots)) * distanceBetweenSlots
+        ),
+    spreadSlotStartX = (backWidth - spreadSlotSpacing * (slotCount - 1)) / 2,
     slotStartX =
       slotPlacement == "Left" ? distanceBetweenSlots / 2
       : slotPlacement == "Right" ? backWidth - distanceBetweenSlots / 2 - (slotCount - 1) * distanceBetweenSlots
@@ -80,7 +87,12 @@ module makebackPlate(
                 cuboid(size=[backWidth, thickness, backHeight], rounding=edgeRounding, edges=FRONT, except_edges=BOT, anchor=FRONT + LEFT + BOT, $fn=60);
               if (slotCount > 0) {
                 for (slotNum = [0:1:slotCount - 1]) {
-                  translate(v=[slotStartX + slotNum * distanceBetweenSlots, -2.35 + slotDepthMicroadjustment, backHeight - multiconnectStopDistanceFromBack])
+                  let (
+                    slotX =
+                      slotPlacement == "Spread" ? spreadSlotStartX + slotNum * spreadSlotSpacing
+                      : slotStartX + slotNum * distanceBetweenSlots
+                  )
+                  translate(v=[slotX, -2.35 + slotDepthMicroadjustment, backHeight - multiconnectStopDistanceFromBack])
                     multiConnectSlotTool(backHeight, onRampHalfOffset, distanceBetweenSlots, slotQuickRelease);
                 }
               }
