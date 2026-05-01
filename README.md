@@ -65,6 +65,8 @@ For OpenGrid holders, `Subtracted_Slots` reduces the back-plate slot count and `
 
 The insert drain hole pattern can be set with `Hole_Pattern` and adjusted with `Hole_Rows`, `Hole_Columns`, `Hole_Diameter`, and `Hole_Area_Padding`. `Rectangle` uses rows and columns; `Circle` uses rows as ring count and columns as holes per ring.
 
+Set `Grid_Enabled = true` to add solid internal divider walls inside the pot insert. `Grid_Rows`, `Grid_Columns`, and `Grid_Wall_Thickness` control the basic equal-cell divider layout.
+
 The print layout spacing can be adjusted with:
 
 ```scad
