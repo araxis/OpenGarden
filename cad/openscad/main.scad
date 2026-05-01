@@ -46,6 +46,16 @@ Hole_Diameter = 5; // [1:0.5:15]
 // Padding around the drain hole grid.
 Hole_Area_Padding = 25; // [0:0.5:80]
 
+/*[Insert Grid]*/
+// Adds solid divider walls inside the pot insert.
+Grid_Enabled = false;
+// Number of front/back grid rows inside the insert.
+Grid_Rows = 1; // [1:1:8]
+// Number of left/right grid columns inside the insert.
+Grid_Columns = 1; // [1:1:8]
+// Thickness of the internal grid divider walls.
+Grid_Wall_Thickness = 2; // [0.8:0.2:6]
+
 /*[Chamfers]*/
 // Chamfer size on the front-facing side edges.
 Front_Chamfer = 5; // [0:0.5:20]
@@ -75,6 +85,10 @@ holeRows = Hole_Rows;
 holeCols = Hole_Columns;
 holeDiameter = Hole_Diameter;
 holeAreaPadding = Hole_Area_Padding;
+gridEnabled = Grid_Enabled;
+gridRows = Grid_Rows;
+gridColumns = Grid_Columns;
+gridWallThickness = Grid_Wall_Thickness;
 
 if (outputMode == "Assembly") {
   PotAssembly();
@@ -101,7 +115,11 @@ if (outputMode == "Assembly") {
     holePattern=holePattern,
     holeRows=holeRows,
     holeCols=holeCols,
-    holeDiameter=holeDiameter
+    holeDiameter=holeDiameter,
+    gridEnabled=gridEnabled,
+    gridRows=gridRows,
+    gridColumns=gridColumns,
+    gridWallThickness=gridWallThickness
   );
 }
 
@@ -115,7 +133,11 @@ module PotAssembly() {
           holePattern=holePattern,
           holeRows=holeRows,
           holeCols=holeCols,
-          holeDiameter=holeDiameter
+          holeDiameter=holeDiameter,
+          gridEnabled=gridEnabled,
+          gridRows=gridRows,
+          gridColumns=gridColumns,
+          gridWallThickness=gridWallThickness
         );
   } else {
     FreestandingPot();
@@ -139,7 +161,11 @@ module FreestandingPot() {
         holePattern=holePattern,
         holeRows=holeRows,
         holeCols=holeCols,
-        holeDiameter=holeDiameter
+        holeDiameter=holeDiameter,
+        gridEnabled=gridEnabled,
+        gridRows=gridRows,
+        gridColumns=gridColumns,
+        gridWallThickness=gridWallThickness
       );
 }
 
@@ -154,7 +180,11 @@ module PrintLayout() {
         holePattern=holePattern,
         holeRows=holeRows,
         holeCols=holeCols,
-        holeDiameter=holeDiameter
+        holeDiameter=holeDiameter,
+        gridEnabled=gridEnabled,
+        gridRows=gridRows,
+        gridColumns=gridColumns,
+        gridWallThickness=gridWallThickness
       );
   } else {
     DrainPan(
@@ -174,7 +204,11 @@ module PrintLayout() {
         holePattern=holePattern,
         holeRows=holeRows,
         holeCols=holeCols,
-        holeDiameter=holeDiameter
+        holeDiameter=holeDiameter,
+        gridEnabled=gridEnabled,
+        gridRows=gridRows,
+        gridColumns=gridColumns,
+        gridWallThickness=gridWallThickness
       );
   }
 }

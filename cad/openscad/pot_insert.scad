@@ -16,6 +16,10 @@ holeRows = 4;
 holeCols = 4;
 holeDiameter = 5;
 seatHeight = 5;
+gridEnabled = false;
+gridRows = 1;
+gridColumns = 1;
+gridWallThickness = 2;
 
 module PotInsert(
   width,
@@ -31,6 +35,10 @@ module PotInsert(
   holeCols = holeCols,
   holeDiameter = holeDiameter,
   seatHeight = seatHeight,
+  gridEnabled = gridEnabled,
+  gridRows = gridRows,
+  gridColumns = gridColumns,
+  gridWallThickness = gridWallThickness,
   anchor = CENTER,
   spin = 0,
   orient = UP
@@ -49,18 +57,43 @@ module PotInsert(
     assert(h > 0, "PotInsert height must be greater than seatHeight + baseThickness.")
       down(h / 2 - seatHeight - baseThickness)
         fwd(d / 2)
-          rect_tube(
-            size=[w, d],
-            h=h,
-            wall=wallThickness,
-            chamfer=side_chamfer,
-            ichamfer=side_chamfer,
-            anchor=FRONT + BOTTOM
-          )
-            attach(BOTTOM, TOP)
-              Base(w, d, seatHeight, wallThickness, baseThickness, chamfer, chamferBackSide, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter);
+          union() {
+            rect_tube(
+              size=[w, d],
+              h=h,
+              wall=wallThickness,
+              chamfer=side_chamfer,
+              ichamfer=side_chamfer,
+              anchor=FRONT + BOTTOM
+            )
+              attach(BOTTOM, TOP)
+                Base(w, d, seatHeight, wallThickness, baseThickness, chamfer, chamferBackSide, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter);
+
+            if (gridEnabled)
+              InsertGrid(w, d, h, wallThickness, gridRows, gridColumns, gridWallThickness);
+          }
 
     children();
+  }
+}
+
+module InsertGrid(width, depth, height, wallThickness, gridRows, gridColumns, gridWallThickness) {
+  rows = max(1, round(gridRows));
+  cols = max(1, round(gridColumns));
+  divider = max(0.4, gridWallThickness);
+  inner_w = max(0, width - wallThickness * 2);
+  inner_d = max(0, depth - wallThickness * 2);
+
+  for (col = [1:cols - 1]) {
+    x = -inner_w / 2 + col * inner_w / cols;
+    translate([x, wallThickness, 0])
+      cuboid([divider, inner_d, height], anchor=FRONT + BOTTOM);
+  }
+
+  for (row = [1:rows - 1]) {
+    y = wallThickness + row * inner_d / rows - divider / 2;
+    translate([-inner_w / 2, y, 0])
+      cuboid([inner_w, divider, height], anchor=LEFT + FRONT + BOTTOM);
   }
 }
 
