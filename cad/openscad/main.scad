@@ -11,8 +11,8 @@ Output_Mode = "Print Layout"; // [Assembly, Freestanding Pot, Print Layout, Hold
 OpenGrid_Support = false;
 // Reduces the number of OpenGrid slots generated on the back plate.
 Subtracted_Slots = 0; // [0:1:10]
-// Where remaining OpenGrid slots sit after subtraction.
-Slot_Placement = "Center"; // [Center, Left, Right]
+// Where remaining OpenGrid slots sit after subtraction. Spread distributes slots across valid OpenGrid positions.
+Slot_Placement = "Center"; // [Center, Left, Right, Spread]
 // Distance between separate parts in Print Layout mode.
 Print_Spacing = 20; // [5:1:80]
 
