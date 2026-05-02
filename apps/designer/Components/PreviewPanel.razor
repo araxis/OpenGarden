@@ -1,19 +1,93 @@
+@inject IJSRuntime JS
+
 <MudPaper Class="preview-panel" Elevation="0">
     <MudText Typo="Typo.subtitle1" Class="panel-title">Preview</MudText>
     <div class="preview-stage">
-        <div class="pot-visual" style="@State.PotVisualStyle">
-            <div class="pot-rim"></div>
-            <div class="pot-grid">@State.GridLabel</div>
-        </div>
+        @if (_isRendering)
+        {
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+        }
+        else
+        {
+            <div class="pot-visual" style="@State.PotVisualStyle">
+                <div class="pot-rim"></div>
+                <div class="pot-grid">@State.GridLabel</div>
+            </div>
+        }
     </div>
     <MudStack Row="true" AlignItems="AlignItems.Center" Class="preview-meta">
         <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">OpenSCAD</MudChip>
         <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Outlined">STL</MudChip>
         <MudChip T="string" Size="Size.Small" Color="Color.Tertiary" Variant="Variant.Outlined">GitHub Pages</MudChip>
     </MudStack>
+
+    <MudStack Spacing="2" Class="mt-3">
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.ViewInAr" Disabled="_isRendering" OnClick="RenderAsync">
+            Render Preview STL
+        </MudButton>
+
+        @if (_result is { Ok: true })
+        {
+            <MudAlert Severity="Severity.Success" Dense="true">
+                STL generated in @_result.ElapsedMs.ToString("0") ms (@FormatBytes(_result.ByteLength)).
+            </MudAlert>
+            <MudButton OnClick="DownloadAsync" Variant="Variant.Outlined" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Download">
+                Download STL
+            </MudButton>
+        }
+        else if (_result is { Ok: false } && !string.IsNullOrWhiteSpace(_result.Message))
+        {
+            <MudAlert Severity="Severity.Error" Dense="false">@_result.Message</MudAlert>
+        }
+    </MudStack>
 </MudPaper>
 
 @code {
     [Parameter, EditorRequired]
     public DesignerState State { get; set; } = new();
+
+    private bool _isRendering;
+    private RendererResult? _result;
+
+    public async Task RenderAsync()
+    {
+        _isRendering = true;
+        _result = null;
+        StateHasChanged();
+
+        try
+        {
+            _result = await JS.InvokeAsync<RendererResult>(
+                "openGardenDesigner.renderPreviewStl",
+                State.GeneratePreviewScad());
+        }
+        catch (JSException ex)
+        {
+            _result = new RendererResult { Ok = false, Message = ex.Message };
+        }
+        finally
+        {
+            _isRendering = false;
+        }
+    }
+
+    private static string FormatBytes(int bytes)
+    {
+        if (bytes < 1024)
+        {
+            return $"{bytes} B";
+        }
+
+        return bytes < 1024 * 1024
+            ? $"{bytes / 1024d:0.0} KB"
+            : $"{bytes / 1024d / 1024d:0.0} MB";
+    }
+
+    private async Task DownloadAsync()
+    {
+        if (_result is { Ok: true })
+        {
+            await JS.InvokeVoidAsync("openGardenDesigner.downloadUrl", _result.DownloadUrl, _result.FileName);
+        }
+    }
 }
