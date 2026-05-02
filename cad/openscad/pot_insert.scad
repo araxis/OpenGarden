@@ -198,7 +198,14 @@ module DrainHolePattern(width, depth, wallThickness, holeAreaPadding, holePatter
         if (role == "Pot")
           CellDrainHolePattern(cell_w, cell_d, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter);
         else if (role == "FillTube")
-          FillTubeCutout(cell_w + left_ext + right_ext, cell_d + front_ext + back_ext, fillTubeClearance);
+          FillTubeCutout(
+            cell_w + left_ext + right_ext,
+            cell_d + front_ext + back_ext,
+            left_ext > 0 ? 0 : fillTubeClearance,
+            right_ext > 0 ? 0 : fillTubeClearance,
+            front_ext > 0 ? 0 : fillTubeClearance,
+            back_ext > 0 ? 0 : fillTubeClearance
+          );
       }
 }
 
@@ -222,12 +229,13 @@ function filltube_merges_back(spans, roles, overrides, row, col, rowCount, colCo
   && grid_horizontal_divider_blocked(spans, row + 1, col)
   && grid_cell_role(roles, overrides, row + 1, col, colCount) == "FillTube";
 
-module FillTubeCutout(width, depth, clearance) {
-  cut_w = max(0, width - clearance * 2);
-  cut_d = max(0, depth - clearance * 2);
+module FillTubeCutout(width, depth, leftClearance, rightClearance, frontClearance, backClearance) {
+  cut_w = max(0, width - leftClearance - rightClearance);
+  cut_d = max(0, depth - frontClearance - backClearance);
 
   if (cut_w > 0 && cut_d > 0)
-    cuboid([cut_w, cut_d, 30]);
+    translate([(leftClearance - rightClearance) / 2, (frontClearance - backClearance) / 2, 0])
+      cuboid([cut_w, cut_d, 30]);
 }
 
 module CellDrainHolePattern(width, depth, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter) {
