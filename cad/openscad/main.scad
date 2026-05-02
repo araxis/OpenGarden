@@ -53,6 +53,8 @@ Grid_Row_Sizes = "1*";
 Grid_Column_Sizes = "1*";
 // Comma-separated row-major cell roles. Use Pot, Box, or FillTube. Missing values default to Pot.
 Grid_Cell_Roles = "Pot";
+// Sparse role overrides using 1-based row,column=role entries. Example: 2,2=B;1,3=F.
+Grid_Cell_Role_Overrides = "";
 // Thickness of the internal grid divider walls.
 Grid_Wall_Thickness = 2; // [0.8:0.2:6]
 // Diameter of the bottom opening for FillTube cells.
@@ -90,6 +92,7 @@ holeAreaPadding = Hole_Area_Padding;
 gridRowSizes = Grid_Row_Sizes;
 gridColumnSizes = Grid_Column_Sizes;
 gridCellRoles = Grid_Cell_Roles;
+gridCellRoleOverrides = Grid_Cell_Role_Overrides;
 gridWallThickness = Grid_Wall_Thickness;
 fillTubeDiameter = Fill_Tube_Diameter;
 
@@ -125,6 +128,7 @@ if (outputMode == "Assembly") {
     gridRowSizes=gridRowSizes,
     gridColumnSizes=gridColumnSizes,
     gridCellRoles=gridCellRoles,
+    gridCellRoleOverrides=gridCellRoleOverrides,
     gridWallThickness=gridWallThickness,
     fillTubeDiameter=fillTubeDiameter
   );
@@ -146,6 +150,7 @@ module PotAssembly() {
           gridRowSizes=gridRowSizes,
           gridColumnSizes=gridColumnSizes,
           gridCellRoles=gridCellRoles,
+          gridCellRoleOverrides=gridCellRoleOverrides,
           gridWallThickness=gridWallThickness,
           fillTubeDiameter=fillTubeDiameter
         );
@@ -177,6 +182,7 @@ module FreestandingPot() {
         gridRowSizes=gridRowSizes,
         gridColumnSizes=gridColumnSizes,
         gridCellRoles=gridCellRoles,
+        gridCellRoleOverrides=gridCellRoleOverrides,
         gridWallThickness=gridWallThickness,
         fillTubeDiameter=fillTubeDiameter
       );
@@ -197,6 +203,7 @@ module PrintLayout() {
         gridRowSizes=gridRowSizes,
         gridColumnSizes=gridColumnSizes,
         gridCellRoles=gridCellRoles,
+        gridCellRoleOverrides=gridCellRoleOverrides,
         gridWallThickness=gridWallThickness,
         fillTubeDiameter=fillTubeDiameter
       );
@@ -222,6 +229,7 @@ module PrintLayout() {
         gridRowSizes=gridRowSizes,
         gridColumnSizes=gridColumnSizes,
         gridCellRoles=gridCellRoles,
+        gridCellRoleOverrides=gridCellRoleOverrides,
         gridWallThickness=gridWallThickness,
         fillTubeDiameter=fillTubeDiameter
       );

@@ -103,14 +103,50 @@ function grid_track_center(total, spec, count, divider, index) =
   + grid_track_size(total, spec, count, divider, index) / 2;
 
 function grid_cell_role(roles, row, col, colCount) =
+  grid_cell_role(roles, "", row, col, colCount);
+
+function grid_cell_role(roles, overrides, row, col, colCount) =
+  let (override = grid_cell_role_override(overrides, row + 1, col + 1))
+    override != "" ? override : grid_row_major_cell_role(roles, row, col, colCount);
+
+function grid_row_major_cell_role(roles, row, col, colCount) =
   let (
     index = row * colCount + col,
     start = grid_token_start(roles, index),
     end = grid_token_end(roles, start)
   )
-    grid_token_equals(roles, start, end, "Box") ? "Box"
-    : grid_token_equals(roles, start, end, "FillTube") ? "FillTube"
-    : "Pot";
+    grid_role_name(roles, start, end);
+
+function grid_cell_role_override(overrides, target_row, target_col, pos = 0) =
+  pos >= len(overrides) ? ""
+  : let (
+      start = grid_skip_spaces(overrides, pos),
+      raw_end = grid_delim_pos(overrides, start, len(overrides), ";"),
+      end = grid_trim_end(overrides, start, raw_end),
+      role = grid_cell_role_override_entry(overrides, start, end, target_row, target_col)
+    )
+      role != "" ? role : grid_cell_role_override(overrides, target_row, target_col, raw_end + 1);
+
+function grid_cell_role_override_entry(overrides, start, end, target_row, target_col) =
+  let (
+    comma = grid_delim_pos(overrides, start, end, ","),
+    equals = comma >= end ? end : grid_delim_pos(overrides, comma + 1, end, "="),
+    row = comma >= end ? -1 : round(grid_parse_number(overrides, start, comma)),
+    col = equals >= end ? -1 : round(grid_parse_number(overrides, comma + 1, equals))
+  )
+    row == target_row && col == target_col
+      ? grid_role_name(overrides, grid_skip_spaces(overrides, equals + 1), grid_trim_end(overrides, equals + 1, end))
+      : "";
+
+function grid_role_name(spec, start, end) =
+  grid_token_equals(spec, start, end, "B") || grid_token_equals(spec, start, end, "b") || grid_token_equals(spec, start, end, "Box") || grid_token_equals(spec, start, end, "box") ? "Box"
+  : grid_token_equals(spec, start, end, "F") || grid_token_equals(spec, start, end, "f") || grid_token_equals(spec, start, end, "FillTube") || grid_token_equals(spec, start, end, "filltube") ? "FillTube"
+  : "Pot";
+
+function grid_delim_pos(spec, start, end, delim) =
+  start >= end ? end
+  : spec[start] == delim ? start
+  : grid_delim_pos(spec, start + 1, end, delim);
 
 function grid_token_equals(spec, start, end, expected, pos = 0) =
   end - start != len(expected) ? false
