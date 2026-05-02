@@ -4,3 +4,8 @@
 
 /.vs/slnx.sqlite
 /.vs
+**/bin/
+**/obj/
+/.dotnet-home/
+/.nuget/
+/artifacts/
