@@ -59,8 +59,8 @@ Grid_Cell_Roles = "Pot";
 Grid_Cell_Role_Overrides = "";
 // Thickness of the internal grid divider walls.
 Grid_Wall_Thickness = 2; // [0.8:0.2:6]
-// Diameter of the bottom opening for FillTube cells.
-Fill_Tube_Diameter = 18; // [5:0.5:50]
+// Clearance around FillTube open-bottom cutouts to preserve nearby walls.
+Fill_Tube_Clearance = 0.8; // [0:0.1:5]
 
 /*[Chamfers]*/
 // Chamfer size on the front-facing side edges.
@@ -96,7 +96,7 @@ gridColumnSizes = Grid_Column_Sizes;
 gridCellRoles = Grid_Cell_Roles;
 gridCellRoleOverrides = Grid_Cell_Role_Overrides;
 gridWallThickness = Grid_Wall_Thickness;
-fillTubeDiameter = Fill_Tube_Diameter;
+fillTubeClearance = Fill_Tube_Clearance;
 
 if (outputMode == "Assembly") {
   PotAssembly();
@@ -132,7 +132,7 @@ if (outputMode == "Assembly") {
     gridCellRoles=gridCellRoles,
     gridCellRoleOverrides=gridCellRoleOverrides,
     gridWallThickness=gridWallThickness,
-    fillTubeDiameter=fillTubeDiameter
+    fillTubeClearance=fillTubeClearance
   );
 }
 
@@ -154,7 +154,7 @@ module PotAssembly() {
           gridCellRoles=gridCellRoles,
           gridCellRoleOverrides=gridCellRoleOverrides,
           gridWallThickness=gridWallThickness,
-          fillTubeDiameter=fillTubeDiameter
+          fillTubeClearance=fillTubeClearance
         );
   } else {
     FreestandingPot();
@@ -186,7 +186,7 @@ module FreestandingPot() {
         gridCellRoles=gridCellRoles,
         gridCellRoleOverrides=gridCellRoleOverrides,
         gridWallThickness=gridWallThickness,
-        fillTubeDiameter=fillTubeDiameter
+        fillTubeClearance=fillTubeClearance
       );
 }
 
@@ -207,7 +207,7 @@ module PrintLayout() {
         gridCellRoles=gridCellRoles,
         gridCellRoleOverrides=gridCellRoleOverrides,
         gridWallThickness=gridWallThickness,
-        fillTubeDiameter=fillTubeDiameter
+        fillTubeClearance=fillTubeClearance
       );
   } else {
     DrainPan(
@@ -233,7 +233,7 @@ module PrintLayout() {
         gridCellRoles=gridCellRoles,
         gridCellRoleOverrides=gridCellRoleOverrides,
         gridWallThickness=gridWallThickness,
-        fillTubeDiameter=fillTubeDiameter
+        fillTubeClearance=fillTubeClearance
       );
   }
 }
