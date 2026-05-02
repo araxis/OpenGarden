@@ -1,0 +1,59 @@
+<MudStack Spacing="2">
+    <MudGrid Spacing="2">
+        <MudItem xs="6" md="3">
+            <MudNumericField T="int" Label="Row" Min="1" Max="@RowCount" @bind-Value="Feature.Row" @bind-Value:after="NotifyChanged" />
+        </MudItem>
+        <MudItem xs="6" md="3">
+            <MudNumericField T="int" Label="Column" Min="1" Max="@ColumnCount" @bind-Value="Feature.Column" @bind-Value:after="NotifyChanged" />
+        </MudItem>
+        <MudItem xs="6" md="3">
+            <MudNumericField T="int" Label="Row Span" Min="1" Max="@RowCount" @bind-Value="Feature.SpanRows" @bind-Value:after="NotifyChanged" />
+        </MudItem>
+        <MudItem xs="6" md="3">
+            <MudNumericField T="int" Label="Column Span" Min="1" Max="@ColumnCount" @bind-Value="Feature.SpanColumns" @bind-Value:after="NotifyChanged" />
+        </MudItem>
+    </MudGrid>
+
+    <MudSelect T="string" Label="Feature" Dense="true" @bind-Value="Feature.Feature" @bind-Value:after="NotifyChanged">
+        @foreach (var option in FeatureTypes.All)
+        {
+            <MudSelectItem T="string" Value="@option">@Label(option)</MudSelectItem>
+        }
+    </MudSelect>
+
+    <FeatureSettings Feature="Feature" OnChanged="OnChanged" />
+
+    <MudStack Row="true" Justify="Justify.FlexEnd">
+        <MudButton Color="Color.Error" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Delete" OnClick="Remove">Remove</MudButton>
+    </MudStack>
+</MudStack>
+
+@code {
+    [Parameter, EditorRequired]
+    public CellFeatureConfig Feature { get; set; } = new();
+
+    [Parameter]
+    public int RowCount { get; set; } = 1;
+
+    [Parameter]
+    public int ColumnCount { get; set; } = 1;
+
+    [Parameter]
+    public EventCallback OnChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<CellFeatureConfig> OnRemove { get; set; }
+
+    private Task NotifyChanged() => OnChanged.InvokeAsync();
+
+    private Task Remove() => OnRemove.InvokeAsync(Feature);
+
+    private static string Label(string feature) => feature switch
+    {
+        FeatureTypes.DrainHoles => "Drain holes",
+        FeatureTypes.LidLip => "Lid lip",
+        FeatureTypes.WickPort => "Wick port",
+        FeatureTypes.FillTube => "Fill tube",
+        _ => feature
+    };
+}

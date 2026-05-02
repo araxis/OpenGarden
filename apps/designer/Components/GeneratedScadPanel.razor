@@ -1,0 +1,9 @@
+<MudPaper Class="section-panel" Elevation="0">
+    <MudText Typo="Typo.subtitle1" Class="panel-title">Generated OpenSCAD</MudText>
+    <MudTextField T="string" Value="@State.GenerateScadConfig()" Lines="18" ReadOnly="true" Variant="Variant.Outlined" />
+</MudPaper>
+
+@code {
+    [Parameter, EditorRequired]
+    public DesignerState State { get; set; } = new();
+}

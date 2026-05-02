@@ -1,0 +1,33 @@
+<MudPaper Class="section-panel" Elevation="0">
+    <MudText Typo="Typo.subtitle1" Class="panel-title">Insert Grid</MudText>
+    <MudTextField Label="Row Sizes" @bind-Value="State.GridRows" @bind-Value:after="NotifyChanged" HelperText="Examples: 1* or 1*,2*,25%" />
+    <MudTextField Label="Column Sizes" @bind-Value="State.GridColumns" @bind-Value:after="NotifyChanged" HelperText="Examples: 1*,1*,1*" />
+    <MudSelect T="string" Label="Default Cell Feature" Dense="true" @bind-Value="State.DefaultFeature" @bind-Value:after="NotifyChanged">
+        @foreach (var feature in FeatureTypes.Defaults)
+        {
+            <MudSelectItem T="string" Value="@feature">@Label(feature)</MudSelectItem>
+        }
+    </MudSelect>
+    <MudNumericField T="double" Label="Grid Wall Thickness" Min="0.8" Max="6" Step="0.2" @bind-Value="State.GridWallThickness" @bind-Value:after="NotifyChanged" Adornment="Adornment.End" AdornmentText="mm" />
+    <MudNumericField T="double" Label="Fill Tube Clearance" Min="0" Max="5" Step="0.1" @bind-Value="State.FillTubeClearance" @bind-Value:after="NotifyChanged" Adornment="Adornment.End" AdornmentText="mm" />
+
+    <MudDivider Class="my-4" />
+    <CellFeatureList State="State" OnChanged="OnChanged" />
+</MudPaper>
+
+@code {
+    [Parameter, EditorRequired]
+    public DesignerState State { get; set; } = new();
+
+    [Parameter]
+    public EventCallback OnChanged { get; set; }
+
+    private Task NotifyChanged() => OnChanged.InvokeAsync();
+
+    private static string Label(string feature) => feature switch
+    {
+        FeatureTypes.FillTube => "Fill tube",
+        FeatureTypes.WickPort => "Wick port",
+        _ => feature
+    };
+}

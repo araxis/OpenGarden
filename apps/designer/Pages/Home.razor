@@ -7,87 +7,23 @@
     <MudGrid Spacing="3">
         <MudItem xs="12" lg="8">
             <MudStack Spacing="3">
-                <MudPaper Class="section-panel" Elevation="0">
-                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="section-heading">
-                        <div>
-                            <MudText Typo="Typo.h5">Pot Designer</MudText>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">OpenGarden print configuration</MudText>
-                        </div>
-                        <MudButtonGroup Color="Color.Primary" Variant="Variant.Filled">
-                            <MudButton StartIcon="@Icons.Material.Filled.ContentCopy" OnClick="CopyConfig">Copy Config</MudButton>
-                            <MudButton StartIcon="@Icons.Material.Filled.ViewInAr">Render</MudButton>
-                        </MudButtonGroup>
-                    </MudStack>
-                </MudPaper>
+                <DesignerHeader CopyRequested="CopyConfig" />
 
                 <MudGrid Spacing="3">
                     <MudItem xs="12" md="6">
-                        <MudPaper Class="section-panel" Elevation="0">
-                            <MudText Typo="Typo.subtitle1" Class="panel-title">Output</MudText>
-                            <MudSelect T="string" Label="Output Mode" Dense="true" @bind-Value="_outputMode">
-                                @foreach (var mode in OutputModes)
-                                {
-                                    <MudSelectItem T="string" Value="@mode">@mode</MudSelectItem>
-                                }
-                            </MudSelect>
-                            <MudSwitch T="bool" Color="Color.Primary" Label="OpenGrid Support" @bind-Value="_openGridSupport" />
-                            <MudSelect T="string" Label="Render Quality" Dense="true" @bind-Value="_renderQuality">
-                                <MudSelectItem T="string" Value="@("Preview")">Preview</MudSelectItem>
-                                <MudSelectItem T="string" Value="@("Export")">Export</MudSelectItem>
-                            </MudSelect>
-                            <MudSlider T="double" Min="5" Max="80" Step="1" @bind-Value="_printSpacing" Color="Color.Primary">Print Spacing: @_printSpacing mm</MudSlider>
-                        </MudPaper>
+                        <OutputPanel State="_state" OnChanged="Refresh" />
                     </MudItem>
 
                     <MudItem xs="12" md="6">
-                        <MudPaper Class="section-panel" Elevation="0">
-                            <MudText Typo="Typo.subtitle1" Class="panel-title">Pot Size</MudText>
-                            <MudNumericField T="double" Label="Height" Min="40" Max="450" Step="0.5" @bind-Value="_potHeight" Adornment="Adornment.End" AdornmentText="mm" />
-                            <MudNumericField T="double" Label="Width" Min="30" Max="450" Step="0.5" @bind-Value="_potWidth" Adornment="Adornment.End" AdornmentText="mm" />
-                            <MudNumericField T="double" Label="Depth" Min="30" Max="450" Step="0.5" @bind-Value="_potDepth" Adornment="Adornment.End" AdornmentText="mm" />
-                            <MudSlider T="double" Min="0.1" Max="0.6" Step="0.01" @bind-Value="_reservoirRatio" Color="Color.Secondary">Reservoir: @(_reservoirRatio.ToString("0.00"))</MudSlider>
-                        </MudPaper>
+                        <PotSizePanel State="_state" OnChanged="Refresh" />
                     </MudItem>
 
                     <MudItem xs="12" md="6">
-                        <MudPaper Class="section-panel" Elevation="0">
-                            <MudText Typo="Typo.subtitle1" Class="panel-title">Walls and Holes</MudText>
-                            <MudNumericField T="double" Label="Seat Height" Min="1" Max="5" Step="0.5" @bind-Value="_seatHeight" Adornment="Adornment.End" AdornmentText="mm" />
-                            <MudNumericField T="double" Label="Wall Thickness" Min="1" Max="8" Step="0.25" @bind-Value="_wallThickness" Adornment="Adornment.End" AdornmentText="mm" />
-                            <MudNumericField T="double" Label="Base Thickness" Min="1" Max="8" Step="0.25" @bind-Value="_baseThickness" Adornment="Adornment.End" AdornmentText="mm" />
-                            <MudSelect T="string" Label="Hole Pattern" Dense="true" @bind-Value="_holePattern">
-                                <MudSelectItem T="string" Value="@("Rectangle")">Rectangle</MudSelectItem>
-                                <MudSelectItem T="string" Value="@("Circle")">Circle</MudSelectItem>
-                            </MudSelect>
-                            <MudGrid Spacing="2">
-                                <MudItem xs="6">
-                                    <MudNumericField T="int" Label="Rows" Min="1" Max="10" @bind-Value="_holeRows" />
-                                </MudItem>
-                                <MudItem xs="6">
-                                    <MudNumericField T="int" Label="Columns" Min="1" Max="10" @bind-Value="_holeColumns" />
-                                </MudItem>
-                            </MudGrid>
-                            <MudNumericField T="double" Label="Hole Diameter" Min="1" Max="15" Step="0.5" @bind-Value="_holeDiameter" Adornment="Adornment.End" AdornmentText="mm" />
-                            <MudNumericField T="double" Label="Hole Area Padding" Min="0" Max="80" Step="0.5" @bind-Value="_holePadding" Adornment="Adornment.End" AdornmentText="mm" />
-                        </MudPaper>
+                        <WallsAndHolesPanel State="_state" OnChanged="Refresh" />
                     </MudItem>
 
                     <MudItem xs="12" md="6">
-                        <MudPaper Class="section-panel" Elevation="0">
-                            <MudText Typo="Typo.subtitle1" Class="panel-title">Insert Grid</MudText>
-                            <MudTextField Label="Row Sizes" @bind-Value="_gridRows" HelperText="Examples: 1* or 1*,2*,25%" />
-                            <MudTextField Label="Column Sizes" @bind-Value="_gridColumns" HelperText="Examples: 1*,1*,1*" />
-                            <MudSelect T="string" Label="Default Feature" Dense="true" @bind-Value="_defaultFeature">
-                                <MudSelectItem T="string" Value="@("Pot")">Pot</MudSelectItem>
-                                <MudSelectItem T="string" Value="@("Box")">Box</MudSelectItem>
-                                <MudSelectItem T="string" Value="@("FillTube")">FillTube</MudSelectItem>
-                                <MudSelectItem T="string" Value="@("WickPort")">WickPort</MudSelectItem>
-                            </MudSelect>
-                            <MudTextField Label="Cell Spans" @bind-Value="_cellSpans" HelperText="Example: 2,2=1x2;1,3=2x1" />
-                            <MudTextField Label="Feature Overrides" Lines="3" @bind-Value="_featureOverrides" HelperText="Example: 1,1: dh,pattern=C,rows=3,cols=6; 2,2: ll,depth=2" />
-                            <MudNumericField T="double" Label="Grid Wall Thickness" Min="0.8" Max="6" Step="0.2" @bind-Value="_gridWallThickness" Adornment="Adornment.End" AdornmentText="mm" />
-                            <MudNumericField T="double" Label="Fill Tube Clearance" Min="0" Max="5" Step="0.1" @bind-Value="_fillTubeClearance" Adornment="Adornment.End" AdornmentText="mm" />
-                        </MudPaper>
+                        <InsertGridPanel State="_state" OnChanged="Refresh" />
                     </MudItem>
                 </MudGrid>
             </MudStack>
@@ -95,100 +31,23 @@
 
         <MudItem xs="12" lg="4">
             <MudStack Spacing="3">
-                <MudPaper Class="preview-panel" Elevation="0">
-                    <MudText Typo="Typo.subtitle1" Class="panel-title">Preview</MudText>
-                    <div class="preview-stage">
-                        <div class="pot-visual" style="@PotVisualStyle">
-                            <div class="pot-rim"></div>
-                            <div class="pot-grid">@GridLabel</div>
-                        </div>
-                    </div>
-                    <MudStack Row="true" AlignItems="AlignItems.Center" Class="preview-meta">
-                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">OpenSCAD</MudChip>
-                        <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Outlined">STL</MudChip>
-                        <MudChip T="string" Size="Size.Small" Color="Color.Tertiary" Variant="Variant.Outlined">GitHub Pages</MudChip>
-                    </MudStack>
-                </MudPaper>
-
-                <MudPaper Class="section-panel" Elevation="0">
-                    <MudText Typo="Typo.subtitle1" Class="panel-title">Generated OpenSCAD</MudText>
-                    <MudTextField T="string" Value="@GeneratedConfig" Lines="18" ReadOnly="true" Variant="Variant.Outlined" />
-                </MudPaper>
+                <PreviewPanel State="_state" />
+                <GeneratedScadPanel State="_state" />
             </MudStack>
         </MudItem>
     </MudGrid>
 </MudContainer>
 
 @code {
-    private static readonly string[] OutputModes = ["Assembly", "Freestanding Pot", "Print Layout", "Holder Only", "Drain Only", "Pot Insert Only"];
-
-    private string _outputMode = "Print Layout";
-    private bool _openGridSupport;
-    private string _renderQuality = "Preview";
-    private double _printSpacing = 20;
-    private double _potHeight = 100;
-    private double _potWidth = 70;
-    private double _potDepth = 70;
-    private double _reservoirRatio = 0.3;
-    private double _seatHeight = 5;
-    private double _wallThickness = 2;
-    private double _baseThickness = 2;
-    private string _holePattern = "Rectangle";
-    private int _holeRows = 4;
-    private int _holeColumns = 4;
-    private double _holeDiameter = 5;
-    private double _holePadding = 25;
-    private string _gridRows = "1*";
-    private string _gridColumns = "1*";
-    private string _defaultFeature = "Pot";
-    private string _cellSpans = "";
-    private string _featureOverrides = "";
-    private double _gridWallThickness = 2;
-    private double _fillTubeClearance = 0.8;
-
-    private string GridLabel => $"{TrackCount(_gridRows)} x {TrackCount(_gridColumns)}";
-
-    private string PotVisualStyle =>
-        $"--pot-w:{Math.Clamp(_potWidth / 110, 0.55, 1.8):0.00};--pot-d:{Math.Clamp(_potDepth / 110, 0.55, 1.8):0.00};--pot-h:{Math.Clamp(_potHeight / 160, 0.55, 1.8):0.00};";
-
-    private string GeneratedConfig => string.Join(Environment.NewLine, new[]
-    {
-        $"Output_Mode = \"{_outputMode}\";",
-        $"OpenGrid_Support = {Bool(_openGridSupport)};",
-        $"Print_Spacing = {Format(_printSpacing)};",
-        $"Render_Quality = \"{_renderQuality}\";",
-        $"Pot_Height = {Format(_potHeight)};",
-        $"Pot_Width = {Format(_potWidth)};",
-        $"Pot_Depth = {Format(_potDepth)};",
-        $"Reservoir_Height_Ratio = {Format(_reservoirRatio)};",
-        $"Seat_Height = {Format(_seatHeight)};",
-        $"Wall_Thickness = {Format(_wallThickness)};",
-        $"Base_Thickness = {Format(_baseThickness)};",
-        $"Hole_Pattern = \"{_holePattern}\";",
-        $"Hole_Rows = {_holeRows};",
-        $"Hole_Columns = {_holeColumns};",
-        $"Hole_Diameter = {Format(_holeDiameter)};",
-        $"Hole_Area_Padding = {Format(_holePadding)};",
-        $"Grid_Row_Sizes = \"{Escape(_gridRows)}\";",
-        $"Grid_Column_Sizes = \"{Escape(_gridColumns)}\";",
-        $"Cell_Default_Feature = \"{_defaultFeature}\";",
-        $"Grid_Cell_Spans = \"{Escape(_cellSpans)}\";",
-        $"Grid_Wall_Thickness = {Format(_gridWallThickness)};",
-        $"Fill_Tube_Clearance = {Format(_fillTubeClearance)};",
-        $"Cell_Feature_Overrides = \"{Escape(_featureOverrides)}\";"
-    });
+    private readonly DesignerState _state = new();
 
     private async Task CopyConfig()
     {
-        await JS.InvokeAsync<bool>("openGardenDesigner.copyText", GeneratedConfig);
+        await JS.InvokeAsync<bool>("openGardenDesigner.copyText", _state.GenerateScadConfig());
     }
 
-    private static int TrackCount(string value) =>
-        string.IsNullOrWhiteSpace(value) ? 1 : value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Length;
-
-    private static string Bool(bool value) => value ? "true" : "false";
-
-    private static string Escape(string value) => value.Replace("\\", "\\\\").Replace("\"", "\\\"");
-
-    private static string Format(double value) => value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
+    private void Refresh()
+    {
+        StateHasChanged();
+    }
 }

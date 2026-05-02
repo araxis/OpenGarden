@@ -1,0 +1,15 @@
+<MudPaper Class="feature-panel" Elevation="0">
+    <MudText Typo="Typo.subtitle2">Lid Lip</MudText>
+    <MudNumericField T="double" Label="Recess Depth" Min="0.5" Max="8" Step="0.25" @bind-Value="Feature.Depth" @bind-Value:after="NotifyChanged" Adornment="Adornment.End" AdornmentText="mm" />
+    <MudNumericField T="double" Label="Lip Width" Min="1" Max="20" Step="0.5" @bind-Value="Feature.Width" @bind-Value:after="NotifyChanged" Adornment="Adornment.End" AdornmentText="mm" />
+</MudPaper>
+
+@code {
+    [Parameter, EditorRequired]
+    public LidLipFeature Feature { get; set; } = new();
+
+    [Parameter]
+    public EventCallback OnChanged { get; set; }
+
+    private Task NotifyChanged() => OnChanged.InvokeAsync();
+}

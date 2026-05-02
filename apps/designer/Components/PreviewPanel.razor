@@ -1,0 +1,19 @@
+<MudPaper Class="preview-panel" Elevation="0">
+    <MudText Typo="Typo.subtitle1" Class="panel-title">Preview</MudText>
+    <div class="preview-stage">
+        <div class="pot-visual" style="@State.PotVisualStyle">
+            <div class="pot-rim"></div>
+            <div class="pot-grid">@State.GridLabel</div>
+        </div>
+    </div>
+    <MudStack Row="true" AlignItems="AlignItems.Center" Class="preview-meta">
+        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">OpenSCAD</MudChip>
+        <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Outlined">STL</MudChip>
+        <MudChip T="string" Size="Size.Small" Color="Color.Tertiary" Variant="Variant.Outlined">GitHub Pages</MudChip>
+    </MudStack>
+</MudPaper>
+
+@code {
+    [Parameter, EditorRequired]
+    public DesignerState State { get; set; } = new();
+}

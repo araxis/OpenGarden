@@ -1,0 +1,26 @@
+@switch (Feature.Feature)
+{
+    case FeatureTypes.DrainHoles:
+        <DrainHolesFeatureEditor Feature="Feature.DrainHoles" OnChanged="OnChanged" />
+        break;
+    case FeatureTypes.LidLip:
+        <LidLipFeatureEditor Feature="Feature.LidLip" OnChanged="OnChanged" />
+        break;
+    case FeatureTypes.WickPort:
+        <WickPortFeatureEditor Feature="Feature.WickPort" OnChanged="OnChanged" />
+        break;
+    case FeatureTypes.FillTube:
+        <FillTubeFeatureEditor Feature="Feature.FillTube" OnChanged="OnChanged" />
+        break;
+    default:
+        <MudAlert Severity="Severity.Normal" Dense="true">This cell is a plain box with no generated cutouts.</MudAlert>
+        break;
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public CellFeatureConfig Feature { get; set; } = new();
+
+    [Parameter]
+    public EventCallback OnChanged { get; set; }
+}

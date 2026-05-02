@@ -1,6 +1,7 @@
 @inherits LayoutComponentBase
+@inject IJSRuntime JS
 
-<MudThemeProvider Theme="_theme" />
+<MudThemeProvider Theme="_theme" IsDarkMode="_isDarkMode" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -10,7 +11,11 @@
         <MudIcon Icon="@Icons.Material.Filled.LocalFlorist" />
         <MudText Typo="Typo.h6" Class="ml-2">OpenGarden Designer</MudText>
         <MudSpacer />
-        <MudText Typo="Typo.caption">Browser-based pot configuration</MudText>
+        <MudSelect T="ThemeMode" Value="_themeMode" ValueChanged="SetThemeMode" Dense="true" Margin="Margin.Dense" Class="theme-mode-select" aria-label="Theme mode">
+            <MudSelectItem T="ThemeMode" Value="ThemeMode.System">System</MudSelectItem>
+            <MudSelectItem T="ThemeMode" Value="ThemeMode.Light">Light</MudSelectItem>
+            <MudSelectItem T="ThemeMode" Value="ThemeMode.Dark">Dark</MudSelectItem>
+        </MudSelect>
     </MudAppBar>
 
     <MudMainContent Class="designer-shell">
@@ -34,9 +39,54 @@
             TextPrimary = "#17251f",
             TextSecondary = "#5c6c64"
         },
+        PaletteDark = new PaletteDark
+        {
+            Primary = "#75bda8",
+            Secondary = "#89a9d8",
+            Tertiary = "#d4b15f",
+            AppbarBackground = "#121a17",
+            AppbarText = "#eaf2ee",
+            Background = "#0f1513",
+            Surface = "#19231f",
+            DrawerBackground = "#19231f",
+            TextPrimary = "#eaf2ee",
+            TextSecondary = "#a8b9b1"
+        },
         LayoutProperties = new LayoutProperties
         {
             DefaultBorderRadius = "8px"
         }
     };
+
+    private ThemeMode _themeMode = ThemeMode.System;
+    private bool _isDarkMode;
+    private bool _systemPrefersDark;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        _systemPrefersDark = await JS.InvokeAsync<bool>("openGardenDesigner.prefersDarkMode");
+        ApplyThemeMode();
+        StateHasChanged();
+    }
+
+    private void SetThemeMode(ThemeMode mode)
+    {
+        _themeMode = mode;
+        ApplyThemeMode();
+    }
+
+    private void ApplyThemeMode()
+    {
+        _isDarkMode = _themeMode switch
+        {
+            ThemeMode.Dark => true,
+            ThemeMode.Light => false,
+            _ => _systemPrefersDark
+        };
+    }
 }
