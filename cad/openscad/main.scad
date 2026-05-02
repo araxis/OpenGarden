@@ -61,8 +61,8 @@ Grid_Cell_Spans = "";
 Grid_Wall_Thickness = 2; // [0.8:0.2:6]
 // Clearance around FillTube open-bottom cutouts to preserve nearby walls.
 Fill_Tube_Clearance = 0.8; // [0:0.1:5]
-// Sparse per-cell feature overrides: row,col: feature key=value key=value. Use aliases like dh, ft, b, wp, ll.
-// Example: 1,1: dh pattern=C rows=3 cols=6; 2,2: ll depth=2
+// Sparse per-cell feature overrides: row,col: feature,key=value,key=value. Use aliases like dh, ft, b, wp, ll.
+// Example: 1,1: dh,pattern=C,rows=3,cols=6; 2,2: ll,depth=2
 Cell_Feature_Overrides = "";
 
 /*[Chamfers]*/

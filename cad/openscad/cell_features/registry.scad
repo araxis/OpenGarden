@@ -131,7 +131,7 @@ function feature_entry_name(spec, start, end, target_row, target_col) =
     comma = feature_delim(spec, start, end, ","),
     colon = comma >= end ? end : feature_delim(spec, comma + 1, end, ":"),
     name_start = feature_skip_spaces(spec, colon + 1),
-    name_end = feature_token_end(spec, name_start, end),
+    name_end = feature_name_end(spec, name_start, end),
     row = comma >= end ? -1 : round(grid_parse_number(spec, start, comma)),
     col = colon >= end ? -1 : round(grid_parse_number(spec, comma + 1, colon))
   )
@@ -144,7 +144,7 @@ function feature_entry_param_string(spec, start, end, key) =
     comma = feature_delim(spec, start, end, ","),
     colon = comma >= end ? end : feature_delim(spec, comma + 1, end, ":"),
     name_start = feature_skip_spaces(spec, colon + 1),
-    name_end = feature_token_end(spec, name_start, end)
+    name_end = feature_name_end(spec, name_start, end)
   )
     name_end < end ? feature_param_string(spec, name_end + 1, end, key) : "";
 
@@ -153,7 +153,7 @@ function feature_entry_param_number(spec, start, end, key) =
     comma = feature_delim(spec, start, end, ","),
     colon = comma >= end ? end : feature_delim(spec, comma + 1, end, ":"),
     name_start = feature_skip_spaces(spec, colon + 1),
-    name_end = feature_token_end(spec, name_start, end)
+    name_end = feature_name_end(spec, name_start, end)
   )
     name_end < end ? feature_param_number(spec, name_end + 1, end, key) : undef;
 
@@ -162,7 +162,7 @@ function feature_param_string(spec, start, end, key, pos = undef) =
     scan >= end ? ""
     : let (
         token_start = feature_skip_spaces(spec, scan),
-        token_end = feature_token_end(spec, token_start, end),
+        token_end = feature_param_token_end(spec, token_start, end),
         eq = feature_delim(spec, token_start, token_end, "="),
         key_end = feature_trim_end(spec, token_start, eq),
         val_start = feature_skip_spaces(spec, eq + 1),
@@ -178,7 +178,7 @@ function feature_param_number(spec, start, end, key, pos = undef) =
     scan >= end ? undef
     : let (
         token_start = feature_skip_spaces(spec, scan),
-        token_end = feature_token_end(spec, token_start, end),
+        token_end = feature_param_token_end(spec, token_start, end),
         eq = feature_delim(spec, token_start, token_end, "="),
         key_end = feature_trim_end(spec, token_start, eq),
         matches = eq < token_end && feature_substring_eq(spec, token_start, key_end, key)
@@ -187,10 +187,15 @@ function feature_param_number(spec, start, end, key, pos = undef) =
         : token_end >= end ? undef
         : feature_param_number(spec, start, end, key, token_end + 1);
 
-function feature_token_end(spec, start, end, pos = undef) =
+function feature_name_end(spec, start, end, pos = undef) =
   let (scan = is_undef(pos) ? start : pos)
-    scan >= end || spec[scan] == " " || spec[scan] == "\t" ? feature_trim_end(spec, start, scan)
-    : feature_token_end(spec, start, end, scan + 1);
+    scan >= end || spec[scan] == "," || spec[scan] == " " || spec[scan] == "\t" ? feature_trim_end(spec, start, scan)
+    : feature_name_end(spec, start, end, scan + 1);
+
+function feature_param_token_end(spec, start, end, pos = undef) =
+  let (scan = is_undef(pos) ? start : pos)
+    scan >= end || spec[scan] == "," ? feature_trim_end(spec, start, scan)
+    : feature_param_token_end(spec, start, end, scan + 1);
 
 function feature_skip_spaces(spec, pos) =
   pos < len(spec) && (spec[pos] == " " || spec[pos] == "\t") ? feature_skip_spaces(spec, pos + 1) : pos;

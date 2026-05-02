@@ -70,7 +70,7 @@ The pot insert interior is always treated as a grid. `Grid_Row_Sizes` and `Grid_
 
 Cell behavior is controlled by the cell-feature registry. `Cell_Default_Feature` is used by every cell that does not have an override. `Pot` is a drain-hole cell, `Box` is closed at the bottom, `FillTube` is an open-bottom tube cell, and `WickPort` is a single wick hole.
 
-`Cell_Feature_Overrides` is a sparse per-cell list using 1-based `row,col: feature key=value key=value` entries separated by `;`. This syntax avoids programming-style parentheses in the OpenSCAD Customizer. Short aliases are supported:
+`Cell_Feature_Overrides` is a sparse per-cell list using 1-based `row,col: feature,key=value,key=value` entries separated by `;`. This syntax avoids programming-style parentheses in the OpenSCAD Customizer. Short aliases are supported:
 
 - `dh` or `p` — `drain_holes` / `Pot`
 - `b` — `box`
@@ -91,8 +91,8 @@ Examples:
 
 ```scad
 Cell_Default_Feature = "Pot";
-Cell_Feature_Overrides = "1,1: dh pattern=C rows=3 cols=6";
-Cell_Feature_Overrides = "1,1: wp diameter=10; 2,2: ll depth=2";
+Cell_Feature_Overrides = "1,1: dh,pattern=C,rows=3,cols=6";
+Cell_Feature_Overrides = "1,1: wp,diameter=10; 2,2: ll,depth=2";
 ```
 
 Bottom-plane overrides replace the default feature for that cell. Top-lip overrides are additive, so the cell still uses `Cell_Default_Feature` for its floor. You can apply both planes to one cell by adding two entries for the same cell.

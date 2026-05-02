@@ -55,7 +55,7 @@ The pot insert is built in three layers:
 
 Adding a new add-on (sensor slot, trellis post, drain mesh seat, etc.) means adding a feature file under `cell_features/` and one dispatch entry in `registry.scad`. `pot_insert.scad` should stay focused on grid placement and mount-plane passes.
 
-The Customizer DSL uses `row,col: feature key=value key=value` entries, for example `1,1: dh pattern=C rows=3 cols=6; 2,2: ll depth=2`. Short feature names are user-facing aliases, while the registry normalizes them to canonical feature module names.
+The Customizer DSL uses `row,col: feature,key=value,key=value` entries, for example `1,1: dh,pattern=C,rows=3,cols=6; 2,2: ll,depth=2`. Short feature names are user-facing aliases, while the registry normalizes them to canonical feature module names.
 
 Per-cell named BOSL2 anchors (`cell_<row>_<col>_top`, `cell_<row>_<col>_wall_n`, etc.) are built by `cell_anchors.scad` and exposed on every `PotInsert()`. External accessory `.scad` files can `attach()` directly to those anchors without modifying the insert source.
 
