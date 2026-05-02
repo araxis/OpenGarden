@@ -102,6 +102,20 @@ function grid_track_center(total, spec, count, divider, index) =
   grid_track_edge(total, spec, count, divider, index)
   + grid_track_size(total, spec, count, divider, index) / 2;
 
+function grid_span_track_size(total, spec, count, divider, start, span) =
+  let (
+    safe_start = min(max(0, start), count - 1),
+    safe_span = min(max(1, span), count - safe_start),
+    last = safe_start + safe_span - 1
+  )
+    grid_track_edge(total, spec, count, divider, last)
+    + grid_track_size(total, spec, count, divider, last)
+    - grid_track_edge(total, spec, count, divider, safe_start);
+
+function grid_span_track_center(total, spec, count, divider, start, span) =
+  grid_track_edge(total, spec, count, divider, start)
+  + grid_span_track_size(total, spec, count, divider, start, span) / 2;
+
 function grid_cell_role(roles, row, col, colCount) =
   grid_cell_role(roles, "", row, col, colCount);
 
@@ -137,6 +151,107 @@ function grid_cell_role_override_entry(overrides, start, end, target_row, target
     row == target_row && col == target_col
       ? grid_role_name(overrides, grid_skip_spaces(overrides, equals + 1), grid_trim_end(overrides, equals + 1, end))
       : "";
+
+function grid_cell_span_rows(spans, row, col, rowCount) =
+  min(grid_cell_span_value(spans, row + 1, col + 1, 0), rowCount - row);
+
+function grid_cell_span_cols(spans, row, col, colCount) =
+  min(grid_cell_span_value(spans, row + 1, col + 1, 1), colCount - col);
+
+function grid_cell_span_value(spans, target_row, target_col, axis, pos = 0) =
+  pos >= len(spans) ? 1
+  : let (
+      start = grid_skip_spaces(spans, pos),
+      raw_end = grid_delim_pos(spans, start, len(spans), ";"),
+      end = grid_trim_end(spans, start, raw_end),
+      value = grid_cell_span_entry_value(spans, start, end, target_row, target_col, axis)
+    )
+      value > 0 ? value : grid_cell_span_value(spans, target_row, target_col, axis, raw_end + 1);
+
+function grid_cell_span_entry_value(spans, start, end, target_row, target_col, axis) =
+  let (
+    comma = grid_delim_pos(spans, start, end, ","),
+    equals = comma >= end ? end : grid_delim_pos(spans, comma + 1, end, "="),
+    x_delim = equals >= end ? end : min(grid_delim_pos(spans, equals + 1, end, "x"), grid_delim_pos(spans, equals + 1, end, "X")),
+    row = comma >= end ? -1 : round(grid_parse_number(spans, start, comma)),
+    col = equals >= end ? -1 : round(grid_parse_number(spans, comma + 1, equals)),
+    row_span = x_delim >= end ? 1 : max(1, round(grid_parse_number(spans, equals + 1, x_delim))),
+    col_span = x_delim >= end ? max(1, round(grid_parse_number(spans, equals + 1, end))) : max(1, round(grid_parse_number(spans, x_delim + 1, end)))
+  )
+    row == target_row && col == target_col ? (axis == 0 ? row_span : col_span) : -1;
+
+function grid_cell_is_covered_by_span(spans, row, col, pos = 0) =
+  pos >= len(spans) ? false
+  : let (
+      start = grid_skip_spaces(spans, pos),
+      raw_end = grid_delim_pos(spans, start, len(spans), ";"),
+      end = grid_trim_end(spans, start, raw_end)
+    )
+      grid_cell_is_covered_by_span_entry(spans, start, end, row + 1, col + 1)
+        ? true
+        : grid_cell_is_covered_by_span(spans, row, col, raw_end + 1);
+
+function grid_cell_is_covered_by_span_entry(spans, start, end, target_row, target_col) =
+  let (
+    comma = grid_delim_pos(spans, start, end, ","),
+    equals = comma >= end ? end : grid_delim_pos(spans, comma + 1, end, "="),
+    x_delim = equals >= end ? end : min(grid_delim_pos(spans, equals + 1, end, "x"), grid_delim_pos(spans, equals + 1, end, "X")),
+    row = comma >= end ? -1 : round(grid_parse_number(spans, start, comma)),
+    col = equals >= end ? -1 : round(grid_parse_number(spans, comma + 1, equals)),
+    row_span = x_delim >= end ? 1 : max(1, round(grid_parse_number(spans, equals + 1, x_delim))),
+    col_span = x_delim >= end ? max(1, round(grid_parse_number(spans, equals + 1, end))) : max(1, round(grid_parse_number(spans, x_delim + 1, end)))
+  )
+    !(row == target_row && col == target_col)
+    && row <= target_row && target_row < row + row_span
+    && col <= target_col && target_col < col + col_span;
+
+function grid_vertical_divider_blocked(spans, row, boundary, pos = 0) =
+  pos >= len(spans) ? false
+  : let (
+      start = grid_skip_spaces(spans, pos),
+      raw_end = grid_delim_pos(spans, start, len(spans), ";"),
+      end = grid_trim_end(spans, start, raw_end)
+    )
+      grid_vertical_divider_blocked_entry(spans, start, end, row + 1, boundary)
+        ? true
+        : grid_vertical_divider_blocked(spans, row, boundary, raw_end + 1);
+
+function grid_vertical_divider_blocked_entry(spans, start, end, target_row, boundary) =
+  let (
+    comma = grid_delim_pos(spans, start, end, ","),
+    equals = comma >= end ? end : grid_delim_pos(spans, comma + 1, end, "="),
+    x_delim = equals >= end ? end : min(grid_delim_pos(spans, equals + 1, end, "x"), grid_delim_pos(spans, equals + 1, end, "X")),
+    row = comma >= end ? -1 : round(grid_parse_number(spans, start, comma)),
+    col = equals >= end ? -1 : round(grid_parse_number(spans, comma + 1, equals)),
+    row_span = x_delim >= end ? 1 : max(1, round(grid_parse_number(spans, equals + 1, x_delim))),
+    col_span = x_delim >= end ? max(1, round(grid_parse_number(spans, equals + 1, end))) : max(1, round(grid_parse_number(spans, x_delim + 1, end)))
+  )
+    row <= target_row && target_row < row + row_span
+    && col <= boundary && boundary < col + col_span - 1;
+
+function grid_horizontal_divider_blocked(spans, boundary, col, pos = 0) =
+  pos >= len(spans) ? false
+  : let (
+      start = grid_skip_spaces(spans, pos),
+      raw_end = grid_delim_pos(spans, start, len(spans), ";"),
+      end = grid_trim_end(spans, start, raw_end)
+    )
+      grid_horizontal_divider_blocked_entry(spans, start, end, boundary, col + 1)
+        ? true
+        : grid_horizontal_divider_blocked(spans, boundary, col, raw_end + 1);
+
+function grid_horizontal_divider_blocked_entry(spans, start, end, boundary, target_col) =
+  let (
+    comma = grid_delim_pos(spans, start, end, ","),
+    equals = comma >= end ? end : grid_delim_pos(spans, comma + 1, end, "="),
+    x_delim = equals >= end ? end : min(grid_delim_pos(spans, equals + 1, end, "x"), grid_delim_pos(spans, equals + 1, end, "X")),
+    row = comma >= end ? -1 : round(grid_parse_number(spans, start, comma)),
+    col = equals >= end ? -1 : round(grid_parse_number(spans, comma + 1, equals)),
+    row_span = x_delim >= end ? 1 : max(1, round(grid_parse_number(spans, equals + 1, x_delim))),
+    col_span = x_delim >= end ? max(1, round(grid_parse_number(spans, equals + 1, end))) : max(1, round(grid_parse_number(spans, x_delim + 1, end)))
+  )
+    row <= boundary && boundary < row + row_span - 1
+    && col <= target_col && target_col < col + col_span;
 
 function grid_role_name(spec, start, end) =
   grid_token_equals(spec, start, end, "B") || grid_token_equals(spec, start, end, "b") || grid_token_equals(spec, start, end, "Box") || grid_token_equals(spec, start, end, "box") ? "Box"

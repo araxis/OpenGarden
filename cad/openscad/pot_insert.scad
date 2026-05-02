@@ -19,6 +19,7 @@ gridRowSizes = "1*";
 gridColumnSizes = "1*";
 gridCellRoles = "Pot";
 gridCellRoleOverrides = "";
+gridCellSpans = "";
 gridWallThickness = 2;
 fillTubeClearance = 0.8;
 
@@ -40,6 +41,7 @@ module PotInsert(
   gridColumnSizes = gridColumnSizes,
   gridCellRoles = gridCellRoles,
   gridCellRoleOverrides = gridCellRoleOverrides,
+  gridCellSpans = gridCellSpans,
   gridWallThickness = gridWallThickness,
   fillTubeClearance = fillTubeClearance,
   anchor = CENTER,
@@ -70,33 +72,57 @@ module PotInsert(
               anchor=FRONT + BOTTOM
             )
               attach(BOTTOM, TOP)
-                Base(w, d, seatHeight, wallThickness, baseThickness, chamfer, chamferBackSide, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, gridCellRoles, gridCellRoleOverrides, gridWallThickness, fillTubeClearance);
+                Base(w, d, seatHeight, wallThickness, baseThickness, chamfer, chamferBackSide, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, gridCellRoles, gridCellRoleOverrides, gridCellSpans, gridWallThickness, fillTubeClearance);
 
-            InsertGrid(w, d, h, wallThickness, gridRowSizes, gridColumnSizes, gridWallThickness);
+            InsertGrid(w, d, h, wallThickness, gridRowSizes, gridColumnSizes, gridCellSpans, gridWallThickness);
           }
 
     children();
   }
 }
 
-module InsertGrid(width, depth, height, wallThickness, gridRowSizes, gridColumnSizes, gridWallThickness) {
+module InsertGrid(width, depth, height, wallThickness, gridRowSizes, gridColumnSizes, gridCellSpans, gridWallThickness) {
   rows = grid_track_count(gridRowSizes);
   cols = grid_track_count(gridColumnSizes);
   divider = max(0.4, gridWallThickness);
   inner_w = max(0, width - wallThickness * 2);
   inner_d = max(0, depth - wallThickness * 2);
 
-  for (col = [1:cols - 1]) {
-    x = grid_track_edge(inner_w, gridColumnSizes, cols, divider, col) + divider / 2;
-    translate([x, wallThickness, 0])
-      cuboid([divider, inner_d, height], anchor=FRONT + BOTTOM);
-  }
+  for (row = [0:rows - 1])
+    for (col = [0:cols - 1])
+      if (!grid_cell_is_covered_by_span(gridCellSpans, row, col))
+        let (
+          row_span = grid_cell_span_rows(gridCellSpans, row, col, rows),
+          col_span = grid_cell_span_cols(gridCellSpans, row, col, cols),
+          end_row = row + row_span - 1,
+          end_col = col + col_span - 1,
+          x0 = grid_track_edge(inner_w, gridColumnSizes, cols, divider, col),
+          x1 = grid_track_edge(inner_w, gridColumnSizes, cols, divider, end_col)
+            + grid_track_size(inner_w, gridColumnSizes, cols, divider, end_col),
+          y0 = wallThickness + grid_track_edge_from_front(inner_d, gridRowSizes, rows, divider, row),
+          y1 = wallThickness + grid_track_edge_from_front(inner_d, gridRowSizes, rows, divider, end_row)
+            + grid_track_size(inner_d, gridRowSizes, rows, divider, end_row),
+          front_ext = row > 0 ? divider / 2 : 0,
+          back_ext = end_row < rows - 1 ? divider / 2 : 0,
+          left_ext = col > 0 ? divider / 2 : 0,
+          right_ext = end_col < cols - 1 ? divider / 2 : 0
+        ) {
+          if (col > 0)
+            translate([x0 - divider / 2, (y0 + y1 - front_ext + back_ext) / 2, 0])
+              cuboid([divider, y1 - y0 + front_ext + back_ext, height], anchor=BOTTOM);
 
-  for (row = [1:rows - 1]) {
-    y = wallThickness + grid_track_edge_from_front(inner_d, gridRowSizes, rows, divider, row);
-    translate([-inner_w / 2, y, 0])
-      cuboid([inner_w, divider, height], anchor=LEFT + FRONT + BOTTOM);
-  }
+          if (end_col < cols - 1)
+            translate([x1 + divider / 2, (y0 + y1 - front_ext + back_ext) / 2, 0])
+              cuboid([divider, y1 - y0 + front_ext + back_ext, height], anchor=BOTTOM);
+
+          if (row > 0)
+            translate([(x0 + x1 - left_ext + right_ext) / 2, y0 - divider / 2, 0])
+              cuboid([x1 - x0 + left_ext + right_ext, divider, height], anchor=BOTTOM);
+
+          if (end_row < rows - 1)
+            translate([(x0 + x1 - left_ext + right_ext) / 2, y1 + divider / 2, 0])
+              cuboid([x1 - x0 + left_ext + right_ext, divider, height], anchor=BOTTOM);
+        }
 }
 
 module Base(
@@ -116,6 +142,7 @@ module Base(
   gridColumnSizes,
   gridCellRoles,
   gridCellRoleOverrides,
+  gridCellSpans,
   gridWallThickness,
   fillTubeClearance
 ) {
@@ -159,16 +186,16 @@ module DrainHolePattern(width, depth, wallThickness, holeAreaPadding, holePatter
         cell_d = grid_track_size(inner_d, gridRowSizes, grid_rows, divider, grid_row),
         role = grid_cell_role(gridCellRoles, gridCellRoleOverrides, grid_row, grid_col, grid_cols)
       )
-        translate([
-          grid_track_center(inner_w, gridColumnSizes, grid_cols, divider, grid_col),
-          grid_track_center(inner_d, gridRowSizes, grid_rows, divider, grid_row),
-          0
-        ]) {
-          if (role == "Pot")
-            CellDrainHolePattern(cell_w, cell_d, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter);
-          else if (role == "FillTube")
-            FillTubeCutout(cell_w, cell_d, fillTubeClearance);
-        }
+      translate([
+        grid_track_center(inner_w, gridColumnSizes, grid_cols, divider, grid_col),
+        grid_track_center(inner_d, gridRowSizes, grid_rows, divider, grid_row),
+        0
+      ]) {
+        if (role == "Pot")
+          CellDrainHolePattern(cell_w, cell_d, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter);
+        else if (role == "FillTube")
+          FillTubeCutout(cell_w, cell_d, fillTubeClearance);
+      }
 }
 
 module FillTubeCutout(width, depth, clearance) {
