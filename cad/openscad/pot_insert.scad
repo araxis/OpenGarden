@@ -169,10 +169,10 @@ module Base(
           chamfer=side_chamfer
         )
           tag("hole")
-            DrainHolePattern(width, depth, wallThickness, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, gridCellRoles, gridCellRoleOverrides, gridCellSpans, gridWallThickness, fillTubeClearance);
+            DrainHolePattern(width, depth, wallThickness, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, gridCellRoles, gridCellRoleOverrides, gridWallThickness, fillTubeClearance);
 }
 
-module DrainHolePattern(width, depth, wallThickness, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, gridCellRoles, gridCellRoleOverrides, gridCellSpans, gridWallThickness, fillTubeClearance) {
+module DrainHolePattern(width, depth, wallThickness, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, gridCellRoles, gridCellRoleOverrides, gridWallThickness, fillTubeClearance) {
   grid_rows = grid_track_count(gridRowSizes);
   grid_cols = grid_track_count(gridColumnSizes);
   divider = max(0.4, gridWallThickness);
@@ -182,23 +182,20 @@ module DrainHolePattern(width, depth, wallThickness, holeAreaPadding, holePatter
   for (grid_row = [0:grid_rows - 1])
     for (grid_col = [0:grid_cols - 1])
       let (
-        row_span = grid_cell_span_rows(gridCellSpans, grid_row, grid_col, grid_rows),
-        col_span = grid_cell_span_cols(gridCellSpans, grid_row, grid_col, grid_cols),
-        cell_w = grid_span_track_size(inner_w, gridColumnSizes, grid_cols, divider, grid_col, col_span),
-        cell_d = grid_span_track_size(inner_d, gridRowSizes, grid_rows, divider, grid_row, row_span),
+        cell_w = grid_track_size(inner_w, gridColumnSizes, grid_cols, divider, grid_col),
+        cell_d = grid_track_size(inner_d, gridRowSizes, grid_rows, divider, grid_row),
         role = grid_cell_role(gridCellRoles, gridCellRoleOverrides, grid_row, grid_col, grid_cols)
       )
-      if (!grid_cell_is_covered_by_span(gridCellSpans, grid_row, grid_col))
-        translate([
-          grid_span_track_center(inner_w, gridColumnSizes, grid_cols, divider, grid_col, col_span),
-          grid_span_track_center(inner_d, gridRowSizes, grid_rows, divider, grid_row, row_span),
-          0
-        ]) {
-          if (role == "Pot")
-            CellDrainHolePattern(cell_w, cell_d, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter);
-          else if (role == "FillTube")
-            FillTubeCutout(cell_w, cell_d, fillTubeClearance);
-        }
+      translate([
+        grid_track_center(inner_w, gridColumnSizes, grid_cols, divider, grid_col),
+        grid_track_center(inner_d, gridRowSizes, grid_rows, divider, grid_row),
+        0
+      ]) {
+        if (role == "Pot")
+          CellDrainHolePattern(cell_w, cell_d, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter);
+        else if (role == "FillTube")
+          FillTubeCutout(cell_w, cell_d, fillTubeClearance);
+      }
 }
 
 module FillTubeCutout(width, depth, clearance) {
