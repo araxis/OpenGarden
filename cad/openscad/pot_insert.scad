@@ -88,27 +88,41 @@ module InsertGrid(width, depth, height, wallThickness, gridRowSizes, gridColumnS
   inner_w = max(0, width - wallThickness * 2);
   inner_d = max(0, depth - wallThickness * 2);
 
-  for (col = [1:cols - 1])
-    let (x = grid_track_edge(inner_w, gridColumnSizes, cols, divider, col) + divider / 2)
-    for (row = [0:rows - 1])
-      if (!grid_vertical_divider_blocked(gridCellSpans, row, col))
-        translate([
-          x,
-          wallThickness + grid_track_edge_from_front(inner_d, gridRowSizes, rows, divider, row) + grid_track_size(inner_d, gridRowSizes, rows, divider, row) / 2,
-          0
-        ])
-          cuboid([divider, grid_track_size(inner_d, gridRowSizes, rows, divider, row), height], anchor=BOTTOM);
-
-  for (row = [1:rows - 1])
-    let (y = wallThickness + grid_track_edge_from_front(inner_d, gridRowSizes, rows, divider, row))
+  for (row = [0:rows - 1])
     for (col = [0:cols - 1])
-      if (!grid_horizontal_divider_blocked(gridCellSpans, row, col))
-        translate([
-          grid_track_center(inner_w, gridColumnSizes, cols, divider, col),
-          y + divider / 2,
-          0
-        ])
-          cuboid([grid_track_size(inner_w, gridColumnSizes, cols, divider, col), divider, height], anchor=BOTTOM);
+      if (!grid_cell_is_covered_by_span(gridCellSpans, row, col))
+        let (
+          row_span = grid_cell_span_rows(gridCellSpans, row, col, rows),
+          col_span = grid_cell_span_cols(gridCellSpans, row, col, cols),
+          end_row = row + row_span - 1,
+          end_col = col + col_span - 1,
+          x0 = grid_track_edge(inner_w, gridColumnSizes, cols, divider, col),
+          x1 = grid_track_edge(inner_w, gridColumnSizes, cols, divider, end_col)
+            + grid_track_size(inner_w, gridColumnSizes, cols, divider, end_col),
+          y0 = wallThickness + grid_track_edge_from_front(inner_d, gridRowSizes, rows, divider, row),
+          y1 = wallThickness + grid_track_edge_from_front(inner_d, gridRowSizes, rows, divider, end_row)
+            + grid_track_size(inner_d, gridRowSizes, rows, divider, end_row),
+          front_ext = row > 0 ? divider / 2 : 0,
+          back_ext = end_row < rows - 1 ? divider / 2 : 0,
+          left_ext = col > 0 ? divider / 2 : 0,
+          right_ext = end_col < cols - 1 ? divider / 2 : 0
+        ) {
+          if (col > 0)
+            translate([x0 - divider / 2, (y0 + y1 - front_ext + back_ext) / 2, 0])
+              cuboid([divider, y1 - y0 + front_ext + back_ext, height], anchor=BOTTOM);
+
+          if (end_col < cols - 1)
+            translate([x1 + divider / 2, (y0 + y1 - front_ext + back_ext) / 2, 0])
+              cuboid([divider, y1 - y0 + front_ext + back_ext, height], anchor=BOTTOM);
+
+          if (row > 0)
+            translate([(x0 + x1 - left_ext + right_ext) / 2, y0 - divider / 2, 0])
+              cuboid([x1 - x0 + left_ext + right_ext, divider, height], anchor=BOTTOM);
+
+          if (end_row < rows - 1)
+            translate([(x0 + x1 - left_ext + right_ext) / 2, y1 + divider / 2, 0])
+              cuboid([x1 - x0 + left_ext + right_ext, divider, height], anchor=BOTTOM);
+        }
 }
 
 module Base(
