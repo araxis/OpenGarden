@@ -1,6 +1,9 @@
 include <BOSL2/std.scad>
 include <anchor_names.scad>
 include <grid_helpers.scad>
+use <cell_anchors.scad>
+use <cell_features.scad>
+use <feature_dsl.scad>
 
 height = 100;
 width = 70.0;
@@ -20,6 +23,7 @@ gridColumnSizes = "1*";
 gridCellRoles = "Pot";
 gridCellRoleOverrides = "";
 gridCellSpans = "";
+cellFeatureOverrides = "";
 gridWallThickness = 2;
 fillTubeClearance = 0.8;
 
@@ -42,6 +46,7 @@ module PotInsert(
   gridCellRoles = gridCellRoles,
   gridCellRoleOverrides = gridCellRoleOverrides,
   gridCellSpans = gridCellSpans,
+  cellFeatureOverrides = cellFeatureOverrides,
   gridWallThickness = gridWallThickness,
   fillTubeClearance = fillTubeClearance,
   anchor = CENTER,
@@ -54,28 +59,37 @@ module PotInsert(
   h = height;
   seat_z = -h / 2 + seatHeight + baseThickness;
   side_chamfer = side_chamfers(chamfer, chamferBackSide);
-  anchors = [
-    named_anchor(POT_INSERT_ANCHOR_BOTTOM, [0, 0, seat_z], DOWN)
-  ];
+  anchors = concat(
+    [
+      named_anchor(POT_INSERT_ANCHOR_BOTTOM, [0, 0, seat_z], DOWN)
+    ],
+    cell_anchor_set(w, d, h, wallThickness, seatHeight, baseThickness, gridRowSizes, gridColumnSizes, gridWallThickness)
+  );
+
+  FeatureDslWarnings(cellFeatureOverrides);
 
   attachable(anchor, spin, orient, size=[w, d, h], anchors=anchors) {
     assert(h > 0, "PotInsert height must be greater than seatHeight + baseThickness.")
       down(h / 2 - seatHeight - baseThickness)
         fwd(d / 2)
-          union() {
-            rect_tube(
-              size=[w, d],
-              h=h,
-              wall=wallThickness,
-              chamfer=side_chamfer,
-              ichamfer=side_chamfer,
-              anchor=FRONT + BOTTOM
-            )
-              attach(BOTTOM, TOP)
-                Base(w, d, seatHeight, wallThickness, baseThickness, chamfer, chamferBackSide, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, gridCellRoles, gridCellRoleOverrides, gridCellSpans, gridWallThickness, fillTubeClearance);
+          diff("cell_feature")
+            union() {
+              rect_tube(
+                size=[w, d],
+                h=h,
+                wall=wallThickness,
+                chamfer=side_chamfer,
+                ichamfer=side_chamfer,
+                anchor=FRONT + BOTTOM
+              )
+                attach(BOTTOM, TOP)
+                  Base(w, d, seatHeight, wallThickness, baseThickness, chamfer, chamferBackSide, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, gridCellRoles, gridCellRoleOverrides, gridCellSpans, cellFeatureOverrides, gridWallThickness, fillTubeClearance);
 
-            InsertGrid(w, d, h, wallThickness, gridRowSizes, gridColumnSizes, gridCellSpans, gridWallThickness);
-          }
+              InsertGrid(w, d, h, wallThickness, gridRowSizes, gridColumnSizes, gridCellSpans, gridWallThickness);
+
+              tag("cell_feature")
+                CellFeaturePattern(w, d, h, wallThickness, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, gridCellRoles, gridCellRoleOverrides, gridCellSpans, cellFeatureOverrides, gridWallThickness, fillTubeClearance, "TOP_LIP", h);
+            }
 
     children();
   }
@@ -143,6 +157,7 @@ module Base(
   gridCellRoles,
   gridCellRoleOverrides,
   gridCellSpans,
+  cellFeatureOverrides,
   gridWallThickness,
   fillTubeClearance
 ) {
@@ -169,10 +184,10 @@ module Base(
           chamfer=side_chamfer
         )
           tag("hole")
-            DrainHolePattern(width, depth, wallThickness, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, gridCellRoles, gridCellRoleOverrides, gridCellSpans, gridWallThickness, fillTubeClearance);
+            CellFeaturePattern(width, depth, height + baseThickness, wallThickness, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, gridCellRoles, gridCellRoleOverrides, gridCellSpans, cellFeatureOverrides, gridWallThickness, fillTubeClearance, "BOTTOM", 0);
 }
 
-module DrainHolePattern(width, depth, wallThickness, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, gridCellRoles, gridCellRoleOverrides, gridCellSpans, gridWallThickness, fillTubeClearance) {
+module CellFeaturePattern(width, depth, height, wallThickness, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, gridCellRoles, gridCellRoleOverrides, gridCellSpans, cellFeatureOverrides, gridWallThickness, fillTubeClearance, plane, z) {
   grid_rows = grid_track_count(gridRowSizes);
   grid_cols = grid_track_count(gridColumnSizes);
   divider = max(0.4, gridWallThickness);
@@ -184,108 +199,62 @@ module DrainHolePattern(width, depth, wallThickness, holeAreaPadding, holePatter
       let (
         cell_w = grid_track_size(inner_w, gridColumnSizes, grid_cols, divider, grid_col),
         cell_d = grid_track_size(inner_d, gridRowSizes, grid_rows, divider, grid_row),
-        role = grid_cell_role(gridCellRoles, gridCellRoleOverrides, grid_row, grid_col, grid_cols),
-        left_ext = role == "FillTube" && filltube_merges_left(gridCellSpans, gridCellRoles, gridCellRoleOverrides, grid_row, grid_col, grid_cols) ? divider / 2 : 0,
-        right_ext = role == "FillTube" && filltube_merges_right(gridCellSpans, gridCellRoles, gridCellRoleOverrides, grid_row, grid_col, grid_cols) ? divider / 2 : 0,
-        front_ext = role == "FillTube" && filltube_merges_front(gridCellSpans, gridCellRoles, gridCellRoleOverrides, grid_row, grid_col, grid_cols) ? divider / 2 : 0,
-        back_ext = role == "FillTube" && filltube_merges_back(gridCellSpans, gridCellRoles, gridCellRoleOverrides, grid_row, grid_col, grid_rows, grid_cols) ? divider / 2 : 0
+        feature_name = plane == "BOTTOM"
+          ? cell_bottom_feature_name(cellFeatureOverrides, gridCellRoles, gridCellRoleOverrides, grid_row, grid_col, grid_cols)
+          : cell_top_lip_feature_name(cellFeatureOverrides, grid_row, grid_col),
+        tube_clearance = feature_fill_tube_clearance(cellFeatureOverrides, grid_row, grid_col, fillTubeClearance),
+        left_ext = plane == "BOTTOM" && feature_name == "fill_tube" && filltube_feature_merges_left(gridCellSpans, cellFeatureOverrides, gridCellRoles, gridCellRoleOverrides, grid_row, grid_col, grid_cols) ? divider / 2 : 0,
+        right_ext = plane == "BOTTOM" && feature_name == "fill_tube" && filltube_feature_merges_right(gridCellSpans, cellFeatureOverrides, gridCellRoles, gridCellRoleOverrides, grid_row, grid_col, grid_cols) ? divider / 2 : 0,
+        front_ext = plane == "BOTTOM" && feature_name == "fill_tube" && filltube_feature_merges_front(gridCellSpans, cellFeatureOverrides, gridCellRoles, gridCellRoleOverrides, grid_row, grid_col, grid_cols) ? divider / 2 : 0,
+        back_ext = plane == "BOTTOM" && feature_name == "fill_tube" && filltube_feature_merges_back(gridCellSpans, cellFeatureOverrides, gridCellRoles, gridCellRoleOverrides, grid_row, grid_col, grid_rows, grid_cols) ? divider / 2 : 0
       )
-      translate([
-        grid_track_center(inner_w, gridColumnSizes, grid_cols, divider, grid_col) + (right_ext - left_ext) / 2,
-        grid_track_center(inner_d, gridRowSizes, grid_rows, divider, grid_row) + (back_ext - front_ext) / 2,
-        0
-      ]) {
-        if (role == "Pot")
-          CellDrainHolePattern(cell_w, cell_d, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter);
-        else if (role == "FillTube")
-          FillTubeCutout(
+      if (feature_name != "")
+        translate([
+          grid_track_center(inner_w, gridColumnSizes, grid_cols, divider, grid_col) + (right_ext - left_ext) / 2,
+          grid_track_center(inner_d, gridRowSizes, grid_rows, divider, grid_row) + (back_ext - front_ext) / 2,
+          z
+        ])
+          CellFeatureApply(
+            feature_name,
+            plane,
             cell_w + left_ext + right_ext,
             cell_d + front_ext + back_ext,
-            left_ext > 0 ? 0 : fillTubeClearance,
-            right_ext > 0 ? 0 : fillTubeClearance,
-            front_ext > 0 ? 0 : fillTubeClearance,
-            back_ext > 0 ? 0 : fillTubeClearance
+            height,
+            cellFeatureOverrides,
+            grid_row,
+            grid_col,
+            holeAreaPadding,
+            holePattern,
+            holeRows,
+            holeCols,
+            holeDiameter,
+            fillTubeClearance,
+            left_ext > 0 ? 0 : tube_clearance,
+            right_ext > 0 ? 0 : tube_clearance,
+            front_ext > 0 ? 0 : tube_clearance,
+            back_ext > 0 ? 0 : tube_clearance
           );
-      }
 }
 
-function filltube_merges_left(spans, roles, overrides, row, col, colCount) =
+function filltube_feature_merges_left(spans, overrides, roles, roleOverrides, row, col, colCount) =
   col > 0
   && grid_vertical_divider_blocked(spans, row, col)
-  && grid_cell_role(roles, overrides, row, col - 1, colCount) == "FillTube";
+  && cell_bottom_feature_name(overrides, roles, roleOverrides, row, col - 1, colCount) == "fill_tube";
 
-function filltube_merges_right(spans, roles, overrides, row, col, colCount) =
+function filltube_feature_merges_right(spans, overrides, roles, roleOverrides, row, col, colCount) =
   col < colCount - 1
   && grid_vertical_divider_blocked(spans, row, col + 1)
-  && grid_cell_role(roles, overrides, row, col + 1, colCount) == "FillTube";
+  && cell_bottom_feature_name(overrides, roles, roleOverrides, row, col + 1, colCount) == "fill_tube";
 
-function filltube_merges_front(spans, roles, overrides, row, col, colCount) =
+function filltube_feature_merges_front(spans, overrides, roles, roleOverrides, row, col, colCount) =
   row > 0
   && grid_horizontal_divider_blocked(spans, row, col)
-  && grid_cell_role(roles, overrides, row - 1, col, colCount) == "FillTube";
+  && cell_bottom_feature_name(overrides, roles, roleOverrides, row - 1, col, colCount) == "fill_tube";
 
-function filltube_merges_back(spans, roles, overrides, row, col, rowCount, colCount) =
+function filltube_feature_merges_back(spans, overrides, roles, roleOverrides, row, col, rowCount, colCount) =
   row < rowCount - 1
   && grid_horizontal_divider_blocked(spans, row + 1, col)
-  && grid_cell_role(roles, overrides, row + 1, col, colCount) == "FillTube";
-
-module FillTubeCutout(width, depth, leftClearance, rightClearance, frontClearance, backClearance) {
-  cut_w = max(0, width - leftClearance - rightClearance);
-  cut_d = max(0, depth - frontClearance - backClearance);
-
-  if (cut_w > 0 && cut_d > 0)
-    translate([(leftClearance - rightClearance) / 2, (frontClearance - backClearance) / 2, 0])
-      cuboid([cut_w, cut_d, 30]);
-}
-
-module CellDrainHolePattern(width, depth, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter) {
-  rows = max(1, round(holeRows));
-  cols = max(1, round(holeCols));
-  span_x = max(0, width - holeAreaPadding);
-  span_y = max(0, depth - holeAreaPadding);
-
-  if (holePattern == "Circle") {
-    radius = max(0, min(span_x, span_y) / 2 - holeDiameter / 2);
-    ring_spacing = holeDiameter * 1.15;
-    fitted_rows = radius <= 0 ? 1 : min(rows, floor(radius / ring_spacing) + 1);
-
-    for (ring = [0:fitted_rows - 1]) {
-      ring_radius = fitted_rows <= 1 ? 0 : ring * radius / (fitted_rows - 1);
-      holes = ring == 0 ? 1 : cols * ring;
-      angle_offset = ring % 2 == 0 ? 180 / holes : 0;
-      for (hole = [0:holes - 1])
-        translate([
-          ring_radius * cos(angle_offset + 360 * hole / holes),
-          ring_radius * sin(angle_offset + 360 * hole / holes),
-          0
-        ])
-          cyl(d=holeDiameter, h=30);
-    }
-  } else {
-    for (row = [0:rows - 1])
-      for (col = [0:cols - 1])
-        translate([
-          hole_offset(row, rows, span_x),
-          hole_offset(col, cols, span_y),
-          0
-        ])
-          cyl(d=holeDiameter, h=30);
-  }
-}
-
-function hole_offset(index, count, span) =
-  count <= 1 ? 0 : -span / 2 + index * span / (count - 1);
+  && cell_bottom_feature_name(overrides, roles, roleOverrides, row + 1, col, colCount) == "fill_tube";
 
 function side_chamfers(chamfer, chamferBackSide) =
   chamferBackSide ? [chamfer, chamfer, chamfer, chamfer] : [chamfer, chamfer, 0, 0];
-
-module Ring(w, d, h) {
-  rect_tube(
-    size1=[w, d],
-    size2=[w, d],
-    h=h,
-    wall=wallThickness,
-    chamfer=[frontChamfer, frontChamfer, 0, 0],
-    ichamfer=[frontChamfer, frontChamfer, 0, 0]
-  );
-}

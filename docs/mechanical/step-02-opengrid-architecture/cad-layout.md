@@ -14,6 +14,10 @@ Defines how OpenSCAD files are structured and organized.
 cad/openscad/
   anchor_names.scad
   back_plate.scad
+  cell_anchors.scad
+  cell_features.scad
+  feature_dsl.scad
+  grid_helpers.scad
   main.scad
   pot_drain.scad
   pot_holder_frame.scad
@@ -33,6 +37,14 @@ The `OpenGrid_Support` flag selects whether shared modes are for the OpenGrid-mo
 
 - `OpenGrid_Support = true`: `Assembly` and `Print Layout` use the holder and pot insert.
 - `OpenGrid_Support = false`: `Assembly` and `Print Layout` use the drain pan and pot insert.
+
+The pot insert uses a small cell-feature registry:
+
+- `feature_dsl.scad` parses `Cell_Feature_Overrides` entries such as `1,1=drain_holes(pattern=Circle,rows=3,cols=6)`.
+- `cell_features.scad` maps cell roles and overrides to feature modules.
+- `cell_anchors.scad` generates descriptive BOSL2 anchors such as `cell_1_1_top`, `cell_1_1_bottom`, and `cell_1_1_wall_n`.
+
+Round-one feature planes are `BOTTOM` and `TOP_LIP`. Bottom features are subtractive and remain backward-compatible with `Pot`, `Box`, and `FillTube` roles; top-lip features are additive to the feature list and do not replace bottom behavior.
 
 ---
 

@@ -2,3 +2,12 @@ HOLDER_ANCHOR_INSIDE_CENTER = "inside";
 DRAIN_ANCHOR_TOP = "insert_seat";
 DRAIN_ANCHOR_RESERVOIR_CENTER = "reservoir";
 POT_INSERT_ANCHOR_BOTTOM = "seat";
+
+CELL_ANCHOR_PREFIX = "cell";
+CELL_ANCHOR_TOP = "top";
+CELL_ANCHOR_BOTTOM = "bottom";
+CELL_ANCHOR_CENTER = "center";
+CELL_ANCHOR_WALL_N = "wall_n";
+CELL_ANCHOR_WALL_S = "wall_s";
+CELL_ANCHOR_WALL_E = "wall_e";
+CELL_ANCHOR_WALL_W = "wall_w";

@@ -59,6 +59,8 @@ Grid_Cell_Roles = "Pot";
 Grid_Cell_Role_Overrides = "";
 // Sparse cell spans using 1-based row,column=rowspanxcolspan entries. Example: 1,1=1x2;2,2=2x1.
 Grid_Cell_Spans = "";
+// Sparse per-cell features using row,column=feature(key=value). Example: 1,1=drain_holes(pattern=Circle,rows=3,cols=6);2,1=lid_lip(depth=2,width=8).
+Cell_Feature_Overrides = "";
 // Thickness of the internal grid divider walls.
 Grid_Wall_Thickness = 2; // [0.8:0.2:6]
 // Clearance around FillTube open-bottom cutouts to preserve nearby walls.
@@ -98,6 +100,7 @@ gridColumnSizes = Grid_Column_Sizes;
 gridCellRoles = Grid_Cell_Roles;
 gridCellRoleOverrides = Grid_Cell_Role_Overrides;
 gridCellSpans = Grid_Cell_Spans;
+cellFeatureOverrides = Cell_Feature_Overrides;
 gridWallThickness = Grid_Wall_Thickness;
 fillTubeClearance = Fill_Tube_Clearance;
 
@@ -135,6 +138,7 @@ if (outputMode == "Assembly") {
     gridCellRoles=gridCellRoles,
     gridCellRoleOverrides=gridCellRoleOverrides,
     gridCellSpans=gridCellSpans,
+    cellFeatureOverrides=cellFeatureOverrides,
     gridWallThickness=gridWallThickness,
     fillTubeClearance=fillTubeClearance
   );
@@ -158,6 +162,7 @@ module PotAssembly() {
           gridCellRoles=gridCellRoles,
           gridCellRoleOverrides=gridCellRoleOverrides,
           gridCellSpans=gridCellSpans,
+          cellFeatureOverrides=cellFeatureOverrides,
           gridWallThickness=gridWallThickness,
           fillTubeClearance=fillTubeClearance
         );
@@ -191,6 +196,7 @@ module FreestandingPot() {
         gridCellRoles=gridCellRoles,
         gridCellRoleOverrides=gridCellRoleOverrides,
         gridCellSpans=gridCellSpans,
+        cellFeatureOverrides=cellFeatureOverrides,
         gridWallThickness=gridWallThickness,
         fillTubeClearance=fillTubeClearance
       );
@@ -213,6 +219,7 @@ module PrintLayout() {
         gridCellRoles=gridCellRoles,
         gridCellRoleOverrides=gridCellRoleOverrides,
         gridCellSpans=gridCellSpans,
+        cellFeatureOverrides=cellFeatureOverrides,
         gridWallThickness=gridWallThickness,
         fillTubeClearance=fillTubeClearance
       );
@@ -240,6 +247,7 @@ module PrintLayout() {
         gridCellRoles=gridCellRoles,
         gridCellRoleOverrides=gridCellRoleOverrides,
         gridCellSpans=gridCellSpans,
+        cellFeatureOverrides=cellFeatureOverrides,
         gridWallThickness=gridWallThickness,
         fillTubeClearance=fillTubeClearance
       );
