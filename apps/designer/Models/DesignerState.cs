@@ -64,6 +64,60 @@ public sealed class DesignerState
         $"Cell_Feature_Overrides = \"{Escape(GenerateFeatureOverrides())}\";"
     });
 
+    public string GeneratePreviewScad() => $$"""
+        $fn = 32;
+        width = {{Format(PotWidth)}};
+        depth = {{Format(PotDepth)}};
+        height = {{Format(PotHeight)}};
+        reservoir_height = height * {{Format(ReservoirRatio)}};
+        insert_height = height - reservoir_height;
+        wall = {{Format(WallThickness)}};
+        base = {{Format(BaseThickness)}};
+        rows = {{TrackCount(GridRows)}};
+        cols = {{TrackCount(GridColumns)}};
+        hole_diameter = {{Format(HoleDiameter)}};
+        hole_rows = {{HoleRows}};
+        hole_cols = {{HoleColumns}};
+
+        module open_box(w, d, h) {
+          difference() {
+            cube([w, d, h]);
+            translate([wall, wall, base])
+              cube([w - wall * 2, d - wall * 2, h]);
+          }
+        }
+
+        module drain_holes(w, d) {
+          for (x = [1:hole_cols])
+            for (y = [1:hole_rows])
+              translate([
+                w * x / (hole_cols + 1),
+                d * y / (hole_rows + 1),
+                -0.2
+              ])
+                cylinder(h = base + 0.4, d = hole_diameter);
+        }
+
+        module grid_walls(w, d, h) {
+          cell_w = (w - wall * 2) / cols;
+          cell_d = (d - wall * 2) / rows;
+          for (x = [1:cols - 1])
+            translate([wall + cell_w * x - wall / 2, wall, base])
+              cube([wall, d - wall * 2, h - base]);
+          for (y = [1:rows - 1])
+            translate([wall, wall + cell_d * y - wall / 2, base])
+              cube([w - wall * 2, wall, h - base]);
+        }
+
+        difference() {
+          union() {
+            color("lightgray") open_box(width, depth, insert_height);
+            color("gray") grid_walls(width, depth, insert_height);
+          }
+          drain_holes(width, depth);
+        }
+        """;
+
     public string GenerateCellSpans() =>
         string.Join(";", CellFeatures
             .Where(feature => feature.SpanRows > 1 || feature.SpanColumns > 1)
@@ -80,6 +134,16 @@ public sealed class DesignerState
     private static string Bool(bool value) => value ? "true" : "false";
 
     private static string Escape(string value) => value.Replace("\\", "\\\\").Replace("\"", "\\\"");
+}
+
+public sealed class RendererResult
+{
+    public bool Ok { get; set; }
+    public string Message { get; set; } = "";
+    public string DownloadUrl { get; set; } = "";
+    public string FileName { get; set; } = "";
+    public int ByteLength { get; set; }
+    public double ElapsedMs { get; set; }
 }
 
 public sealed class CellFeatureConfig
