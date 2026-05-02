@@ -1,0 +1,138 @@
+html,
+body {
+    min-height: 100%;
+    background: #f4f7f5;
+    font-family: Inter, "Segoe UI", system-ui, sans-serif;
+}
+
+.designer-appbar {
+    border-bottom: 1px solid #dfe8e2;
+}
+
+.designer-shell {
+    padding-top: 64px;
+}
+
+.designer-page {
+    padding: 24px;
+}
+
+.section-panel,
+.preview-panel {
+    border: 1px solid #dfe8e2;
+    border-radius: 8px;
+    padding: 18px;
+}
+
+.section-heading {
+    gap: 16px;
+}
+
+.panel-title {
+    margin-bottom: 14px;
+    font-weight: 700;
+}
+
+.preview-stage {
+    min-height: 360px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #d9e4dd;
+    background:
+        linear-gradient(90deg, rgba(47, 111, 94, 0.07) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(47, 111, 94, 0.07) 1px, transparent 1px),
+        #fbfdfb;
+    background-size: 28px 28px;
+    border-radius: 8px;
+}
+
+.preview-meta {
+    margin-top: 14px;
+    gap: 8px;
+}
+
+.pot-visual {
+    width: calc(120px * var(--pot-w));
+    height: calc(140px * var(--pot-h));
+    transform: perspective(720px) rotateX(58deg) rotateZ(-35deg);
+    transform-style: preserve-3d;
+    position: relative;
+    border: 10px solid #cfd8d3;
+    border-radius: 8px;
+    background: #d9dfdc;
+    box-shadow: 18px 22px 0 rgba(54, 91, 140, 0.14);
+}
+
+.pot-rim {
+    position: absolute;
+    inset: 12px;
+    border: 4px solid #2f6f5e;
+    border-radius: 4px;
+    background: #eef4f1;
+}
+
+.pot-grid {
+    position: absolute;
+    inset: 36px;
+    display: grid;
+    place-items: center;
+    border: 2px solid #b58b2a;
+    color: #263d60;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.6);
+}
+
+#blazor-error-ui {
+    color-scheme: light only;
+    background: #fff3cd;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}
+
+.loading-progress {
+    position: absolute;
+    display: block;
+    width: 8rem;
+    height: 8rem;
+    inset: 20vh 0 auto 0;
+    margin: 0 auto;
+}
+
+.loading-progress circle {
+    fill: none;
+    stroke: #dfe8e2;
+    stroke-width: 0.6rem;
+    transform-origin: 50% 50%;
+    transform: rotate(-90deg);
+}
+
+.loading-progress circle:last-child {
+    stroke: #2f6f5e;
+    stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
+    transition: stroke-dasharray 0.05s ease-in-out;
+}
+
+.loading-progress-text {
+    position: absolute;
+    text-align: center;
+    font-weight: 700;
+    inset: calc(20vh + 3.25rem) 0 auto 0.2rem;
+}
+
+.loading-progress-text:after {
+    content: var(--blazor-load-percentage-text, "Loading");
+}
