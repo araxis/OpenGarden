@@ -227,7 +227,7 @@ function grid_vertical_divider_blocked_entry(spans, start, end, target_row, boun
     col_span = x_delim >= end ? max(1, round(grid_parse_number(spans, equals + 1, end))) : max(1, round(grid_parse_number(spans, x_delim + 1, end)))
   )
     row <= target_row && target_row < row + row_span
-    && col <= boundary && boundary < col + col_span;
+    && col <= boundary && boundary < col + col_span - 1;
 
 function grid_horizontal_divider_blocked(spans, boundary, col, pos = 0) =
   pos >= len(spans) ? false
@@ -250,7 +250,7 @@ function grid_horizontal_divider_blocked_entry(spans, start, end, boundary, targ
     row_span = x_delim >= end ? 1 : max(1, round(grid_parse_number(spans, equals + 1, x_delim))),
     col_span = x_delim >= end ? max(1, round(grid_parse_number(spans, equals + 1, end))) : max(1, round(grid_parse_number(spans, x_delim + 1, end)))
   )
-    row <= boundary && boundary < row + row_span
+    row <= boundary && boundary < row + row_span - 1
     && col <= target_col && target_col < col + col_span;
 
 function grid_role_name(spec, start, end) =
