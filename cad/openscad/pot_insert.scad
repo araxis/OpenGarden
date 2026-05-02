@@ -88,42 +88,48 @@ module InsertGrid(width, depth, height, wallThickness, gridRowSizes, gridColumnS
   inner_w = max(0, width - wallThickness * 2);
   inner_d = max(0, depth - wallThickness * 2);
 
-  for (row = [0:rows - 1])
-    for (col = [0:cols - 1])
-      if (!grid_cell_is_covered_by_span(gridCellSpans, row, col))
+  for (boundary = [1:cols - 1])
+    for (row = [0:rows - 1])
+      if (!grid_vertical_divider_blocked(gridCellSpans, row, boundary))
         let (
-          row_span = grid_cell_span_rows(gridCellSpans, row, col, rows),
-          col_span = grid_cell_span_cols(gridCellSpans, row, col, cols),
-          end_row = row + row_span - 1,
-          end_col = col + col_span - 1,
-          x0 = grid_track_edge(inner_w, gridColumnSizes, cols, divider, col),
-          x1 = grid_track_edge(inner_w, gridColumnSizes, cols, divider, end_col)
-            + grid_track_size(inner_w, gridColumnSizes, cols, divider, end_col),
+          x = grid_track_edge(inner_w, gridColumnSizes, cols, divider, boundary) - divider / 2,
           y0 = wallThickness + grid_track_edge_from_front(inner_d, gridRowSizes, rows, divider, row),
-          y1 = wallThickness + grid_track_edge_from_front(inner_d, gridRowSizes, rows, divider, end_row)
-            + grid_track_size(inner_d, gridRowSizes, rows, divider, end_row),
-          front_ext = row > 0 ? divider / 2 : 0,
-          back_ext = end_row < rows - 1 ? divider / 2 : 0,
-          left_ext = col > 0 ? divider / 2 : 0,
-          right_ext = end_col < cols - 1 ? divider / 2 : 0
-        ) {
-          if (col > 0)
-            translate([x0 - divider / 2, (y0 + y1 - front_ext + back_ext) / 2, 0])
-              cuboid([divider, y1 - y0 + front_ext + back_ext, height], anchor=BOTTOM);
+          y1 = y0 + grid_track_size(inner_d, gridRowSizes, rows, divider, row),
+          front_ext = grid_has_horizontal_junction(gridCellSpans, row, rows, boundary, cols) ? divider / 2 : 0,
+          back_ext = grid_has_horizontal_junction(gridCellSpans, row + 1, rows, boundary, cols) ? divider / 2 : 0
+        )
+          translate([x, (y0 + y1 - front_ext + back_ext) / 2, 0])
+            cuboid([divider, y1 - y0 + front_ext + back_ext, height], anchor=BOTTOM);
 
-          if (end_col < cols - 1)
-            translate([x1 + divider / 2, (y0 + y1 - front_ext + back_ext) / 2, 0])
-              cuboid([divider, y1 - y0 + front_ext + back_ext, height], anchor=BOTTOM);
-
-          if (row > 0)
-            translate([(x0 + x1 - left_ext + right_ext) / 2, y0 - divider / 2, 0])
-              cuboid([x1 - x0 + left_ext + right_ext, divider, height], anchor=BOTTOM);
-
-          if (end_row < rows - 1)
-            translate([(x0 + x1 - left_ext + right_ext) / 2, y1 + divider / 2, 0])
-              cuboid([x1 - x0 + left_ext + right_ext, divider, height], anchor=BOTTOM);
-        }
+  for (boundary = [1:rows - 1])
+    for (col = [0:cols - 1])
+      if (!grid_horizontal_divider_blocked(gridCellSpans, boundary, col))
+        let (
+          y = wallThickness + grid_track_edge_from_front(inner_d, gridRowSizes, rows, divider, boundary) - divider / 2,
+          x0 = grid_track_edge(inner_w, gridColumnSizes, cols, divider, col),
+          x1 = x0 + grid_track_size(inner_w, gridColumnSizes, cols, divider, col),
+          left_ext = grid_has_vertical_junction(gridCellSpans, boundary, rows, col, cols) ? divider / 2 : 0,
+          right_ext = grid_has_vertical_junction(gridCellSpans, boundary, rows, col + 1, cols) ? divider / 2 : 0
+        )
+          translate([(x0 + x1 - left_ext + right_ext) / 2, y, 0])
+            cuboid([x1 - x0 + left_ext + right_ext, divider, height], anchor=BOTTOM);
 }
+
+function grid_has_horizontal_junction(spans, rowBoundary, rowCount, colBoundary, colCount) =
+  rowBoundary > 0
+  && rowBoundary < rowCount
+  && (
+    !grid_horizontal_divider_blocked(spans, rowBoundary, colBoundary - 1)
+    || (colBoundary < colCount && !grid_horizontal_divider_blocked(spans, rowBoundary, colBoundary))
+  );
+
+function grid_has_vertical_junction(spans, rowBoundary, rowCount, colBoundary, colCount) =
+  colBoundary > 0
+  && colBoundary < colCount
+  && (
+    !grid_vertical_divider_blocked(spans, rowBoundary - 1, colBoundary)
+    || (rowBoundary < rowCount && !grid_vertical_divider_blocked(spans, rowBoundary, colBoundary))
+  );
 
 module Base(
   width,
