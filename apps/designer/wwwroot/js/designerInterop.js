@@ -23,22 +23,12 @@ window.openGardenDesigner = {
     try {
       if (!window.openGardenDesigner.openScad) {
         const module = await import("https://cdn.jsdelivr.net/npm/openscad-wasm@0.0.4/openscad.js");
-        window.openGardenDesigner.openScad = await module.default({ noInitialRun: true });
+        window.openGardenDesigner.openScad = await module.createOpenSCAD({
+          noInitialRun: true
+        });
       }
 
-      const instance = window.openGardenDesigner.openScad;
-      const inputPath = "/opengarden-preview.scad";
-      const outputPath = "/opengarden-preview.stl";
-
-      try {
-        instance.FS.unlink(outputPath);
-      } catch {
-      }
-
-      instance.FS.writeFile(inputPath, scadCode);
-      instance.callMain([inputPath, "--enable=manifold", "-o", outputPath]);
-
-      const output = instance.FS.readFile(outputPath);
+      const output = await window.openGardenDesigner.openScad.renderToStl(scadCode);
       const blob = new Blob([output], { type: "model/stl" });
       const downloadUrl = URL.createObjectURL(blob);
 
@@ -47,7 +37,7 @@ window.openGardenDesigner = {
         message: "Preview STL generated.",
         downloadUrl,
         fileName: "opengarden-preview.stl",
-        byteLength: output.byteLength,
+        byteLength: blob.size,
         elapsedMs: performance.now() - started
       };
     } catch (error) {
