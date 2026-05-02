@@ -1,0 +1,15 @@
+<MudPaper Class="feature-panel" Elevation="0">
+    <MudText Typo="Typo.subtitle2">Wick Port</MudText>
+    <MudNumericField T="double" Label="Diameter" Min="2" Max="30" Step="0.5" @bind-Value="Feature.Diameter" @bind-Value:after="NotifyChanged" Adornment="Adornment.End" AdornmentText="mm" />
+    <MudSwitch T="bool" Color="Color.Primary" Label="Add rim" @bind-Value="Feature.Rim" @bind-Value:after="NotifyChanged" />
+</MudPaper>
+
+@code {
+    [Parameter, EditorRequired]
+    public WickPortFeature Feature { get; set; } = new();
+
+    [Parameter]
+    public EventCallback OnChanged { get; set; }
+
+    private Task NotifyChanged() => OnChanged.InvokeAsync();
+}

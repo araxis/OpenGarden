@@ -1,0 +1,62 @@
+<MudStack Spacing="2">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+        <div>
+            <MudText Typo="Typo.subtitle2">Cell Features</MudText>
+            <MudText Typo="Typo.caption" Color="Color.Secondary">Configure each special cell with controls instead of override text.</MudText>
+        </div>
+        <MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="AddFeature" title="Add cell feature" />
+    </MudStack>
+
+    <MudExpansionPanels MultiExpansion="true" Elevation="0">
+        @foreach (var feature in State.CellFeatures)
+        {
+            <MudExpansionPanel Text="@PanelTitle(feature)">
+                <CellFeatureEditor Feature="feature" RowCount="RowCount" ColumnCount="ColumnCount" OnChanged="OnChanged" OnRemove="RemoveFeature" />
+            </MudExpansionPanel>
+        }
+    </MudExpansionPanels>
+</MudStack>
+
+@code {
+    [Parameter, EditorRequired]
+    public DesignerState State { get; set; } = new();
+
+    [Parameter]
+    public EventCallback OnChanged { get; set; }
+
+    private int RowCount => DesignerState.TrackCount(State.GridRows);
+    private int ColumnCount => DesignerState.TrackCount(State.GridColumns);
+
+    private async Task AddFeature()
+    {
+        State.CellFeatures.Add(new CellFeatureConfig
+        {
+            Row = Math.Clamp(State.CellFeatures.Count + 1, 1, Math.Max(1, RowCount)),
+            Column = 1
+        });
+        await OnChanged.InvokeAsync();
+    }
+
+    private async Task RemoveFeature(CellFeatureConfig feature)
+    {
+        State.CellFeatures.Remove(feature);
+        if (State.CellFeatures.Count == 0)
+        {
+            State.CellFeatures.Add(new CellFeatureConfig());
+        }
+
+        await OnChanged.InvokeAsync();
+    }
+
+    private static string PanelTitle(CellFeatureConfig feature) =>
+        $"Row {feature.Row}, Column {feature.Column}: {Label(feature.Feature)}";
+
+    private static string Label(string feature) => feature switch
+    {
+        FeatureTypes.DrainHoles => "Drain holes",
+        FeatureTypes.LidLip => "Lid lip",
+        FeatureTypes.WickPort => "Wick port",
+        FeatureTypes.FillTube => "Fill tube",
+        _ => feature
+    };
+}

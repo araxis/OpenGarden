@@ -1,0 +1,14 @@
+<MudPaper Class="feature-panel" Elevation="0">
+    <MudText Typo="Typo.subtitle2">Fill Tube</MudText>
+    <MudNumericField T="double" Label="Wall Clearance" Min="0" Max="5" Step="0.1" @bind-Value="Feature.Clearance" @bind-Value:after="NotifyChanged" Adornment="Adornment.End" AdornmentText="mm" />
+</MudPaper>
+
+@code {
+    [Parameter, EditorRequired]
+    public FillTubeFeature Feature { get; set; } = new();
+
+    [Parameter]
+    public EventCallback OnChanged { get; set; }
+
+    private Task NotifyChanged() => OnChanged.InvokeAsync();
+}

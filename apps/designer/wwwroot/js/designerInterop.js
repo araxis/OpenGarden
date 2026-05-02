@@ -6,5 +6,6 @@ window.openGardenDesigner = {
 
     await navigator.clipboard.writeText(text);
     return true;
-  }
+  },
+  prefersDarkMode: () => window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
 };

@@ -1,0 +1,30 @@
+<MudPaper Class="section-panel" Elevation="0">
+    <MudText Typo="Typo.subtitle1" Class="panel-title">Walls and Holes</MudText>
+    <MudNumericField T="double" Label="Seat Height" Min="1" Max="5" Step="0.5" @bind-Value="State.SeatHeight" @bind-Value:after="NotifyChanged" Adornment="Adornment.End" AdornmentText="mm" />
+    <MudNumericField T="double" Label="Wall Thickness" Min="1" Max="8" Step="0.25" @bind-Value="State.WallThickness" @bind-Value:after="NotifyChanged" Adornment="Adornment.End" AdornmentText="mm" />
+    <MudNumericField T="double" Label="Base Thickness" Min="1" Max="8" Step="0.25" @bind-Value="State.BaseThickness" @bind-Value:after="NotifyChanged" Adornment="Adornment.End" AdornmentText="mm" />
+    <MudSelect T="string" Label="Default Hole Pattern" Dense="true" @bind-Value="State.HolePattern" @bind-Value:after="NotifyChanged">
+        <MudSelectItem T="string" Value="@("Rectangle")">Rectangle</MudSelectItem>
+        <MudSelectItem T="string" Value="@("Circle")">Circle</MudSelectItem>
+    </MudSelect>
+    <MudGrid Spacing="2">
+        <MudItem xs="6">
+            <MudNumericField T="int" Label="Rows" Min="1" Max="10" @bind-Value="State.HoleRows" @bind-Value:after="NotifyChanged" />
+        </MudItem>
+        <MudItem xs="6">
+            <MudNumericField T="int" Label="Columns" Min="1" Max="10" @bind-Value="State.HoleColumns" @bind-Value:after="NotifyChanged" />
+        </MudItem>
+    </MudGrid>
+    <MudNumericField T="double" Label="Hole Diameter" Min="1" Max="15" Step="0.5" @bind-Value="State.HoleDiameter" @bind-Value:after="NotifyChanged" Adornment="Adornment.End" AdornmentText="mm" />
+    <MudNumericField T="double" Label="Hole Area Padding" Min="0" Max="80" Step="0.5" @bind-Value="State.HolePadding" @bind-Value:after="NotifyChanged" Adornment="Adornment.End" AdornmentText="mm" />
+</MudPaper>
+
+@code {
+    [Parameter, EditorRequired]
+    public DesignerState State { get; set; } = new();
+
+    [Parameter]
+    public EventCallback OnChanged { get; set; }
+
+    private Task NotifyChanged() => OnChanged.InvokeAsync();
+}
