@@ -19,6 +19,7 @@ gridRowSizes = "1*";
 gridColumnSizes = "1*";
 gridCellRoles = "Pot";
 gridCellRoleOverrides = "";
+gridCellSpans = "";
 gridWallThickness = 2;
 fillTubeClearance = 0.8;
 
@@ -40,6 +41,7 @@ module PotInsert(
   gridColumnSizes = gridColumnSizes,
   gridCellRoles = gridCellRoles,
   gridCellRoleOverrides = gridCellRoleOverrides,
+  gridCellSpans = gridCellSpans,
   gridWallThickness = gridWallThickness,
   fillTubeClearance = fillTubeClearance,
   anchor = CENTER,
@@ -70,33 +72,43 @@ module PotInsert(
               anchor=FRONT + BOTTOM
             )
               attach(BOTTOM, TOP)
-                Base(w, d, seatHeight, wallThickness, baseThickness, chamfer, chamferBackSide, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, gridCellRoles, gridCellRoleOverrides, gridWallThickness, fillTubeClearance);
+                Base(w, d, seatHeight, wallThickness, baseThickness, chamfer, chamferBackSide, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, gridCellRoles, gridCellRoleOverrides, gridCellSpans, gridWallThickness, fillTubeClearance);
 
-            InsertGrid(w, d, h, wallThickness, gridRowSizes, gridColumnSizes, gridWallThickness);
+            InsertGrid(w, d, h, wallThickness, gridRowSizes, gridColumnSizes, gridCellSpans, gridWallThickness);
           }
 
     children();
   }
 }
 
-module InsertGrid(width, depth, height, wallThickness, gridRowSizes, gridColumnSizes, gridWallThickness) {
+module InsertGrid(width, depth, height, wallThickness, gridRowSizes, gridColumnSizes, gridCellSpans, gridWallThickness) {
   rows = grid_track_count(gridRowSizes);
   cols = grid_track_count(gridColumnSizes);
   divider = max(0.4, gridWallThickness);
   inner_w = max(0, width - wallThickness * 2);
   inner_d = max(0, depth - wallThickness * 2);
 
-  for (col = [1:cols - 1]) {
-    x = grid_track_edge(inner_w, gridColumnSizes, cols, divider, col) + divider / 2;
-    translate([x, wallThickness, 0])
-      cuboid([divider, inner_d, height], anchor=FRONT + BOTTOM);
-  }
+  for (col = [1:cols - 1])
+    let (x = grid_track_edge(inner_w, gridColumnSizes, cols, divider, col) + divider / 2)
+    for (row = [0:rows - 1])
+      if (!grid_vertical_divider_blocked(gridCellSpans, row, col))
+        translate([
+          x,
+          wallThickness + grid_track_edge_from_front(inner_d, gridRowSizes, rows, divider, row) + grid_track_size(inner_d, gridRowSizes, rows, divider, row) / 2,
+          0
+        ])
+          cuboid([divider, grid_track_size(inner_d, gridRowSizes, rows, divider, row), height], anchor=BOTTOM);
 
-  for (row = [1:rows - 1]) {
-    y = wallThickness + grid_track_edge_from_front(inner_d, gridRowSizes, rows, divider, row);
-    translate([-inner_w / 2, y, 0])
-      cuboid([inner_w, divider, height], anchor=LEFT + FRONT + BOTTOM);
-  }
+  for (row = [1:rows - 1])
+    let (y = wallThickness + grid_track_edge_from_front(inner_d, gridRowSizes, rows, divider, row))
+    for (col = [0:cols - 1])
+      if (!grid_horizontal_divider_blocked(gridCellSpans, row, col))
+        translate([
+          grid_track_center(inner_w, gridColumnSizes, cols, divider, col),
+          y + divider / 2,
+          0
+        ])
+          cuboid([grid_track_size(inner_w, gridColumnSizes, cols, divider, col), divider, height], anchor=BOTTOM);
 }
 
 module Base(
@@ -116,6 +128,7 @@ module Base(
   gridColumnSizes,
   gridCellRoles,
   gridCellRoleOverrides,
+  gridCellSpans,
   gridWallThickness,
   fillTubeClearance
 ) {
@@ -142,10 +155,10 @@ module Base(
           chamfer=side_chamfer
         )
           tag("hole")
-            DrainHolePattern(width, depth, wallThickness, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, gridCellRoles, gridCellRoleOverrides, gridWallThickness, fillTubeClearance);
+            DrainHolePattern(width, depth, wallThickness, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, gridCellRoles, gridCellRoleOverrides, gridCellSpans, gridWallThickness, fillTubeClearance);
 }
 
-module DrainHolePattern(width, depth, wallThickness, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, gridCellRoles, gridCellRoleOverrides, gridWallThickness, fillTubeClearance) {
+module DrainHolePattern(width, depth, wallThickness, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, gridCellRoles, gridCellRoleOverrides, gridCellSpans, gridWallThickness, fillTubeClearance) {
   grid_rows = grid_track_count(gridRowSizes);
   grid_cols = grid_track_count(gridColumnSizes);
   divider = max(0.4, gridWallThickness);
@@ -155,13 +168,16 @@ module DrainHolePattern(width, depth, wallThickness, holeAreaPadding, holePatter
   for (grid_row = [0:grid_rows - 1])
     for (grid_col = [0:grid_cols - 1])
       let (
-        cell_w = grid_track_size(inner_w, gridColumnSizes, grid_cols, divider, grid_col),
-        cell_d = grid_track_size(inner_d, gridRowSizes, grid_rows, divider, grid_row),
+        row_span = grid_cell_span_rows(gridCellSpans, grid_row, grid_col, grid_rows),
+        col_span = grid_cell_span_cols(gridCellSpans, grid_row, grid_col, grid_cols),
+        cell_w = grid_span_track_size(inner_w, gridColumnSizes, grid_cols, divider, grid_col, col_span),
+        cell_d = grid_span_track_size(inner_d, gridRowSizes, grid_rows, divider, grid_row, row_span),
         role = grid_cell_role(gridCellRoles, gridCellRoleOverrides, grid_row, grid_col, grid_cols)
       )
+      if (!grid_cell_is_covered_by_span(gridCellSpans, grid_row, grid_col))
         translate([
-          grid_track_center(inner_w, gridColumnSizes, grid_cols, divider, grid_col),
-          grid_track_center(inner_d, gridRowSizes, grid_rows, divider, grid_row),
+          grid_span_track_center(inner_w, gridColumnSizes, grid_cols, divider, grid_col, col_span),
+          grid_span_track_center(inner_d, gridRowSizes, grid_rows, divider, grid_row, row_span),
           0
         ]) {
           if (role == "Pot")
