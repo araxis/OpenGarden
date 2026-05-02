@@ -13,7 +13,7 @@ fi
 mkdir -p "$OUTPUT_DIR"
 
 mapfile -t changed_scad_files < <(
-  git diff --name-only --diff-filter=ACMR "$BASE_SHA" "$HEAD_SHA" -- 'cad/openscad/*.scad' | sort -u
+  git diff --name-only --diff-filter=ACMR "$BASE_SHA" "$HEAD_SHA" -- 'cad/openscad/*.scad' 'cad/openscad/**/*.scad' | sort -u
 )
 
 if [ "${#changed_scad_files[@]}" -eq 0 ]; then
@@ -52,7 +52,7 @@ for scad_file in "${changed_scad_files[@]}"; do
       render_mode "$source_name" "Holder Only" "holder-only" true
       render_mode "$source_name" "Assembly" "assembly" true
       ;;
-    cad/openscad/pot_insert.scad)
+    cad/openscad/pot_insert.scad|cad/openscad/cell_anchors.scad|cad/openscad/cell_features/*.scad)
       render_mode "$source_name" "Pot Insert Only" "pot-insert-only" false
       render_mode "$source_name" "Print Layout" "print-layout-freestanding" false
       ;;

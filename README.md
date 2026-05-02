@@ -66,7 +66,40 @@ For OpenGrid holders, `Subtracted_Slots` reduces the back-plate slot count and `
 
 The insert drain hole pattern can be set with `Hole_Pattern` and adjusted with `Hole_Rows`, `Hole_Columns`, `Hole_Diameter`, and `Hole_Area_Padding`. The pattern is generated inside each pot insert grid cell. `Rectangle` uses rows and columns; `Circle` uses rows as a maximum ring count and columns as holes per ring. Circle mode may use fewer rings when a cell is too small to fit the requested rings cleanly.
 
-The pot insert interior is always treated as a grid. `Grid_Row_Sizes` and `Grid_Column_Sizes` are comma-separated strings; each item creates one row or column, so `1*` by itself creates one open compartment, while `1*,1*` creates two equal tracks. Track values can use relative weights such as `1*` or `2*`, plain numeric weights such as `1`, or percentages such as `25%`. `Grid_Cell_Roles` is a comma-separated row-major role string where each cell can be `Pot`, `Box`, or `FillTube`; the shorter aliases `P`, `B`, and `F` are also supported. `Grid_Cell_Role_Overrides` can set sparse cells with 1-based `row,column=role` entries, such as `2,2=B;1,3=F`, and overrides win over the row-major role string. `Grid_Cell_Spans` can merge walls with 1-based `row,column=rowspanxcolspan` entries, such as `1,1=1x2;2,2=2x1`; spans only affect divider walls, while each original grid cell keeps its own role and bottom behavior. `Pot` cells get drain holes, `Box` cells stay closed at the bottom, and `FillTube` cells are open-bottom tube cells. Adjacent `FillTube` cells connected by a span share a continuous bottom opening across the removed divider. `Grid_Wall_Thickness` controls the divider wall thickness, and `Fill_Tube_Clearance` leaves a small margin around FillTube bottom cutouts.
+The pot insert interior is always treated as a grid. `Grid_Row_Sizes` and `Grid_Column_Sizes` are comma-separated strings; each item creates one row or column, so `1*` by itself creates one open compartment, while `1*,1*` creates two equal tracks. Track values can use relative weights such as `1*` or `2*`, plain numeric weights such as `1`, or percentages such as `25%`. `Grid_Cell_Spans` can merge walls with 1-based `row,column=rowspanxcolspan` entries, such as `1,1=1x2;2,2=2x1`. Spans merge the interior divider walls and make the spanned cell behave as one feature area. `Grid_Wall_Thickness` controls the divider wall thickness, and `Fill_Tube_Clearance` leaves a small margin around FillTube bottom cutouts.
+
+Cell behavior is controlled by the cell-feature registry. `Cell_Default_Feature` is used by every cell that does not have an override. `Pot` is a drain-hole cell, `Box` is closed at the bottom, `FillTube` is an open-bottom tube cell, and `WickPort` is a single wick hole.
+
+`Cell_Feature_Overrides` is a sparse per-cell list using 1-based `row,col: feature key=value key=value` entries separated by `;`. This syntax avoids programming-style parentheses in the OpenSCAD Customizer. Short aliases are supported:
+
+- `dh` or `p` — `drain_holes` / `Pot`
+- `b` — `box`
+- `ft` or `f` — `fill_tube` / `FillTube`
+- `wp` — `wick_port`
+- `ll` — `lid_lip`
+- `pattern=C` and `pattern=R` — `Circle` and `Rectangle`
+
+Built-in features:
+
+- `drain_holes` (`dh`, `p`) — `BOTTOM`. Params: `pattern`, `rows`, `cols`, `diameter`, `padding`. Unspecified params fall back to the global drain-hole settings.
+- `box` (`b`) — `BOTTOM`. Closed floor, no cutout.
+- `fill_tube` (`ft`, `f`) — `BOTTOM`. Open-bottom tube cell. Param: `clearance`.
+- `wick_port` (`wp`) — `BOTTOM`. Single centered wick hole. Param: `diameter`.
+- `lid_lip` (`ll`) — `TOP_LIP`. Rectangular ring recess at the top of the cell wall. Params: `depth`, `width`.
+
+Examples:
+
+```scad
+Cell_Default_Feature = "Pot";
+Cell_Feature_Overrides = "1,1: dh pattern=C rows=3 cols=6";
+Cell_Feature_Overrides = "1,1: wp diameter=10; 2,2: ll depth=2";
+```
+
+Bottom-plane overrides replace the default feature for that cell. Top-lip overrides are additive, so the cell still uses `Cell_Default_Feature` for its floor. You can apply both planes to one cell by adding two entries for the same cell.
+
+Each cell also exposes named BOSL2 anchors that external accessory `.scad` files can `attach()` to: `cell_<row>_<col>_top`, `cell_<row>_<col>_bottom`, `cell_<row>_<col>_center`, and `cell_<row>_<col>_wall_n/s/e/w` for cells on the corresponding boundary. Row and column are 1-based. Wall anchors only exist on grid-boundary cells.
+
+Malformed or unknown `Cell_Feature_Overrides` entries are silently skipped.
 
 The print layout spacing can be adjusted with:
 
