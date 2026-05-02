@@ -4,6 +4,12 @@ function grid_token_start(spec, index, pos = 0, current = 0) =
   : spec[pos] == "," ? grid_token_start(spec, index, pos + 1, current + 1)
   : grid_token_start(spec, index, pos + 1, current);
 
+function grid_track_count(spec, pos = 0, count = 1) =
+  len(spec) == 0 ? 1
+  : pos >= len(spec) ? count
+  : spec[pos] == "," ? grid_track_count(spec, pos + 1, count + 1)
+  : grid_track_count(spec, pos + 1, count);
+
 function grid_token_end(spec, start, pos = undef) =
   let (scan = is_undef(pos) ? start : pos)
     scan >= len(spec) || spec[scan] == "," ? grid_trim_end(spec, start, scan)

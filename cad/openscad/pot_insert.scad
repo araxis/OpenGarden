@@ -17,8 +17,6 @@ holeRows = 4;
 holeCols = 4;
 holeDiameter = 5;
 seatHeight = 5;
-gridRows = 1;
-gridColumns = 1;
 gridRowSizes = "1*";
 gridColumnSizes = "1*";
 gridCellRoles = "Pot";
@@ -39,8 +37,6 @@ module PotInsert(
   holeCols = holeCols,
   holeDiameter = holeDiameter,
   seatHeight = seatHeight,
-  gridRows = gridRows,
-  gridColumns = gridColumns,
   gridRowSizes = gridRowSizes,
   gridColumnSizes = gridColumnSizes,
   gridCellRoles = gridCellRoles,
@@ -74,18 +70,18 @@ module PotInsert(
               anchor=FRONT + BOTTOM
             )
               attach(BOTTOM, TOP)
-                Base(w, d, seatHeight, wallThickness, baseThickness, chamfer, chamferBackSide, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRows, gridColumns, gridRowSizes, gridColumnSizes, gridCellRoles, gridWallThickness, fillTubeDiameter);
+                Base(w, d, seatHeight, wallThickness, baseThickness, chamfer, chamferBackSide, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, gridCellRoles, gridWallThickness, fillTubeDiameter);
 
-            InsertGrid(w, d, h, wallThickness, gridRows, gridColumns, gridRowSizes, gridColumnSizes, gridWallThickness);
+            InsertGrid(w, d, h, wallThickness, gridRowSizes, gridColumnSizes, gridWallThickness);
           }
 
     children();
   }
 }
 
-module InsertGrid(width, depth, height, wallThickness, gridRows, gridColumns, gridRowSizes, gridColumnSizes, gridWallThickness) {
-  rows = max(1, round(gridRows));
-  cols = max(1, round(gridColumns));
+module InsertGrid(width, depth, height, wallThickness, gridRowSizes, gridColumnSizes, gridWallThickness) {
+  rows = grid_track_count(gridRowSizes);
+  cols = grid_track_count(gridColumnSizes);
   divider = max(0.4, gridWallThickness);
   inner_w = max(0, width - wallThickness * 2);
   inner_d = max(0, depth - wallThickness * 2);
@@ -116,8 +112,6 @@ module Base(
   holeRows,
   holeCols,
   holeDiameter,
-  gridRows,
-  gridColumns,
   gridRowSizes,
   gridColumnSizes,
   gridCellRoles,
@@ -147,12 +141,12 @@ module Base(
           chamfer=side_chamfer
         )
           tag("hole")
-            DrainHolePattern(width, depth, wallThickness, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRows, gridColumns, gridRowSizes, gridColumnSizes, gridCellRoles, gridWallThickness, fillTubeDiameter);
+            DrainHolePattern(width, depth, wallThickness, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, gridCellRoles, gridWallThickness, fillTubeDiameter);
 }
 
-module DrainHolePattern(width, depth, wallThickness, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRows, gridColumns, gridRowSizes, gridColumnSizes, gridCellRoles, gridWallThickness, fillTubeDiameter) {
-  grid_rows = max(1, round(gridRows));
-  grid_cols = max(1, round(gridColumns));
+module DrainHolePattern(width, depth, wallThickness, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, gridCellRoles, gridWallThickness, fillTubeDiameter) {
+  grid_rows = grid_track_count(gridRowSizes);
+  grid_cols = grid_track_count(gridColumnSizes);
   divider = max(0.4, gridWallThickness);
   inner_w = max(0, width - wallThickness * 2);
   inner_d = max(0, depth - wallThickness * 2);

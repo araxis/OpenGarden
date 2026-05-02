@@ -47,13 +47,9 @@ Hole_Diameter = 5; // [1:0.5:15]
 Hole_Area_Padding = 25; // [0:0.5:80]
 
 /*[Insert Grid]*/
-// Number of front/back grid rows inside the insert.
-Grid_Rows = 1; // [1:1:8]
-// Number of left/right grid columns inside the insert.
-Grid_Columns = 1; // [1:1:8]
-// Comma-separated front/back row sizes. Use *, 2*, 1, or 25%. Missing values default to 1*.
+// Comma-separated front/back row sizes. Each item creates one row. Use *, 2*, 1, or 25%.
 Grid_Row_Sizes = "1*";
-// Comma-separated left/right column sizes. Use *, 2*, 1, or 25%. Missing values default to 1*.
+// Comma-separated left/right column sizes. Each item creates one column. Use *, 2*, 1, or 25%.
 Grid_Column_Sizes = "1*";
 // Comma-separated row-major cell roles. Use Pot, Box, or FillTube. Missing values default to Pot.
 Grid_Cell_Roles = "Pot";
@@ -91,8 +87,6 @@ holeRows = Hole_Rows;
 holeCols = Hole_Columns;
 holeDiameter = Hole_Diameter;
 holeAreaPadding = Hole_Area_Padding;
-gridRows = Grid_Rows;
-gridColumns = Grid_Columns;
 gridRowSizes = Grid_Row_Sizes;
 gridColumnSizes = Grid_Column_Sizes;
 gridCellRoles = Grid_Cell_Roles;
@@ -128,8 +122,6 @@ if (outputMode == "Assembly") {
     holeRows=holeRows,
     holeCols=holeCols,
     holeDiameter=holeDiameter,
-    gridRows=gridRows,
-    gridColumns=gridColumns,
     gridRowSizes=gridRowSizes,
     gridColumnSizes=gridColumnSizes,
     gridCellRoles=gridCellRoles,
@@ -151,8 +143,6 @@ module PotAssembly() {
           holeRows=holeRows,
           holeCols=holeCols,
           holeDiameter=holeDiameter,
-          gridRows=gridRows,
-          gridColumns=gridColumns,
           gridRowSizes=gridRowSizes,
           gridColumnSizes=gridColumnSizes,
           gridCellRoles=gridCellRoles,
@@ -184,8 +174,6 @@ module FreestandingPot() {
         holeRows=holeRows,
         holeCols=holeCols,
         holeDiameter=holeDiameter,
-        gridRows=gridRows,
-        gridColumns=gridColumns,
         gridRowSizes=gridRowSizes,
         gridColumnSizes=gridColumnSizes,
         gridCellRoles=gridCellRoles,
@@ -206,8 +194,6 @@ module PrintLayout() {
         holeRows=holeRows,
         holeCols=holeCols,
         holeDiameter=holeDiameter,
-        gridRows=gridRows,
-        gridColumns=gridColumns,
         gridRowSizes=gridRowSizes,
         gridColumnSizes=gridColumnSizes,
         gridCellRoles=gridCellRoles,
@@ -233,8 +219,6 @@ module PrintLayout() {
         holeRows=holeRows,
         holeCols=holeCols,
         holeDiameter=holeDiameter,
-        gridRows=gridRows,
-        gridColumns=gridColumns,
         gridRowSizes=gridRowSizes,
         gridColumnSizes=gridColumnSizes,
         gridCellRoles=gridCellRoles,
