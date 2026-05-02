@@ -15,6 +15,8 @@ Subtracted_Slots = 0; // [0:1:10]
 Slot_Placement = "Center"; // [Center, Left, Right, Spread]
 // Distance between separate parts in Print Layout mode.
 Print_Spacing = 20; // [5:1:80]
+// Preview is faster while designing; Export uses smoother circles and chamfers for final STL output.
+Render_Quality = "Preview"; // [Preview, Export]
 
 /*[Pot Size]*/
 // Total outside height used by the holder/drain and pot insert assembly.
@@ -67,7 +69,7 @@ Front_Chamfer = 5; // [0:0.5:20]
 Chamfer_Back_Side = true;
 
 /*[Hidden]*/
-$fn = 100;
+$fn = Render_Quality == "Export" ? 100 : 32;
 outputMode = Output_Mode;
 openGridSupport = OpenGrid_Support;
 subtractedSlots = Subtracted_Slots;

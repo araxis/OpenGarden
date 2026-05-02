@@ -34,6 +34,7 @@ render_mode() {
     -o "$output_file" \
     -D "Output_Mode=\"$mode\"" \
     -D "OpenGrid_Support=$open_grid_support" \
+    -D "Render_Quality=\"Export\"" \
     "$MAIN_SCAD"
 }
 

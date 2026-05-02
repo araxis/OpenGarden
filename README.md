@@ -44,6 +44,7 @@ Open it in OpenSCAD Nightly and use the `Output_Mode` customizer value:
 ```scad
 Output_Mode = "Assembly"; // [Assembly, Freestanding Pot, Print Layout, Holder Only, Drain Only, Pot Insert Only]
 OpenGrid_Support = true;
+Render_Quality = "Preview"; // [Preview, Export]
 ```
 
 Modes:
@@ -72,6 +73,8 @@ The print layout spacing can be adjusted with:
 ```scad
 Print_Spacing = 20;
 ```
+
+Use `Render_Quality = "Preview"` while tuning the grid, roles, and hole layout. It lowers the global OpenSCAD facet count for smoother interaction. Switch to `Render_Quality = "Export"` for final STL output.
 
 ## CAD Dependencies
 
