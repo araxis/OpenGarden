@@ -51,12 +51,12 @@ Hole_Area_Padding = 25; // [0:0.5:80]
 Grid_Rows = 1; // [1:1:8]
 // Number of left/right grid columns inside the insert.
 Grid_Columns = 1; // [1:1:8]
-// Relative front/back row sizes. Missing values default to 1.
-Grid_Row_Weights = [1];
-// Relative left/right column sizes. Missing values default to 1.
-Grid_Column_Weights = [1];
-// Row-major cell roles. Use Pot, Box, or FillTube. Missing values default to Pot.
-Grid_Cell_Roles = ["Pot"];
+// Comma-separated front/back row sizes. Use *, 2*, 1, or 25%. Missing values default to 1*.
+Grid_Row_Sizes = "1*";
+// Comma-separated left/right column sizes. Use *, 2*, 1, or 25%. Missing values default to 1*.
+Grid_Column_Sizes = "1*";
+// Comma-separated row-major cell roles. Use Pot, Box, or FillTube. Missing values default to Pot.
+Grid_Cell_Roles = "Pot";
 // Thickness of the internal grid divider walls.
 Grid_Wall_Thickness = 2; // [0.8:0.2:6]
 // Diameter of the bottom opening for FillTube cells.
@@ -93,8 +93,8 @@ holeDiameter = Hole_Diameter;
 holeAreaPadding = Hole_Area_Padding;
 gridRows = Grid_Rows;
 gridColumns = Grid_Columns;
-gridRowWeights = Grid_Row_Weights;
-gridColumnWeights = Grid_Column_Weights;
+gridRowSizes = Grid_Row_Sizes;
+gridColumnSizes = Grid_Column_Sizes;
 gridCellRoles = Grid_Cell_Roles;
 gridWallThickness = Grid_Wall_Thickness;
 fillTubeDiameter = Fill_Tube_Diameter;
@@ -130,8 +130,8 @@ if (outputMode == "Assembly") {
     holeDiameter=holeDiameter,
     gridRows=gridRows,
     gridColumns=gridColumns,
-    gridRowWeights=gridRowWeights,
-    gridColumnWeights=gridColumnWeights,
+    gridRowSizes=gridRowSizes,
+    gridColumnSizes=gridColumnSizes,
     gridCellRoles=gridCellRoles,
     gridWallThickness=gridWallThickness,
     fillTubeDiameter=fillTubeDiameter
@@ -153,8 +153,8 @@ module PotAssembly() {
           holeDiameter=holeDiameter,
           gridRows=gridRows,
           gridColumns=gridColumns,
-          gridRowWeights=gridRowWeights,
-          gridColumnWeights=gridColumnWeights,
+          gridRowSizes=gridRowSizes,
+          gridColumnSizes=gridColumnSizes,
           gridCellRoles=gridCellRoles,
           gridWallThickness=gridWallThickness,
           fillTubeDiameter=fillTubeDiameter
@@ -186,8 +186,8 @@ module FreestandingPot() {
         holeDiameter=holeDiameter,
         gridRows=gridRows,
         gridColumns=gridColumns,
-        gridRowWeights=gridRowWeights,
-        gridColumnWeights=gridColumnWeights,
+        gridRowSizes=gridRowSizes,
+        gridColumnSizes=gridColumnSizes,
         gridCellRoles=gridCellRoles,
         gridWallThickness=gridWallThickness,
         fillTubeDiameter=fillTubeDiameter
@@ -208,8 +208,8 @@ module PrintLayout() {
         holeDiameter=holeDiameter,
         gridRows=gridRows,
         gridColumns=gridColumns,
-        gridRowWeights=gridRowWeights,
-        gridColumnWeights=gridColumnWeights,
+        gridRowSizes=gridRowSizes,
+        gridColumnSizes=gridColumnSizes,
         gridCellRoles=gridCellRoles,
         gridWallThickness=gridWallThickness,
         fillTubeDiameter=fillTubeDiameter
@@ -235,8 +235,8 @@ module PrintLayout() {
         holeDiameter=holeDiameter,
         gridRows=gridRows,
         gridColumns=gridColumns,
-        gridRowWeights=gridRowWeights,
-        gridColumnWeights=gridColumnWeights,
+        gridRowSizes=gridRowSizes,
+        gridColumnSizes=gridColumnSizes,
         gridCellRoles=gridCellRoles,
         gridWallThickness=gridWallThickness,
         fillTubeDiameter=fillTubeDiameter

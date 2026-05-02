@@ -63,6 +63,10 @@ for scad_file in "${changed_scad_files[@]}"; do
       render_mode "$source_name" "Assembly" "assembly" true
       render_mode "$source_name" "Print Layout" "print-layout-freestanding" false
       ;;
+    cad/openscad/grid_helpers.scad)
+      render_mode "$source_name" "Pot Insert Only" "pot-insert-only" false
+      render_mode "$source_name" "Print Layout" "print-layout-freestanding" false
+      ;;
     *)
       echo "No render mapping for $scad_file; skipping."
       ;;
