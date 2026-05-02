@@ -2,8 +2,6 @@ include <BOSL2/std.scad>
 include <anchor_names.scad>
 include <grid_helpers.scad>
 
-$fn = 100;
-
 height = 100;
 width = 70.0;
 depth = 70.0;

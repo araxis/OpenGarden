@@ -84,7 +84,7 @@ module makebackPlate(
       left(backWidth / 2) down(backHeight / 2) back(thickness / 2)
             difference() {
               translate(v=[0, -thickness, 0])
-                cuboid(size=[backWidth, thickness, backHeight], rounding=edgeRounding, edges=FRONT, except_edges=BOT, anchor=FRONT + LEFT + BOT, $fn=60);
+                cuboid(size=[backWidth, thickness, backHeight], rounding=edgeRounding, edges=FRONT, except_edges=BOT, anchor=FRONT + LEFT + BOT);
               if (slotCount > 0) {
                 for (slotNum = [0:1:slotCount - 1]) {
                   let (
@@ -113,7 +113,7 @@ module multiConnectSlotTool(totalHeight, onRampHalfOffset, distanceBetweenSlots,
     union() {
       //round top
       rotate(a=[90, 0, 0])
-        rotate_extrude($fn=50)
+        rotate_extrude()
           polygon(points=slotProfile);
       //long slot
       translate(v=[0, 0, 0])
@@ -136,7 +136,7 @@ module multiConnectSlotTool(totalHeight, onRampHalfOffset, distanceBetweenSlots,
     if (slotQuickRelease == false)
       scale(v=dimpleScale)
         rotate(a=[90, 0, 0])
-          rotate_extrude($fn=50)
+          rotate_extrude()
             polygon(points=[[0, 0], [0, 1.5], [1.5, 0]]);
   }
 }
