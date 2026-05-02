@@ -1,5 +1,6 @@
 include <BOSL2/std.scad>
 include <anchor_names.scad>
+include <grid_helpers.scad>
 
 $fn = 100;
 
@@ -16,9 +17,12 @@ holeRows = 4;
 holeCols = 4;
 holeDiameter = 5;
 seatHeight = 5;
-gridRows = 1;
-gridColumns = 1;
+gridRowSizes = "1*";
+gridColumnSizes = "1*";
+gridCellRoles = "Pot";
+gridCellRoleOverrides = "";
 gridWallThickness = 2;
+fillTubeDiameter = 18;
 
 module PotInsert(
   width,
@@ -34,9 +38,12 @@ module PotInsert(
   holeCols = holeCols,
   holeDiameter = holeDiameter,
   seatHeight = seatHeight,
-  gridRows = gridRows,
-  gridColumns = gridColumns,
+  gridRowSizes = gridRowSizes,
+  gridColumnSizes = gridColumnSizes,
+  gridCellRoles = gridCellRoles,
+  gridCellRoleOverrides = gridCellRoleOverrides,
   gridWallThickness = gridWallThickness,
+  fillTubeDiameter = fillTubeDiameter,
   anchor = CENTER,
   spin = 0,
   orient = UP
@@ -65,30 +72,30 @@ module PotInsert(
               anchor=FRONT + BOTTOM
             )
               attach(BOTTOM, TOP)
-                Base(w, d, seatHeight, wallThickness, baseThickness, chamfer, chamferBackSide, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRows, gridColumns, gridWallThickness);
+                Base(w, d, seatHeight, wallThickness, baseThickness, chamfer, chamferBackSide, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, gridCellRoles, gridCellRoleOverrides, gridWallThickness, fillTubeDiameter);
 
-            InsertGrid(w, d, h, wallThickness, gridRows, gridColumns, gridWallThickness);
+            InsertGrid(w, d, h, wallThickness, gridRowSizes, gridColumnSizes, gridWallThickness);
           }
 
     children();
   }
 }
 
-module InsertGrid(width, depth, height, wallThickness, gridRows, gridColumns, gridWallThickness) {
-  rows = max(1, round(gridRows));
-  cols = max(1, round(gridColumns));
+module InsertGrid(width, depth, height, wallThickness, gridRowSizes, gridColumnSizes, gridWallThickness) {
+  rows = grid_track_count(gridRowSizes);
+  cols = grid_track_count(gridColumnSizes);
   divider = max(0.4, gridWallThickness);
   inner_w = max(0, width - wallThickness * 2);
   inner_d = max(0, depth - wallThickness * 2);
 
   for (col = [1:cols - 1]) {
-    x = -inner_w / 2 + col * inner_w / cols;
+    x = grid_track_edge(inner_w, gridColumnSizes, cols, divider, col) + divider / 2;
     translate([x, wallThickness, 0])
       cuboid([divider, inner_d, height], anchor=FRONT + BOTTOM);
   }
 
   for (row = [1:rows - 1]) {
-    y = wallThickness + row * inner_d / rows - divider / 2;
+    y = wallThickness + grid_track_edge_from_front(inner_d, gridRowSizes, rows, divider, row);
     translate([-inner_w / 2, y, 0])
       cuboid([inner_w, divider, height], anchor=LEFT + FRONT + BOTTOM);
   }
@@ -107,9 +114,12 @@ module Base(
   holeRows,
   holeCols,
   holeDiameter,
-  gridRows,
-  gridColumns,
-  gridWallThickness
+  gridRowSizes,
+  gridColumnSizes,
+  gridCellRoles,
+  gridCellRoleOverrides,
+  gridWallThickness,
+  fillTubeDiameter
 ) {
   //ring
   ring_w = (width - wallThickness * 2) - 0.3;
@@ -134,26 +144,33 @@ module Base(
           chamfer=side_chamfer
         )
           tag("hole")
-            DrainHolePattern(width, depth, wallThickness, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRows, gridColumns, gridWallThickness);
+            DrainHolePattern(width, depth, wallThickness, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, gridCellRoles, gridCellRoleOverrides, gridWallThickness, fillTubeDiameter);
 }
 
-module DrainHolePattern(width, depth, wallThickness, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRows, gridColumns, gridWallThickness) {
-  grid_rows = max(1, round(gridRows));
-  grid_cols = max(1, round(gridColumns));
+module DrainHolePattern(width, depth, wallThickness, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, gridCellRoles, gridCellRoleOverrides, gridWallThickness, fillTubeDiameter) {
+  grid_rows = grid_track_count(gridRowSizes);
+  grid_cols = grid_track_count(gridColumnSizes);
   divider = max(0.4, gridWallThickness);
   inner_w = max(0, width - wallThickness * 2);
   inner_d = max(0, depth - wallThickness * 2);
-  cell_w = max(0, (inner_w - divider * (grid_cols - 1)) / grid_cols);
-  cell_d = max(0, (inner_d - divider * (grid_rows - 1)) / grid_rows);
 
   for (grid_row = [0:grid_rows - 1])
     for (grid_col = [0:grid_cols - 1])
-      translate([
-        -inner_w / 2 + cell_w / 2 + grid_col * (cell_w + divider),
-        -inner_d / 2 + cell_d / 2 + grid_row * (cell_d + divider),
-        0
-      ])
-        CellDrainHolePattern(cell_w, cell_d, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter);
+      let (
+        cell_w = grid_track_size(inner_w, gridColumnSizes, grid_cols, divider, grid_col),
+        cell_d = grid_track_size(inner_d, gridRowSizes, grid_rows, divider, grid_row),
+        role = grid_cell_role(gridCellRoles, gridCellRoleOverrides, grid_row, grid_col, grid_cols)
+      )
+        translate([
+          grid_track_center(inner_w, gridColumnSizes, grid_cols, divider, grid_col),
+          grid_track_center(inner_d, gridRowSizes, grid_rows, divider, grid_row),
+          0
+        ]) {
+          if (role == "Pot")
+            CellDrainHolePattern(cell_w, cell_d, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter);
+          else if (role == "FillTube")
+            cyl(d=min(fillTubeDiameter, max(holeDiameter, min(cell_w, cell_d) - holeDiameter)), h=30);
+        }
 }
 
 module CellDrainHolePattern(width, depth, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter) {

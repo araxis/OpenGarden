@@ -47,12 +47,18 @@ Hole_Diameter = 5; // [1:0.5:15]
 Hole_Area_Padding = 25; // [0:0.5:80]
 
 /*[Insert Grid]*/
-// Number of front/back grid rows inside the insert.
-Grid_Rows = 1; // [1:1:8]
-// Number of left/right grid columns inside the insert.
-Grid_Columns = 1; // [1:1:8]
+// Comma-separated front/back row sizes. Each item creates one row. Use *, 2*, 1, or 25%.
+Grid_Row_Sizes = "1*";
+// Comma-separated left/right column sizes. Each item creates one column. Use *, 2*, 1, or 25%.
+Grid_Column_Sizes = "1*";
+// Comma-separated row-major cell roles. Use Pot, Box, or FillTube. Missing values default to Pot.
+Grid_Cell_Roles = "Pot";
+// Sparse role overrides using 1-based row,column=role entries. Example: 2,2=B;1,3=F.
+Grid_Cell_Role_Overrides = "";
 // Thickness of the internal grid divider walls.
 Grid_Wall_Thickness = 2; // [0.8:0.2:6]
+// Diameter of the bottom opening for FillTube cells.
+Fill_Tube_Diameter = 18; // [5:0.5:50]
 
 /*[Chamfers]*/
 // Chamfer size on the front-facing side edges.
@@ -83,9 +89,12 @@ holeRows = Hole_Rows;
 holeCols = Hole_Columns;
 holeDiameter = Hole_Diameter;
 holeAreaPadding = Hole_Area_Padding;
-gridRows = Grid_Rows;
-gridColumns = Grid_Columns;
+gridRowSizes = Grid_Row_Sizes;
+gridColumnSizes = Grid_Column_Sizes;
+gridCellRoles = Grid_Cell_Roles;
+gridCellRoleOverrides = Grid_Cell_Role_Overrides;
 gridWallThickness = Grid_Wall_Thickness;
+fillTubeDiameter = Fill_Tube_Diameter;
 
 if (outputMode == "Assembly") {
   PotAssembly();
@@ -107,15 +116,21 @@ if (outputMode == "Assembly") {
   );
 } else if (outputMode == "Pot Insert Only") {
   PotInsert(
-    width, depth, potHeight, chamferBackSide=chamferBackSide, anchor=BOTTOM + FRONT,
+    width, depth, potHeight,
+    chamferBackSide=chamferBackSide,
+    chamfer=frontChamfer,
+    anchor=BOTTOM + FRONT,
     holeAreaPadding=holeAreaPadding,
     holePattern=holePattern,
     holeRows=holeRows,
     holeCols=holeCols,
     holeDiameter=holeDiameter,
-    gridRows=gridRows,
-    gridColumns=gridColumns,
-    gridWallThickness=gridWallThickness
+    gridRowSizes=gridRowSizes,
+    gridColumnSizes=gridColumnSizes,
+    gridCellRoles=gridCellRoles,
+    gridCellRoleOverrides=gridCellRoleOverrides,
+    gridWallThickness=gridWallThickness,
+    fillTubeDiameter=fillTubeDiameter
   );
 }
 
@@ -124,15 +139,20 @@ module PotAssembly() {
     PotHolder(width, depth, height, holdHeight, subtractedSlots=subtractedSlots, slotPlacement=slotPlacement, anchor=BOTTOM + FRONT)
       attach(DRAIN_ANCHOR_TOP, POT_INSERT_ANCHOR_BOTTOM)
         PotInsert(
-          width, depth, potHeight, chamferBackSide=false,
+          width, depth, potHeight,
+          chamferBackSide=false,
+          chamfer=frontChamfer,
           holeAreaPadding=holeAreaPadding,
           holePattern=holePattern,
           holeRows=holeRows,
           holeCols=holeCols,
           holeDiameter=holeDiameter,
-          gridRows=gridRows,
-          gridColumns=gridColumns,
-          gridWallThickness=gridWallThickness
+          gridRowSizes=gridRowSizes,
+          gridColumnSizes=gridColumnSizes,
+          gridCellRoles=gridCellRoles,
+          gridCellRoleOverrides=gridCellRoleOverrides,
+          gridWallThickness=gridWallThickness,
+          fillTubeDiameter=fillTubeDiameter
         );
   } else {
     FreestandingPot();
@@ -151,15 +171,20 @@ module FreestandingPot() {
   )
     attach(DRAIN_ANCHOR_TOP, POT_INSERT_ANCHOR_BOTTOM)
       PotInsert(
-        width, depth, potHeight, chamfer=frontChamfer, chamferBackSide=chamferBackSide,
+        width, depth, potHeight,
+        chamfer=frontChamfer,
+        chamferBackSide=chamferBackSide,
         holeAreaPadding=holeAreaPadding,
         holePattern=holePattern,
         holeRows=holeRows,
         holeCols=holeCols,
         holeDiameter=holeDiameter,
-        gridRows=gridRows,
-        gridColumns=gridColumns,
-        gridWallThickness=gridWallThickness
+        gridRowSizes=gridRowSizes,
+        gridColumnSizes=gridColumnSizes,
+        gridCellRoles=gridCellRoles,
+        gridCellRoleOverrides=gridCellRoleOverrides,
+        gridWallThickness=gridWallThickness,
+        fillTubeDiameter=fillTubeDiameter
       );
 }
 
@@ -175,9 +200,12 @@ module PrintLayout() {
         holeRows=holeRows,
         holeCols=holeCols,
         holeDiameter=holeDiameter,
-        gridRows=gridRows,
-        gridColumns=gridColumns,
-        gridWallThickness=gridWallThickness
+        gridRowSizes=gridRowSizes,
+        gridColumnSizes=gridColumnSizes,
+        gridCellRoles=gridCellRoles,
+        gridCellRoleOverrides=gridCellRoleOverrides,
+        gridWallThickness=gridWallThickness,
+        fillTubeDiameter=fillTubeDiameter
       );
   } else {
     DrainPan(
@@ -198,9 +226,12 @@ module PrintLayout() {
         holeRows=holeRows,
         holeCols=holeCols,
         holeDiameter=holeDiameter,
-        gridRows=gridRows,
-        gridColumns=gridColumns,
-        gridWallThickness=gridWallThickness
+        gridRowSizes=gridRowSizes,
+        gridColumnSizes=gridColumnSizes,
+        gridCellRoles=gridCellRoles,
+        gridCellRoleOverrides=gridCellRoleOverrides,
+        gridWallThickness=gridWallThickness,
+        fillTubeDiameter=fillTubeDiameter
       );
   }
 }
