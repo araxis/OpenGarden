@@ -7,7 +7,7 @@
     <MudGrid Spacing="3">
         <MudItem xs="12" lg="8">
             <MudStack Spacing="3">
-                <DesignerHeader CopyRequested="CopyConfig" RenderRequested="RenderPreview" />
+                <DesignerHeader CopyRequested="CopyConfig" />
 
                 <MudGrid Spacing="3">
                     <MudItem xs="12" md="6">
@@ -33,7 +33,7 @@
 
         <MudItem xs="12" lg="4">
             <MudStack Spacing="3">
-                <PreviewPanel @ref="_previewPanel" State="_state" />
+                <PreviewPanel State="_state" />
                 <GeneratedScadPanel State="_state" />
             </MudStack>
         </MudItem>
@@ -42,7 +42,6 @@
 
 @code {
     private readonly DesignerState _state = new();
-    private PreviewPanel? _previewPanel;
 
     private async Task CopyConfig()
     {
@@ -52,13 +51,5 @@
     private void Refresh()
     {
         StateHasChanged();
-    }
-
-    private async Task RenderPreview()
-    {
-        if (_previewPanel is not null)
-        {
-            await _previewPanel.RenderAsync();
-        }
     }
 }

@@ -66,7 +66,11 @@ public sealed class DesignerState
         $"Cell_Feature_Overrides = \"{Escape(GenerateFeatureOverrides())}\";"
     });
 
-    public string GeneratePreviewScad() => $$"""
+    public string GeneratePreviewScad()
+    {
+        var featureScad = GeneratePreviewFeatureScad();
+
+        return $$"""
         $fn = 32;
         width = {{Format(PotWidth)}};
         depth = {{Format(PotDepth)}};
@@ -77,27 +81,12 @@ public sealed class DesignerState
         base = {{Format(BaseThickness)}};
         rows = {{TrackCount(GridRows)}};
         cols = {{TrackCount(GridColumns)}};
-        hole_diameter = {{Format(HoleDiameter)}};
-        hole_rows = {{HoleRows}};
-        hole_cols = {{HoleColumns}};
-
         module open_box(w, d, h) {
           difference() {
             cube([w, d, h]);
             translate([wall, wall, base])
               cube([w - wall * 2, d - wall * 2, h]);
           }
-        }
-
-        module drain_holes(w, d) {
-          for (x = [1:hole_cols])
-            for (y = [1:hole_rows])
-              translate([
-                w * x / (hole_cols + 1),
-                d * y / (hole_rows + 1),
-                -0.2
-              ])
-                cylinder(h = base + 0.4, d = hole_diameter);
         }
 
         module grid_walls(w, d, h) {
@@ -111,14 +100,47 @@ public sealed class DesignerState
               cube([w - wall * 2, wall, h - base]);
         }
 
+        function hole_offset(index, count, span) =
+          count <= 1 ? 0 : -span / 2 + index * span / (count - 1);
+
+        module drain_holes_cell(x0, y0, w, d, rows, cols, diameter, padding) {
+          span_x = w - padding;
+          span_y = d - padding;
+          for (x = [1:cols])
+            for (y = [1:rows])
+              translate([
+                x0 + w / 2 + hole_offset(x - 1, cols, span_x),
+                y0 + d / 2 + hole_offset(y - 1, rows, span_y),
+                -0.2
+              ])
+                cylinder(h = base + 0.4, d = diameter);
+        }
+
+        module fill_tube_cell(x0, y0, w, d, clearance) {
+          translate([x0 + clearance, y0 + clearance, -0.2])
+            cube([w - clearance * 2, d - clearance * 2, base + 0.4]);
+        }
+
+        module wick_port_cell(x0, y0, w, d, diameter) {
+          translate([x0 + w / 2, y0 + d / 2, -0.2])
+            cylinder(h = base + 0.4, d = diameter);
+        }
+
+        module lid_lip_cell(x0, y0, w, d, lip_depth, lip_width) {
+          translate([x0 + lip_width, y0 + lip_width, insert_height - lip_depth])
+            cube([w - lip_width * 2, d - lip_width * 2, lip_depth + 0.2]);
+        }
+
         difference() {
           union() {
-            color("lightgray") open_box(width, depth, insert_height);
-            color("gray") grid_walls(width, depth, insert_height);
+            open_box(width, depth, insert_height);
+            grid_walls(width, depth, insert_height);
+        {{featureScad.Additive}}
           }
-          drain_holes(width, depth);
+        {{featureScad.Subtractive}}
         }
         """;
+    }
 
     public string GenerateCellSpans() =>
         string.Join(";", CellFeatures
@@ -127,6 +149,104 @@ public sealed class DesignerState
 
     public string GenerateFeatureOverrides() =>
         string.Join("; ", CellFeatures.Select(feature => feature.ToOverrideText()));
+
+    private PreviewFeatureScad GeneratePreviewFeatureScad()
+    {
+        var additive = new StringBuilder();
+        var subtractive = new StringBuilder();
+
+        additive.AppendLine("            // feature additions are intentionally lightweight in browser preview");
+        subtractive.AppendLine("          cell_w = (width - wall * 2) / cols;");
+        subtractive.AppendLine("          cell_d = (depth - wall * 2) / rows;");
+
+        foreach (var gap in CellFeatures.Where(feature => feature.SpanRows > 1 || feature.SpanColumns > 1))
+        {
+            var startRow = Math.Max(1, gap.Row);
+            var startColumn = Math.Max(1, gap.Column);
+            var spanRows = Math.Max(1, gap.SpanRows);
+            var spanColumns = Math.Max(1, gap.SpanColumns);
+
+            for (var columnOffset = 1; columnOffset < spanColumns; columnOffset++)
+            {
+                subtractive.AppendLine(CultureInfo.InvariantCulture,
+                    $"          translate([wall + cell_w * {startColumn - 1 + columnOffset} - wall / 2, wall + cell_d * {startRow - 1}, base - 0.1])");
+                subtractive.AppendLine(CultureInfo.InvariantCulture,
+                    $"            cube([wall, cell_d * {spanRows}, insert_height - base + 0.2]);");
+            }
+
+            for (var rowOffset = 1; rowOffset < spanRows; rowOffset++)
+            {
+                subtractive.AppendLine(CultureInfo.InvariantCulture,
+                    $"          translate([wall + cell_w * {startColumn - 1}, wall + cell_d * {startRow - 1 + rowOffset} - wall / 2, base - 0.1])");
+                subtractive.AppendLine(CultureInfo.InvariantCulture,
+                    $"            cube([cell_w * {spanColumns}, wall, insert_height - base + 0.2]);");
+            }
+        }
+
+        foreach (var feature in PreviewCells())
+        {
+            var row = Math.Max(1, feature.Row);
+            var column = Math.Max(1, feature.Column);
+            var spanRows = Math.Max(1, feature.SpanRows);
+            var spanColumns = Math.Max(1, feature.SpanColumns);
+            var x = $"wall + cell_w * {column - 1}";
+            var y = $"wall + cell_d * {row - 1}";
+            var w = $"cell_w * {spanColumns}";
+            var d = $"cell_d * {spanRows}";
+
+            switch (feature.Feature)
+            {
+                case FeatureTypes.DrainHoles:
+                    subtractive.AppendLine(CultureInfo.InvariantCulture,
+                        $"          drain_holes_cell({x}, {y}, {w}, {d}, {feature.DrainHoles.Rows}, {feature.DrainHoles.Columns}, {Format(feature.DrainHoles.Diameter)}, {Format(feature.DrainHoles.Padding)});");
+                    break;
+                case FeatureTypes.FillTube:
+                    subtractive.AppendLine(CultureInfo.InvariantCulture,
+                        $"          fill_tube_cell({x}, {y}, {w}, {d}, {Format(feature.FillTube.Clearance)});");
+                    break;
+                case FeatureTypes.WickPort:
+                    subtractive.AppendLine(CultureInfo.InvariantCulture,
+                        $"          wick_port_cell({x}, {y}, {w}, {d}, {Format(feature.WickPort.Diameter)});");
+                    break;
+                case FeatureTypes.LidLip:
+                    subtractive.AppendLine(CultureInfo.InvariantCulture,
+                        $"          lid_lip_cell({x}, {y}, {w}, {d}, {Format(feature.LidLip.Depth)}, {Format(feature.LidLip.Width)});");
+                    break;
+            }
+        }
+
+        return new PreviewFeatureScad(additive.ToString().TrimEnd(), subtractive.ToString().TrimEnd());
+    }
+
+    private IEnumerable<CellFeatureConfig> PreviewCells()
+    {
+        var explicitCells = CellFeatures
+            .Where(feature => feature.Feature != FeatureTypes.Box)
+            .ToList();
+
+        if (DefaultFeature is not (FeatureTypes.Pot or FeatureTypes.DrainHoles))
+        {
+            return explicitCells;
+        }
+
+        var occupied = CellFeatures
+            .Select(feature => (feature.Row, feature.Column))
+            .ToHashSet();
+
+        var cells = new List<CellFeatureConfig>(explicitCells);
+        for (var row = 1; row <= TrackCount(GridRows); row++)
+        {
+            for (var column = 1; column <= TrackCount(GridColumns); column++)
+            {
+                if (!occupied.Contains((row, column)))
+                {
+                    cells.Add(new CellFeatureConfig { Row = row, Column = column, Feature = FeatureTypes.DrainHoles });
+                }
+            }
+        }
+
+        return cells;
+    }
 
     public static int TrackCount(string value) =>
         string.IsNullOrWhiteSpace(value) ? 1 : value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Length;
@@ -137,6 +257,8 @@ public sealed class DesignerState
 
     private static string Escape(string value) => value.Replace("\\", "\\\\").Replace("\"", "\\\"");
 }
+
+public sealed record PreviewFeatureScad(string Additive, string Subtractive);
 
 
 public sealed class RendererResult
