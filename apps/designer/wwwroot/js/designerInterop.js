@@ -68,8 +68,7 @@ window.openGardenDesigner = {
     }
   },
   drawStlPreview: (canvas, stlBytes) => {
-    const bytes = stlBytes instanceof Uint8Array ? stlBytes : new Uint8Array(stlBytes);
-    const triangles = window.openGardenDesigner.readBinaryStl(bytes);
+    const triangles = window.openGardenDesigner.readStlTriangles(stlBytes);
     const context = canvas.getContext("2d");
     const width = canvas.clientWidth || 720;
     const height = canvas.clientHeight || 360;
@@ -137,6 +136,47 @@ window.openGardenDesigner = {
       context.fill();
       context.stroke();
     }
+  },
+  readStlTriangles: (stl) => {
+    if (typeof stl === "string") {
+      return window.openGardenDesigner.readAsciiStl(stl);
+    }
+
+    if (stl instanceof ArrayBuffer) {
+      return window.openGardenDesigner.readBinaryStl(new Uint8Array(stl));
+    }
+
+    if (stl instanceof Uint8Array) {
+      return window.openGardenDesigner.readBinaryStl(stl);
+    }
+
+    if (ArrayBuffer.isView(stl)) {
+      return window.openGardenDesigner.readBinaryStl(new Uint8Array(stl.buffer, stl.byteOffset, stl.byteLength));
+    }
+
+    return [];
+  },
+  readAsciiStl: (text) => {
+    const triangles = [];
+    const facetPattern = /facet\s+normal\s+([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+outer\s+loop\s+vertex\s+([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+vertex\s+([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+vertex\s+([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+endloop\s+endfacet/gi;
+
+    for (const match of text.matchAll(facetPattern)) {
+      const numbers = match.slice(1).map(Number);
+      if (numbers.some((value) => !Number.isFinite(value))) {
+        continue;
+      }
+
+      triangles.push({
+        normal: { x: numbers[0], y: numbers[1], z: numbers[2] },
+        vertices: [
+          { x: numbers[3], y: numbers[4], z: numbers[5] },
+          { x: numbers[6], y: numbers[7], z: numbers[8] },
+          { x: numbers[9], y: numbers[10], z: numbers[11] }
+        ]
+      });
+    }
+
+    return triangles;
   },
   readBinaryStl: (bytes) => {
     if (bytes.byteLength < 84) {
