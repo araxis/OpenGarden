@@ -1,7 +1,8 @@
 window.openGardenScadRenderer = (() => {
 
     const _MODULE_URL = 'js/openscad.js';
-    const _MODULE_VERSION = 'wasm-table-safe-3';
+    const _MODULE_VERSION = 'wasm-entry-safe-2';
+    const _SCAD_VERSION = 'freestanding-manual-placement-1';
     const _LIB_ROOTS = [
         '/usr/share/openscad/libraries',
         '/usr/local/share/openscad/libraries',
@@ -74,10 +75,16 @@ self.onmessage = async function({ data: { scadFiles, configBlock, moduleUrl, lib
   } catch (err) {
     try {
       if (instance) {
-        postGeneratedStl('STL generated successfully. OpenSCAD reported a late runtime warning: ' + (err.message || err));
-        return;
+        const output = instance.FS.analyzePath('/output.stl');
+        if (output.exists) {
+          postGeneratedStl('STL generated successfully. OpenSCAD reported a late runtime warning: ' + (err.message || err));
+          return;
+        }
       }
-    } catch {}
+    } catch (salvageErr) {
+      self.postMessage({ ok: false, error: (err.message || String(err)) + ' (STL salvage failed: ' + (salvageErr.message || salvageErr) + ')' });
+      return;
+    }
 
     self.postMessage({ ok: false, error: err.message || String(err) });
   }
@@ -93,12 +100,12 @@ self.onmessage = async function({ data: { scadFiles, configBlock, moduleUrl, lib
     async function _doInit(scadBaseUrl, dotNetRef) {
         try {
             const base = scadBaseUrl.replace(/\/?$/, '/');
-            const manifestResp = await fetch(base + 'manifest.json');
+            const manifestResp = await fetch(base + 'manifest.json?v=' + _SCAD_VERSION, { cache: 'no-store' });
             const manifest = await manifestResp.json();
 
             const entries = await Promise.all(
                 manifest.map(async (relPath) => {
-                    const resp = await fetch(base + relPath);
+                    const resp = await fetch(base + relPath + '?v=' + _SCAD_VERSION, { cache: 'no-store' });
                     const text = await resp.text();
                     return [relPath.replace(/\\/g, '/'), text];
                 })
@@ -121,6 +128,16 @@ self.onmessage = async function({ data: { scadFiles, configBlock, moduleUrl, lib
         const worker = new Worker(workerUrl, { type: 'module' });
 
         return new Promise((resolve) => {
+            let settled = false;
+
+            const finish = (result) => {
+                if (settled) return;
+                settled = true;
+                worker.terminate();
+                URL.revokeObjectURL(workerUrl);
+                resolve(result);
+            };
+
             worker.onmessage = e => {
                 const result = e.data;
 
@@ -130,7 +147,7 @@ self.onmessage = async function({ data: { scadFiles, configBlock, moduleUrl, lib
                     const url = URL.createObjectURL(stlBlob);
 
                     // This object matches your C# RendererResult class
-                    resolve({
+                    finish({
                         ok: true,
                         message: result.message || 'STL generated successfully.',
                         stlBytes: stlBytes, // Blazor converts this to byte[]
@@ -140,15 +157,28 @@ self.onmessage = async function({ data: { scadFiles, configBlock, moduleUrl, lib
                         elapsedMs: performance.now() - started
                     });
                 } else {
-                    resolve({
+                    finish({
                         ok: false,
                         message: result.error || 'Unknown rendering error',
                         elapsedMs: performance.now() - started
                     });
                 }
+            };
 
-                worker.terminate();
-                URL.revokeObjectURL(workerUrl);
+            worker.onerror = e => {
+                finish({
+                    ok: false,
+                    message: e.message || 'OpenSCAD worker failed.',
+                    elapsedMs: performance.now() - started
+                });
+            };
+
+            worker.onmessageerror = () => {
+                finish({
+                    ok: false,
+                    message: 'OpenSCAD worker returned an unreadable response.',
+                    elapsedMs: performance.now() - started
+                });
             };
 
             worker.postMessage({

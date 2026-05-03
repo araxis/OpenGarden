@@ -173,24 +173,29 @@ module FreestandingPot() {
     chamferBackSide=chamferBackSide,
     seatHeight=seatHeight,
     anchor=BOTTOM + FRONT
-  )
-    attach(DRAIN_ANCHOR_TOP, POT_INSERT_ANCHOR_BOTTOM)
-      PotInsert(
-        width, depth, potHeight,
-        chamfer=frontChamfer,
-        chamferBackSide=chamferBackSide,
-        holeAreaPadding=holeAreaPadding,
-        holePattern=holePattern,
-        holeRows=holeRows,
-        holeCols=holeCols,
-        holeDiameter=holeDiameter,
-        gridRowSizes=gridRowSizes,
-        gridColumnSizes=gridColumnSizes,
-        cellDefaultFeature=cellDefaultFeature,
-        gridCellSpans=gridCellSpans,
-        gridWallThickness=gridWallThickness,
-        cellFeatureOverrides=cellFeatureOverrides
-      );
+  );
+
+  up(holdHeight - seatHeight - baseThickness)
+    PotInsert(
+      width, depth, potHeight,
+      chamfer=frontChamfer,
+      chamferBackSide=chamferBackSide,
+      holeAreaPadding=holeAreaPadding,
+      holePattern=holePattern,
+      holeRows=holeRows,
+      holeCols=holeCols,
+      holeDiameter=holeDiameter,
+      seatHeight=seatHeight,
+      baseThickness=baseThickness,
+      wallThickness=wallThickness,
+      gridRowSizes=gridRowSizes,
+      gridColumnSizes=gridColumnSizes,
+      cellDefaultFeature=cellDefaultFeature,
+      gridCellSpans=gridCellSpans,
+      gridWallThickness=gridWallThickness,
+      cellFeatureOverrides=cellFeatureOverrides,
+      anchor=BOTTOM + FRONT
+    );
 }
 
 module PrintLayout() {
