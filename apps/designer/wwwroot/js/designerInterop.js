@@ -1,10 +1,11 @@
 window.openGardenDesigner = {
-  openScad: null,
+  openScadModule: null,
   three: null,
   stlLoader: null,
   orbitControls: null,
   lastPreviewStl: null,
   lastPreviewScene: null,
+  lastPreviewDownloadUrl: null,
   copyText: async (text) => {
     if (!navigator.clipboard) {
       return false;
@@ -26,14 +27,14 @@ window.openGardenDesigner = {
     const started = performance.now();
 
     try {
-      if (!window.openGardenDesigner.openScad) {
-        const module = await import("https://cdn.jsdelivr.net/npm/openscad-wasm@0.0.4/openscad.js");
-        window.openGardenDesigner.openScad = await module.createOpenSCAD({
-          noInitialRun: true
-        });
+      window.openGardenDesigner.disposeLastPreviewScene();
+      window.openGardenDesigner.revokeLastPreviewDownload();
+
+      if (!window.openGardenDesigner.openScadModule) {
+        window.openGardenDesigner.openScadModule = await import("https://cdn.jsdelivr.net/npm/openscad-wasm@0.0.4/openscad.js");
       }
 
-      const output = await window.openGardenDesigner.openScad.renderToStl(scadCode);
+      const output = await window.openGardenDesigner.renderScadToStl(scadCode);
       window.openGardenDesigner.lastPreviewStl = output;
       if (canvas) {
         await window.openGardenDesigner.drawStlPreview(canvas, output);
@@ -41,6 +42,7 @@ window.openGardenDesigner = {
 
       const blob = new Blob([output], { type: "model/stl" });
       const downloadUrl = URL.createObjectURL(blob);
+      window.openGardenDesigner.lastPreviewDownloadUrl = downloadUrl;
 
       return {
         ok: true,
@@ -51,10 +53,7 @@ window.openGardenDesigner = {
         elapsedMs: performance.now() - started
       };
     } catch (error) {
-      const message = error?.message
-        ?? error?.toString?.()
-        ?? JSON.stringify(error)
-        ?? "OpenSCAD render failed.";
+      const message = window.openGardenDesigner.formatRenderError(error);
 
       return {
         ok: false,
@@ -64,6 +63,49 @@ window.openGardenDesigner = {
         byteLength: 0,
         elapsedMs: performance.now() - started
       };
+    }
+  },
+  renderScadToStl: async (scadCode) => {
+    const openScad = await window.openGardenDesigner.openScadModule.createOpenSCAD({
+      noInitialRun: true
+    });
+    const instance = openScad.getInstance ? openScad.getInstance() : openScad;
+    const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+    const inputPath = `/opengarden-${id}.scad`;
+    const outputPath = `/opengarden-${id}.stl`;
+
+    try {
+      instance.FS.writeFile(inputPath, scadCode);
+      const exitCode = instance.callMain([inputPath, "-o", outputPath]);
+      if (exitCode !== 0) {
+        throw new Error(`OpenSCAD exited with code ${exitCode}.`);
+      }
+
+      return instance.FS.readFile(outputPath);
+    } finally {
+      window.openGardenDesigner.tryUnlink(instance, inputPath);
+      window.openGardenDesigner.tryUnlink(instance, outputPath);
+    }
+  },
+  formatRenderError: (error) => {
+    if (typeof error === "number") {
+      return `OpenSCAD render failed with runtime error ${error}.`;
+    }
+
+    if (error?.name === "ErrnoError" && typeof error.errno !== "undefined") {
+      return `OpenSCAD filesystem error ${error.errno}.`;
+    }
+
+    return error?.message
+        ?? error?.toString?.()
+        ?? JSON.stringify(error)
+        ?? "OpenSCAD render failed.";
+  },
+  tryUnlink: (instance, path) => {
+    try {
+      instance.FS.unlink(path);
+    } catch {
+      // The file may not exist if OpenSCAD failed before writing it.
     }
   },
   drawLastPreviewStl: async (canvas) => {
@@ -76,9 +118,7 @@ window.openGardenDesigner = {
     const width = canvas.clientWidth || 720;
     const height = canvas.clientHeight || 360;
 
-    if (window.openGardenDesigner.lastPreviewScene) {
-      window.openGardenDesigner.lastPreviewScene.dispose();
-    }
+    window.openGardenDesigner.disposeLastPreviewScene();
 
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
@@ -154,6 +194,18 @@ window.openGardenDesigner = {
         renderer.dispose();
       }
     };
+  },
+  disposeLastPreviewScene: () => {
+    if (window.openGardenDesigner.lastPreviewScene) {
+      window.openGardenDesigner.lastPreviewScene.dispose();
+      window.openGardenDesigner.lastPreviewScene = null;
+    }
+  },
+  revokeLastPreviewDownload: () => {
+    if (window.openGardenDesigner.lastPreviewDownloadUrl) {
+      URL.revokeObjectURL(window.openGardenDesigner.lastPreviewDownloadUrl);
+      window.openGardenDesigner.lastPreviewDownloadUrl = null;
+    }
   },
   loadThreeViewer: async () => {
     if (!window.openGardenDesigner.three) {
