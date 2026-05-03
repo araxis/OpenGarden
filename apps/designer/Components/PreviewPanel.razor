@@ -7,6 +7,10 @@
         {
             <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
         }
+        else if (_result is { Ok: true })
+        {
+            <canvas @ref="_stlCanvas" class="stl-preview-canvas"></canvas>
+        }
         else
         {
             <div class="pot-visual" style="@State.PotVisualStyle">
@@ -47,7 +51,9 @@
     public DesignerState State { get; set; } = new();
 
     private bool _isRendering;
+    private bool _drawPending;
     private RendererResult? _result;
+    private ElementReference _stlCanvas;
 
     public async Task RenderAsync()
     {
@@ -68,6 +74,21 @@
         finally
         {
             _isRendering = false;
+        }
+
+        if (_result is { Ok: true })
+        {
+            _drawPending = true;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_drawPending)
+        {
+            _drawPending = false;
+            await JS.InvokeVoidAsync("openGardenDesigner.drawLastPreviewStl", _stlCanvas);
         }
     }
 

@@ -100,14 +100,17 @@ public sealed class DesignerState
               cube([w - wall * 2, wall, h - base]);
         }
 
+        function hole_offset(index, count, span) =
+          count <= 1 ? 0 : -span / 2 + index * span / (count - 1);
+
         module drain_holes_cell(x0, y0, w, d, rows, cols, diameter, padding) {
-          usable_w = w - padding * 2;
-          usable_d = d - padding * 2;
+          span_x = w - padding;
+          span_y = d - padding;
           for (x = [1:cols])
             for (y = [1:rows])
               translate([
-                x0 + padding + usable_w * x / (cols + 1),
-                y0 + padding + usable_d * y / (rows + 1),
+                x0 + w / 2 + hole_offset(x - 1, cols, span_x),
+                y0 + d / 2 + hole_offset(y - 1, rows, span_y),
                 -0.2
               ])
                 cylinder(h = base + 0.4, d = diameter);
