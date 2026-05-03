@@ -1,11 +1,9 @@
-<MudStack Spacing="2">
-    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-        <div>
-            <MudText Typo="Typo.subtitle2">Cell Features</MudText>
-            <MudText Typo="Typo.caption" Color="Color.Secondary">Configure each special cell with controls instead of override text.</MudText>
-        </div>
+<MudPaper Class="section-panel" Elevation="0">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
+        <MudText Typo="Typo.subtitle1" Class="panel-title" Style="margin:0">Cell Features</MudText>
         <MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="AddFeature" title="Add cell feature" />
     </MudStack>
+    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3">Configure each grid cell's feature — drain holes, lid lip, wick port, fill tube, or closed box.</MudText>
 
     <MudExpansionPanels MultiExpansion="true" Elevation="0">
         @foreach (var feature in State.CellFeatures)
@@ -15,7 +13,7 @@
             </MudExpansionPanel>
         }
     </MudExpansionPanels>
-</MudStack>
+</MudPaper>
 
 @code {
     [Parameter, EditorRequired]
@@ -41,22 +39,21 @@
     {
         State.CellFeatures.Remove(feature);
         if (State.CellFeatures.Count == 0)
-        {
             State.CellFeatures.Add(new CellFeatureConfig());
-        }
 
         await OnChanged.InvokeAsync();
     }
 
     private static string PanelTitle(CellFeatureConfig feature) =>
-        $"Row {feature.Row}, Column {feature.Column}: {Label(feature.Feature)}";
+        $"Row {feature.Row}, Col {feature.Column}: {Label(feature.Feature)}";
 
     private static string Label(string feature) => feature switch
     {
         FeatureTypes.DrainHoles => "Drain holes",
-        FeatureTypes.LidLip => "Lid lip",
-        FeatureTypes.WickPort => "Wick port",
-        FeatureTypes.FillTube => "Fill tube",
-        _ => feature
+        FeatureTypes.LidLip     => "Lid lip",
+        FeatureTypes.WickPort   => "Wick port",
+        FeatureTypes.FillTube   => "Fill tube",
+        FeatureTypes.Box        => "Box",
+        _                       => feature
     };
 }
