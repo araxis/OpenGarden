@@ -59,8 +59,6 @@ Cell_Default_Feature = "Pot"; // [Pot, Box, FillTube, WickPort]
 Grid_Cell_Spans = "";
 // Thickness of the internal grid divider walls.
 Grid_Wall_Thickness = 2; // [0.8:0.2:6]
-// Clearance around FillTube open-bottom cutouts to preserve nearby walls.
-Fill_Tube_Clearance = 0.8; // [0:0.1:5]
 // Sparse per-cell feature overrides: row,col: feature,key=value,key=value. Use aliases like dh, ft, b, wp, ll.
 // Example: 1,1: dh,pattern=C,rows=3,cols=6; 2,2: ll,depth=2
 Cell_Feature_Overrides = "";
@@ -99,7 +97,6 @@ gridColumnSizes = Grid_Column_Sizes;
 cellDefaultFeature = Cell_Default_Feature;
 gridCellSpans = Grid_Cell_Spans;
 gridWallThickness = Grid_Wall_Thickness;
-fillTubeClearance = Fill_Tube_Clearance;
 cellFeatureOverrides = Cell_Feature_Overrides;
 
 if (outputMode == "Assembly") {
@@ -136,7 +133,6 @@ if (outputMode == "Assembly") {
     cellDefaultFeature=cellDefaultFeature,
     gridCellSpans=gridCellSpans,
     gridWallThickness=gridWallThickness,
-    fillTubeClearance=fillTubeClearance,
     cellFeatureOverrides=cellFeatureOverrides
   );
 }
@@ -159,7 +155,6 @@ module PotAssembly() {
           cellDefaultFeature=cellDefaultFeature,
           gridCellSpans=gridCellSpans,
           gridWallThickness=gridWallThickness,
-          fillTubeClearance=fillTubeClearance,
           cellFeatureOverrides=cellFeatureOverrides
         );
   } else {
@@ -192,7 +187,6 @@ module FreestandingPot() {
         cellDefaultFeature=cellDefaultFeature,
         gridCellSpans=gridCellSpans,
         gridWallThickness=gridWallThickness,
-        fillTubeClearance=fillTubeClearance,
         cellFeatureOverrides=cellFeatureOverrides
       );
 }
@@ -214,7 +208,6 @@ module PrintLayout() {
         cellDefaultFeature=cellDefaultFeature,
         gridCellSpans=gridCellSpans,
         gridWallThickness=gridWallThickness,
-        fillTubeClearance=fillTubeClearance,
         cellFeatureOverrides=cellFeatureOverrides
       );
   } else {
@@ -241,7 +234,6 @@ module PrintLayout() {
         cellDefaultFeature=cellDefaultFeature,
         gridCellSpans=gridCellSpans,
         gridWallThickness=gridWallThickness,
-        fillTubeClearance=fillTubeClearance,
         cellFeatureOverrides=cellFeatureOverrides
       );
   }

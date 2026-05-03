@@ -7,6 +7,8 @@ public sealed class DesignerState
 {
     public string OutputMode { get; set; } = "Print Layout";
     public bool OpenGridSupport { get; set; }
+    public int SubtractSlots { get; set; } = 0;
+    public string SlotPlacement { get; set; } ="Center";
     public string RenderQuality { get; set; } = "Preview";
     public double PrintSpacing { get; set; } = 20;
 
@@ -29,7 +31,6 @@ public sealed class DesignerState
     public string GridColumns { get; set; } = "1*";
     public string DefaultFeature { get; set; } = FeatureTypes.Pot;
     public double GridWallThickness { get; set; } = 2;
-    public double FillTubeClearance { get; set; } = 0.8;
     public List<CellFeatureConfig> CellFeatures { get; } = [new()];
 
     public string GridLabel => $"{TrackCount(GridRows)} x {TrackCount(GridColumns)}";
@@ -41,6 +42,8 @@ public sealed class DesignerState
     {
         $"Output_Mode = \"{OutputMode}\";",
         $"OpenGrid_Support = {Bool(OpenGridSupport)};",
+        $"Subtracted_Slots = {SubtractSlots};",
+        $"Slot_Placement = \"{SlotPlacement}\";",
         $"Print_Spacing = {Format(PrintSpacing)};",
         $"Render_Quality = \"{RenderQuality}\";",
         $"Pot_Height = {Format(PotHeight)};",
@@ -60,7 +63,6 @@ public sealed class DesignerState
         $"Cell_Default_Feature = \"{DefaultFeature}\";",
         $"Grid_Cell_Spans = \"{Escape(GenerateCellSpans())}\";",
         $"Grid_Wall_Thickness = {Format(GridWallThickness)};",
-        $"Fill_Tube_Clearance = {Format(FillTubeClearance)};",
         $"Cell_Feature_Overrides = \"{Escape(GenerateFeatureOverrides())}\";"
     });
 
@@ -135,6 +137,7 @@ public sealed class DesignerState
 
     private static string Escape(string value) => value.Replace("\\", "\\\\").Replace("\"", "\\\"");
 }
+
 
 public sealed class RendererResult
 {

@@ -22,7 +22,6 @@ gridColumnSizes = "1*";
 cellDefaultFeature = "Pot";
 gridCellSpans = "";
 gridWallThickness = 2;
-fillTubeClearance = 0.8;
 cellFeatureOverrides = "";
 
 module PotInsert(
@@ -44,7 +43,6 @@ module PotInsert(
   cellDefaultFeature = cellDefaultFeature,
   gridCellSpans = gridCellSpans,
   gridWallThickness = gridWallThickness,
-  fillTubeClearance = fillTubeClearance,
   cellFeatureOverrides = cellFeatureOverrides,
   anchor = CENTER,
   spin = 0,
@@ -93,7 +91,7 @@ module PotInsert(
                     holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter,
                     gridRowSizes, gridColumnSizes,
                     cellDefaultFeature, gridCellSpans,
-                    gridWallThickness, fillTubeClearance,
+                    gridWallThickness,
                     cellFeatureOverrides
                   );
 
@@ -180,7 +178,6 @@ module Base(
   cellDefaultFeature,
   gridCellSpans,
   gridWallThickness,
-  fillTubeClearance,
   cellFeatureOverrides = ""
 ) {
   //ring
@@ -206,7 +203,7 @@ module Base(
           chamfer=side_chamfer
         )
           tag("hole")
-            BottomFeaturePattern(width, depth, wallThickness, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, cellDefaultFeature, gridCellSpans, gridWallThickness, fillTubeClearance, cellFeatureOverrides);
+            BottomFeaturePattern(width, depth, wallThickness, holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter, gridRowSizes, gridColumnSizes, cellDefaultFeature, gridCellSpans, gridWallThickness, cellFeatureOverrides);
 }
 
 module BottomFeaturePattern(
@@ -214,7 +211,7 @@ module BottomFeaturePattern(
   holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter,
   gridRowSizes, gridColumnSizes,
   cellDefaultFeature, gridCellSpans,
-  gridWallThickness, fillTubeClearance,
+  gridWallThickness,
   cellFeatureOverrides = ""
 ) {
   grid_rows = grid_track_count(gridRowSizes);
@@ -247,8 +244,7 @@ module BottomFeaturePattern(
               defaultDrainRows=holeRows,
               defaultDrainCols=holeCols,
               defaultDrainDiameter=holeDiameter,
-              defaultDrainPadding=holeAreaPadding,
-              defaultFillTubeClearance=fillTubeClearance
+              defaultDrainPadding=holeAreaPadding
             );
 }
 

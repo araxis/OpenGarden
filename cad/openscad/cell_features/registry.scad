@@ -94,8 +94,7 @@ module feature_apply(
   defaultDrainRows = 4,
   defaultDrainCols = 4,
   defaultDrainDiameter = 5,
-  defaultDrainPadding = 25,
-  defaultFillTubeClearance = 0.8
+  defaultDrainPadding = 25
 ) {
   if (name == "drain_holes")
     feature_drain_holes(
@@ -111,7 +110,7 @@ module feature_apply(
     feature_fill_tube(
       cell_w,
       cell_d,
-      feature_number_param(spec, row, col, plane, "clearance", defaultFillTubeClearance)
+      feature_number_param(spec, row, col, plane, "clearance", 0.8)
     );
   else if (name == "wick_port")
     feature_wick_port(feature_number_param(spec, row, col, plane, "diameter", 8));

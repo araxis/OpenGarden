@@ -1,0 +1,27 @@
+﻿<MudPaper Class="section-panel" Elevation="0">
+    <MudText Typo="Typo.subtitle1" Class="panel-title">OpenGrid</MudText>
+    <MudStack Spacing="1">
+        <MudField Variant="Variant.Text" Underline="false">
+            <MudSwitch Size="Size.Medium" T="bool" Color="Color.Primary" Label="OpenGrid Support" @bind-Value="State.OpenGridSupport" @bind-Value:after="NotifyChanged"/>
+        </MudField>
+        <MudSelect Variant="Variant.Text" T="string" Label="Slot Placement" Dense="true" @bind-Value="State.SlotPlacement" @bind-Value:after="NotifyChanged">
+            @foreach (var mode in SlotPlacements)
+            {
+                <MudSelectItem T="string" Value="@mode">@mode</MudSelectItem>
+            }
+        </MudSelect>
+        <MudNumericField T="int" Label="Subtract Slots" Min="0" Max="10" Step="1" @bind-Value="State.SubtractSlots" @bind-Value:after="NotifyChanged" Adornment="Adornment.End"/>
+    </MudStack>
+</MudPaper>
+
+@code {
+    private static readonly string[] SlotPlacements = ["Center", "Left", "Right", "Spread"];
+
+    [Parameter, EditorRequired]
+    public DesignerState State { get; set; } = new();
+
+    [Parameter]
+    public EventCallback OnChanged { get; set; }
+
+    private Task NotifyChanged() => OnChanged.InvokeAsync();
+}
