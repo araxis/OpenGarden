@@ -9,7 +9,6 @@
         }
     </MudSelect>
     <MudNumericField T="double" Label="Grid Wall Thickness" Min="0.8" Max="6" Step="0.2" @bind-Value="State.GridWallThickness" @bind-Value:after="NotifyChanged" Adornment="Adornment.End" AdornmentText="mm" />
-    <MudNumericField T="double" Label="Fill Tube Clearance" Min="0" Max="5" Step="0.1" @bind-Value="State.FillTubeClearance" @bind-Value:after="NotifyChanged" Adornment="Adornment.End" AdornmentText="mm" />
 
     <MudDivider Class="my-4" />
     <CellFeatureList State="State" OnChanged="OnChanged" />

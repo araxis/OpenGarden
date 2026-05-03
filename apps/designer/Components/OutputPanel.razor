@@ -1,19 +1,26 @@
 <MudPaper Class="section-panel" Elevation="0">
     <MudText Typo="Typo.subtitle1" Class="panel-title">Output</MudText>
-    <MudSelect T="string" Label="Output Mode" Dense="true" @bind-Value="State.OutputMode" @bind-Value:after="NotifyChanged">
-        @foreach (var mode in OutputModes)
+    <MudStack Spacing="1">
+        <MudSelect Variant="Variant.Text" T="string" Label="Output Mode" Dense="true" @bind-Value="State.OutputMode" @bind-Value:after="NotifyChanged">
+            @foreach (var mode in OutputModes)
+            {
+                <MudSelectItem T="string" Value="@mode">@mode</MudSelectItem>
+            }
+        </MudSelect>
+        <MudSelect Variant="Variant.Text" T="string" Label="Render Quality" @bind-Value="State.RenderQuality" @bind-Value:after="NotifyChanged">
+            <MudSelectItem T="string" Value="@("Preview")">Preview</MudSelectItem>
+            <MudSelectItem T="string" Value="@("Export")">Export</MudSelectItem>
+        </MudSelect>
+        @if (State.OutputMode == "Print Layout")
         {
-            <MudSelectItem T="string" Value="@mode">@mode</MudSelectItem>
+            var title = $"Print Spacing: {@State.PrintSpacing} mm";
+            <MudField Label="@title" Variant="Variant.Text" Underline="false" Margin="Margin.Dense">
+                <MudSlider Variant="Variant.Filled" Size="Size.Medium" T="double" Min="5" Max="80" Step="1" @bind-Value="State.PrintSpacing" @bind-Value:after="NotifyChanged" Color="Color.Primary" />
+            </MudField>
         }
-    </MudSelect>
-    <MudSwitch T="bool" Color="Color.Primary" Label="OpenGrid Support" @bind-Value="State.OpenGridSupport" @bind-Value:after="NotifyChanged" />
-    <MudSelect T="string" Label="Render Quality" Dense="true" @bind-Value="State.RenderQuality" @bind-Value:after="NotifyChanged">
-        <MudSelectItem T="string" Value="@("Preview")">Preview</MudSelectItem>
-        <MudSelectItem T="string" Value="@("Export")">Export</MudSelectItem>
-    </MudSelect>
-    <MudSlider T="double" Min="5" Max="80" Step="1" @bind-Value="State.PrintSpacing" @bind-Value:after="NotifyChanged" Color="Color.Primary">Print Spacing: @State.PrintSpacing mm</MudSlider>
-</MudPaper>
 
+    </MudStack>
+</MudPaper>
 @code {
     private static readonly string[] OutputModes = ["Assembly", "Freestanding Pot", "Print Layout", "Holder Only", "Drain Only", "Pot Insert Only"];
 
@@ -24,4 +31,6 @@
     public EventCallback OnChanged { get; set; }
 
     private Task NotifyChanged() => OnChanged.InvokeAsync();
+
+   
 }

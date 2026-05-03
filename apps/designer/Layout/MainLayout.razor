@@ -11,10 +11,10 @@
         <MudIcon Icon="@Icons.Material.Filled.LocalFlorist" />
         <MudText Typo="Typo.h6" Class="ml-2">OpenGarden Designer</MudText>
         <MudSpacer />
-        <MudSelect T="ThemeMode" Value="_themeMode" ValueChanged="SetThemeMode" Dense="true" Margin="Margin.Dense" Class="theme-mode-select" aria-label="Theme mode">
-            <MudSelectItem T="ThemeMode" Value="ThemeMode.System">System</MudSelectItem>
-            <MudSelectItem T="ThemeMode" Value="ThemeMode.Light">Light</MudSelectItem>
-            <MudSelectItem T="ThemeMode" Value="ThemeMode.Dark">Dark</MudSelectItem>
+        <MudSelect Text="@GetThemeModeName(_themeMode)" T="ThemeMode" Variant="Variant.Outlined" Value="_themeMode" ValueChanged="SetThemeMode" Dense="true" FitContent="true" Margin="Margin.Dense" aria-label="Theme mode">
+            <MudSelectItem T="ThemeMode" Value="ThemeMode.System"><div class="d-flex align-center"><MudIcon Icon="@Icons.Material.Filled.Computer" Class="mr-2" /><span>System</span></div></MudSelectItem>
+            <MudSelectItem T="ThemeMode" Value="ThemeMode.Light"><div class="d-flex align-center"><MudIcon Icon="@Icons.Material.Filled.WbSunny" Class="mr-2" /><span>Light</span></div></MudSelectItem>
+            <MudSelectItem T="ThemeMode" Value="ThemeMode.Dark"><div class="d-flex align-center"><MudIcon Icon="@Icons.Material.Filled.Nightlight" Class="mr-2" /><span>Dark</span></div></MudSelectItem>
         </MudSelect>
     </MudAppBar>
 
@@ -89,4 +89,16 @@
             _ => _systemPrefersDark
         };
     }
+
+    private string? GetThemeModeName(ThemeMode themeMode)
+    {
+        return themeMode switch
+        {
+            ThemeMode.System => "System",
+            ThemeMode.Light => "Light",
+            ThemeMode.Dark => "Dark",
+            _ => null
+        };
+    }
+
 }
