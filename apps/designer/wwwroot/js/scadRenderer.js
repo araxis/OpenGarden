@@ -1,6 +1,7 @@
 window.openGardenScadRenderer = (() => {
 
     const _MODULE_URL = 'js/openscad.js';
+    const _MODULE_VERSION = 'wasm-table-safe-3';
     const _LIB_ROOTS = [
         '/usr/share/openscad/libraries',
         '/usr/local/share/openscad/libraries',
@@ -14,11 +15,19 @@ window.openGardenScadRenderer = (() => {
 
     const _WORKER_SRC = /* javascript */ `
 self.onmessage = async function({ data: { scadFiles, configBlock, moduleUrl, libRoots } }) {
+  let instance = null;
+
+  function postGeneratedStl(message) {
+    const bytes = instance.FS.readFile('/output.stl');
+    const stlBytes = bytes.slice();
+    self.postMessage({ ok: true, stlBuffer: stlBytes.buffer, message }, [stlBytes.buffer]);
+  }
+
   try {
     const mod = await import(moduleUrl);
     // Note: ensure your openscad.js exports a default or named 'createOpenSCAD'
     const openScad = await mod.default({ noInitialRun: true }); 
-    const instance = openScad;
+    instance = openScad;
 
     function mkdirp(path) {
       const segs = path.replace(/^\\//, '').split('/');
@@ -60,11 +69,17 @@ self.onmessage = async function({ data: { scadFiles, configBlock, moduleUrl, lib
         return;
     }
 
-    const bytes = instance.FS.readFile('/output.stl');
-    self.postMessage({ ok: true, stlBuffer: bytes.buffer }, [bytes.buffer]);
+    postGeneratedStl('STL generated successfully.');
 
   } catch (err) {
-    self.postMessage({ ok: false, error: err.message });
+    try {
+      if (instance) {
+        postGeneratedStl('STL generated successfully. OpenSCAD reported a late runtime warning: ' + (err.message || err));
+        return;
+      }
+    } catch {}
+
+    self.postMessage({ ok: false, error: err.message || String(err) });
   }
 };
 `;
@@ -117,7 +132,7 @@ self.onmessage = async function({ data: { scadFiles, configBlock, moduleUrl, lib
                     // This object matches your C# RendererResult class
                     resolve({
                         ok: true,
-                        message: 'STL generated successfully.',
+                        message: result.message || 'STL generated successfully.',
                         stlBytes: stlBytes, // Blazor converts this to byte[]
                         downloadUrl: url,
                         fileName: 'opengarden-preview.stl',
@@ -139,7 +154,7 @@ self.onmessage = async function({ data: { scadFiles, configBlock, moduleUrl, lib
             worker.postMessage({
                 scadFiles: [..._scadFiles],
                 configBlock,
-                moduleUrl: new URL(_MODULE_URL, document.baseURI).href,
+                moduleUrl: new URL(`${_MODULE_URL}?v=${_MODULE_VERSION}`, document.baseURI).href,
                 libRoots: _LIB_ROOTS
             });
         });
