@@ -1,7 +1,7 @@
 window.openGardenScadRenderer = (() => {
 
     const _MODULE_URL = 'js/openscad.js';
-    const _MODULE_VERSION = 'wasm-table-safe-1';
+    const _MODULE_VERSION = 'wasm-table-safe-3';
     const _LIB_ROOTS = [
         '/usr/share/openscad/libraries',
         '/usr/local/share/openscad/libraries',
@@ -19,7 +19,8 @@ self.onmessage = async function({ data: { scadFiles, configBlock, moduleUrl, lib
 
   function postGeneratedStl(message) {
     const bytes = instance.FS.readFile('/output.stl');
-    self.postMessage({ ok: true, stlBuffer: bytes.buffer, message }, [bytes.buffer]);
+    const stlBytes = bytes.slice();
+    self.postMessage({ ok: true, stlBuffer: stlBytes.buffer, message }, [stlBytes.buffer]);
   }
 
   try {
