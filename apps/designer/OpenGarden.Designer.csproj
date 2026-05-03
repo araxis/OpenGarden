@@ -5,6 +5,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
+    <ScadSourceDir>$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)', '..', '..', 'cad', 'openscad'))</ScadSourceDir>
+    <Bosl2SourceDir>$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)', '..', '..', 'cad', 'bosl2'))</Bosl2SourceDir>
+    <ScadTargetDir>$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)', 'wwwroot', 'scad'))</ScadTargetDir>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,5 +15,70 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.7" PrivateAssets="all" />
     <PackageReference Include="MudBlazor" Version="9.4.0" />
   </ItemGroup>
+
+  <!--
+    Copies all OpenSCAD project files and BOSL2 library into wwwroot/scad/ before
+    every build and publish, then generates a manifest.json listing every file so
+    the browser can fetch them in one round-trip and mount them into the WASM FS.
+
+    wwwroot/scad/ is auto-generated — it is listed in .gitignore and must NOT be
+    committed.  CI populates it at build time via this target.
+  -->
+  <UsingTask TaskName="WriteScadManifest"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <Paths ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <OutputFile ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Linq" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+          var entries = Paths
+              .Select(p => p.ItemSpec.Replace('\\', '/'))
+              .OrderBy(p => p)
+              .Select(p => $"  \"{p}\"");
+          var json = "[\n" + string.Join(",\n", entries) + "\n]";
+          Directory.CreateDirectory(Path.GetDirectoryName(OutputFile)!);
+          File.WriteAllText(OutputFile, json);
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="CopyScadFiles" BeforeTargets="Build;Publish">
+
+    <!-- Collect source files -->
+    <ItemGroup>
+      <_ProjectScad Include="$(ScadSourceDir)**\*.scad" />
+      <_Bosl2Scad   Include="$(Bosl2SourceDir)**\*.scad" />
+    </ItemGroup>
+
+    <!-- Copy project SCAD files, preserving subdirectory structure -->
+    <Copy SourceFiles="@(_ProjectScad)"
+          DestinationFiles="@(_ProjectScad->'$(ScadTargetDir)%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+
+    <!-- Copy BOSL2 SCAD files under wwwroot/scad/BOSL2/ -->
+    <Copy SourceFiles="@(_Bosl2Scad)"
+          DestinationFiles="@(_Bosl2Scad->'$(ScadTargetDir)BOSL2\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+
+    <!-- Build manifest entries: project files first, then BOSL2 -->
+    <ItemGroup>
+      <_ManifestEntry Include="@(_ProjectScad->'%(RecursiveDir)%(Filename)%(Extension)')" />
+      <_ManifestEntry Include="@(_Bosl2Scad->'BOSL2/%(RecursiveDir)%(Filename)%(Extension)')" />
+    </ItemGroup>
+
+    <!-- Write manifest.json with forward-slash paths -->
+    <WriteScadManifest Paths="@(_ManifestEntry)"
+                       OutputFile="$(ScadTargetDir)manifest.json" />
+
+    <Message Text="CopyScadFiles: SCAD files copied and manifest.json written."
+             Importance="normal" />
+
+  </Target>
 
 </Project>

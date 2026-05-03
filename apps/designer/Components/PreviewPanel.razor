@@ -1,7 +1,10 @@
 @inject IJSRuntime JS
+@inject IScadRenderService Renderer
+@implements IDisposable
 
 <MudPaper Class="preview-panel" Elevation="0">
     <MudText Typo="Typo.subtitle1" Class="panel-title">Preview</MudText>
+
     <div class="preview-stage">
         @if (_isRendering)
         {
@@ -19,14 +22,31 @@
             </div>
         }
     </div>
+
     <MudStack Row="true" AlignItems="AlignItems.Center" Class="preview-meta">
         <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">OpenSCAD</MudChip>
         <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Outlined">STL</MudChip>
         <MudChip T="string" Size="Size.Small" Color="Color.Tertiary" Variant="Variant.Outlined">GitHub Pages</MudChip>
     </MudStack>
 
+    @* ── Renderer initialisation status ── *@
+    @if (!Renderer.IsReady)
+    {
+        <MudAlert Severity="Severity.Info" Dense="true" Class="mt-3">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Color="Color.Info" />
+                <MudText Typo="Typo.body2">@Renderer.InitStatus</MudText>
+            </MudStack>
+        </MudAlert>
+    }
+
+    @* ── Render controls ── *@
     <MudStack Spacing="2" Class="mt-3">
-        <MudButton Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.ViewInAr" Disabled="_isRendering" OnClick="RenderAsync">
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   StartIcon="@Icons.Material.Filled.ViewInAr"
+                   Disabled="@(!Renderer.IsReady || _isRendering)"
+                   OnClick="RenderAsync">
             Render Preview STL
         </MudButton>
 
@@ -35,7 +55,10 @@
             <MudAlert Severity="Severity.Success" Dense="true">
                 STL generated in @_result.ElapsedMs.ToString("0") ms (@FormatBytes(_result.ByteLength)).
             </MudAlert>
-            <MudButton OnClick="DownloadAsync" Variant="Variant.Outlined" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Download">
+            <MudButton OnClick="DownloadAsync"
+                       Variant="Variant.Outlined"
+                       Color="Color.Secondary"
+                       StartIcon="@Icons.Material.Filled.Download">
                 Download STL
             </MudButton>
         }
@@ -50,58 +73,53 @@
     [Parameter, EditorRequired]
     public DesignerState State { get; set; } = new();
 
-    private bool _isRendering;
-    private bool _drawPending;
-    private RendererResult? _result;
+    private bool             _isRendering;
+    private bool             _drawPending;
+    private RendererResult?  _result;
     private ElementReference _stlCanvas;
 
-    public async Task RenderAsync()
+    protected override void OnInitialized()
+    {
+        // Subscribe to renderer status changes so the progress indicator re-renders.
+        Renderer.StatusChanged += OnRendererStatusChanged;
+
+        // Kick off background init (no-op if already started).
+        _ = Renderer.InitializeAsync();
+    }
+
+    private void OnRendererStatusChanged()
+    {
+        // StatusChanged may fire from a JS interop callback; InvokeAsync ensures
+        // StateHasChanged is called on the Blazor synchronisation context.
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RenderAsync()
     {
         _isRendering = true;
-        _result = null;
+        _result      = null;
         StateHasChanged();
 
-        try
-        {
-            _result = await JS.InvokeAsync<RendererResult>(
-                "openGardenDesigner.renderPreviewStl",
-                State.GeneratePreviewScad());
-        }
-        catch (JSException ex)
-        {
-            _result = new RendererResult { Ok = false, Message = ex.Message };
-        }
-        finally
-        {
-            _isRendering = false;
-        }
+        _result = await Renderer.RenderAsync(State.GenerateScadConfig());
+
+        _isRendering = false;
 
         if (_result is { Ok: true })
         {
             _drawPending = true;
-            await InvokeAsync(StateHasChanged);
         }
+
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_drawPending)
+        if (_drawPending && _result?.Ok == true)
         {
             _drawPending = false;
-            await JS.InvokeVoidAsync("openGardenDesigner.drawLastPreviewStl", _stlCanvas);
+            // Pass the actual bytes so the JS can "save" it for future re-draws
+            await JS.InvokeVoidAsync("openGardenDesigner.drawStlPreview", _stlCanvas, _result.StlBytes);
         }
-    }
-
-    private static string FormatBytes(int bytes)
-    {
-        if (bytes < 1024)
-        {
-            return $"{bytes} B";
-        }
-
-        return bytes < 1024 * 1024
-            ? $"{bytes / 1024d:0.0} KB"
-            : $"{bytes / 1024d / 1024d:0.0} MB";
     }
 
     private async Task DownloadAsync()
@@ -110,5 +128,15 @@
         {
             await JS.InvokeVoidAsync("openGardenDesigner.downloadUrl", _result.DownloadUrl, _result.FileName);
         }
+    }
+
+    private static string FormatBytes(int bytes) =>
+        bytes < 1024        ? $"{bytes} B"
+        : bytes < 1024*1024 ? $"{bytes / 1024d:0.0} KB"
+                            : $"{bytes / 1024d / 1024d:0.0} MB";
+
+    public void Dispose()
+    {
+        Renderer.StatusChanged -= OnRendererStatusChanged;
     }
 }
