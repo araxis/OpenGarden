@@ -41,8 +41,6 @@ Base_Thickness = 2; // [1:0.25:8]
 Grid_Row_Sizes = "1*";
 // Comma-separated left/right column sizes. Each item creates one column. Use *, 2*, 1, or 25%.
 Grid_Column_Sizes = "1*";
-// Feature used by cells without an override. Pot is drain holes, Box is closed, FillTube is open-bottom.
-Cell_Default_Feature = "Pot"; // [Pot, Box, FillTube, WickPort]
 // Sparse cell spans using 1-based row,column=rowspanxcolspan entries. Example: 1,1=1x2;2,2=2x1.
 Grid_Cell_Spans = "";
 // Thickness of the internal grid divider walls.
@@ -83,7 +81,6 @@ holeDiameter = 5;
 holeAreaPadding = 25;
 gridRowSizes = Grid_Row_Sizes;
 gridColumnSizes = Grid_Column_Sizes;
-cellDefaultFeature = Cell_Default_Feature;
 gridCellSpans = Grid_Cell_Spans;
 gridWallThickness = Grid_Wall_Thickness;
 cellFeatureOverrides = Cell_Feature_Overrides;
@@ -121,7 +118,6 @@ if (outputMode == "Assembly" && !openGridSupport) {
     holeDiameter=holeDiameter,
     gridRowSizes=gridRowSizes,
     gridColumnSizes=gridColumnSizes,
-    cellDefaultFeature=cellDefaultFeature,
     gridCellSpans=gridCellSpans,
     gridWallThickness=gridWallThickness,
     cellFeatureOverrides=cellFeatureOverrides
@@ -143,7 +139,6 @@ module PotAssembly() {
           holeDiameter=holeDiameter,
           gridRowSizes=gridRowSizes,
           gridColumnSizes=gridColumnSizes,
-          cellDefaultFeature=cellDefaultFeature,
           gridCellSpans=gridCellSpans,
           gridWallThickness=gridWallThickness,
           cellFeatureOverrides=cellFeatureOverrides
@@ -179,7 +174,6 @@ module FreestandingPot() {
       wallThickness=wallThickness,
       gridRowSizes=gridRowSizes,
       gridColumnSizes=gridColumnSizes,
-      cellDefaultFeature=cellDefaultFeature,
       gridCellSpans=gridCellSpans,
       gridWallThickness=gridWallThickness,
       cellFeatureOverrides=cellFeatureOverrides,
@@ -201,7 +195,6 @@ module PrintLayout() {
         holeDiameter=holeDiameter,
         gridRowSizes=gridRowSizes,
         gridColumnSizes=gridColumnSizes,
-        cellDefaultFeature=cellDefaultFeature,
         gridCellSpans=gridCellSpans,
         gridWallThickness=gridWallThickness,
         cellFeatureOverrides=cellFeatureOverrides
@@ -227,7 +220,6 @@ module PrintLayout() {
         holeDiameter=holeDiameter,
         gridRowSizes=gridRowSizes,
         gridColumnSizes=gridColumnSizes,
-        cellDefaultFeature=cellDefaultFeature,
         gridCellSpans=gridCellSpans,
         gridWallThickness=gridWallThickness,
         cellFeatureOverrides=cellFeatureOverrides

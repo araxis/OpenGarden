@@ -23,7 +23,6 @@ public sealed class DesignerState
 
     public string GridRows { get; set; } = "1*";
     public string GridColumns { get; set; } = "1*";
-    public string DefaultFeature { get; set; } = FeatureTypes.Pot;
     public double GridWallThickness { get; set; } = 2;
     public List<CellFeatureConfig> CellFeatures { get; } = [new()];
 
@@ -49,7 +48,6 @@ public sealed class DesignerState
         $"Base_Thickness = {Format(BaseThickness)};",
         $"Grid_Row_Sizes = \"{Escape(GridRows)}\";",
         $"Grid_Column_Sizes = \"{Escape(GridColumns)}\";",
-        $"Cell_Default_Feature = \"{DefaultFeature}\";",
         $"Grid_Cell_Spans = \"{Escape(GenerateCellSpans())}\";",
         $"Grid_Wall_Thickness = {Format(GridWallThickness)};",
         $"Cell_Feature_Overrides = \"{Escape(GenerateFeatureOverrides())}\";"
