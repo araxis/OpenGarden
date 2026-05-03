@@ -99,7 +99,9 @@ gridCellSpans = Grid_Cell_Spans;
 gridWallThickness = Grid_Wall_Thickness;
 cellFeatureOverrides = Cell_Feature_Overrides;
 
-if (outputMode == "Assembly") {
+if (outputMode == "Assembly" && !openGridSupport) {
+  FreestandingPot();
+} else if (outputMode == "Assembly") {
   PotAssembly();
 } else if (outputMode == "Freestanding Pot") {
   FreestandingPot();

@@ -14,11 +14,18 @@ window.openGardenScadRenderer = (() => {
 
     const _WORKER_SRC = /* javascript */ `
 self.onmessage = async function({ data: { scadFiles, configBlock, moduleUrl, libRoots } }) {
+  let instance = null;
+
+  function postGeneratedStl(message) {
+    const bytes = instance.FS.readFile('/output.stl');
+    self.postMessage({ ok: true, stlBuffer: bytes.buffer, message }, [bytes.buffer]);
+  }
+
   try {
     const mod = await import(moduleUrl);
     // Note: ensure your openscad.js exports a default or named 'createOpenSCAD'
     const openScad = await mod.default({ noInitialRun: true }); 
-    const instance = openScad;
+    instance = openScad;
 
     function mkdirp(path) {
       const segs = path.replace(/^\\//, '').split('/');
@@ -60,11 +67,17 @@ self.onmessage = async function({ data: { scadFiles, configBlock, moduleUrl, lib
         return;
     }
 
-    const bytes = instance.FS.readFile('/output.stl');
-    self.postMessage({ ok: true, stlBuffer: bytes.buffer }, [bytes.buffer]);
+    postGeneratedStl('STL generated successfully.');
 
   } catch (err) {
-    self.postMessage({ ok: false, error: err.message });
+    try {
+      if (instance) {
+        postGeneratedStl('STL generated successfully. OpenSCAD reported a late runtime warning: ' + (err.message || err));
+        return;
+      }
+    } catch {}
+
+    self.postMessage({ ok: false, error: err.message || String(err) });
   }
 };
 `;
@@ -117,7 +130,7 @@ self.onmessage = async function({ data: { scadFiles, configBlock, moduleUrl, lib
                     // This object matches your C# RendererResult class
                     resolve({
                         ok: true,
-                        message: 'STL generated successfully.',
+                        message: result.message || 'STL generated successfully.',
                         stlBytes: stlBytes, // Blazor converts this to byte[]
                         downloadUrl: url,
                         fileName: 'opengarden-preview.stl',
