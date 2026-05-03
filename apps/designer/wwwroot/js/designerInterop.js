@@ -1,6 +1,10 @@
 window.openGardenDesigner = {
   openScad: null,
+  three: null,
+  stlLoader: null,
+  orbitControls: null,
   lastPreviewStl: null,
+  lastPreviewScene: null,
   copyText: async (text) => {
     if (!navigator.clipboard) {
       return false;
@@ -32,7 +36,7 @@ window.openGardenDesigner = {
       const output = await window.openGardenDesigner.openScad.renderToStl(scadCode);
       window.openGardenDesigner.lastPreviewStl = output;
       if (canvas) {
-        window.openGardenDesigner.drawStlPreview(canvas, output);
+        await window.openGardenDesigner.drawStlPreview(canvas, output);
       }
 
       const blob = new Blob([output], { type: "model/stl" });
@@ -62,158 +66,131 @@ window.openGardenDesigner = {
       };
     }
   },
-  drawLastPreviewStl: (canvas) => {
+  drawLastPreviewStl: async (canvas) => {
     if (canvas && window.openGardenDesigner.lastPreviewStl) {
-      window.openGardenDesigner.drawStlPreview(canvas, window.openGardenDesigner.lastPreviewStl);
+      await window.openGardenDesigner.drawStlPreview(canvas, window.openGardenDesigner.lastPreviewStl);
     }
   },
-  drawStlPreview: (canvas, stlBytes) => {
-    const triangles = window.openGardenDesigner.readStlTriangles(stlBytes);
-    const context = canvas.getContext("2d");
+  drawStlPreview: async (canvas, stlBytes) => {
+    const { THREE, STLLoader, OrbitControls } = await window.openGardenDesigner.loadThreeViewer();
     const width = canvas.clientWidth || 720;
     const height = canvas.clientHeight || 360;
-    const scale = window.devicePixelRatio || 1;
 
-    canvas.width = Math.floor(width * scale);
-    canvas.height = Math.floor(height * scale);
-    context.setTransform(scale, 0, 0, scale, 0, 0);
-    context.clearRect(0, 0, width, height);
-
-    if (triangles.length === 0) {
-      context.fillStyle = "#d6eee7";
-      context.font = "14px sans-serif";
-      context.fillText("No STL triangles to preview", 24, 32);
-      return;
+    if (window.openGardenDesigner.lastPreviewScene) {
+      window.openGardenDesigner.lastPreviewScene.dispose();
     }
 
-    const projected = triangles.map((triangle) => {
-      const points = triangle.vertices.map((vertex) => ({
-        x: (vertex.x - vertex.y) * 0.866,
-        y: (vertex.x + vertex.y) * 0.35 - vertex.z * 0.72
-      }));
-
-      return {
-        points,
-        shade: Math.max(0.35, Math.min(0.95, 0.55 + triangle.normal.z * 0.35)),
-        depth: triangle.vertices.reduce((sum, vertex) => sum + vertex.x + vertex.y + vertex.z, 0) / 3
-      };
+    const renderer = new THREE.WebGLRenderer({
+      alpha: true,
+      antialias: true,
+      canvas
     });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(width, height, false);
 
-    const bounds = projected.reduce((box, triangle) => {
-      for (const point of triangle.points) {
-        box.minX = Math.min(box.minX, point.x);
-        box.maxX = Math.max(box.maxX, point.x);
-        box.minY = Math.min(box.minY, point.y);
-        box.maxY = Math.max(box.maxY, point.y);
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 5000);
+    const controls = new OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+
+    const geometry = new STLLoader().parse(window.openGardenDesigner.stlToLoaderInput(stlBytes));
+    geometry.computeVertexNormals();
+    geometry.computeBoundingBox();
+
+    const material = new THREE.MeshStandardMaterial({
+      color: 0xe8ece8,
+      metalness: 0.05,
+      roughness: 0.58,
+      side: THREE.DoubleSide
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+
+    const edges = new THREE.LineSegments(
+      new THREE.EdgesGeometry(geometry, 25),
+      new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.22 })
+    );
+    scene.add(edges);
+
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x2f443b, 2.2));
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.1);
+    keyLight.position.set(1, -1.4, 2.4);
+    scene.add(keyLight);
+
+    const box = geometry.boundingBox;
+    const center = new THREE.Vector3();
+    const size = new THREE.Vector3();
+    box.getCenter(center);
+    box.getSize(size);
+    mesh.position.sub(center);
+    edges.position.sub(center);
+
+    const maxDimension = Math.max(size.x, size.y, size.z, 1);
+    const distance = maxDimension / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) * 1.65;
+    camera.position.set(distance * 0.9, -distance * 1.15, distance * 0.72);
+    camera.near = Math.max(0.1, distance / 100);
+    camera.far = distance * 100;
+    camera.updateProjectionMatrix();
+    controls.target.set(0, 0, 0);
+    controls.update();
+
+    let animationFrame = 0;
+    const render = () => {
+      controls.update();
+      renderer.render(scene, camera);
+      animationFrame = requestAnimationFrame(render);
+    };
+    render();
+
+    window.openGardenDesigner.lastPreviewScene = {
+      dispose: () => {
+        cancelAnimationFrame(animationFrame);
+        controls.dispose();
+        geometry.dispose();
+        material.dispose();
+        edges.geometry.dispose();
+        edges.material.dispose();
+        renderer.dispose();
       }
-
-      return box;
-    }, { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity });
-
-    const modelWidth = Math.max(1, bounds.maxX - bounds.minX);
-    const modelHeight = Math.max(1, bounds.maxY - bounds.minY);
-    const fit = Math.min((width - 48) / modelWidth, (height - 48) / modelHeight);
-    const offsetX = width / 2 - (bounds.minX + modelWidth / 2) * fit;
-    const offsetY = height / 2 - (bounds.minY + modelHeight / 2) * fit;
-
-    context.lineJoin = "round";
-    for (const triangle of projected.sort((a, b) => a.depth - b.depth)) {
-      context.beginPath();
-      triangle.points.forEach((point, index) => {
-        const x = point.x * fit + offsetX;
-        const y = point.y * fit + offsetY;
-        if (index === 0) {
-          context.moveTo(x, y);
-        } else {
-          context.lineTo(x, y);
-        }
-      });
-      context.closePath();
-      const shade = Math.round(255 * triangle.shade);
-      context.fillStyle = `rgb(${shade}, ${shade}, ${shade})`;
-      context.strokeStyle = "rgba(255, 255, 255, 0.48)";
-      context.lineWidth = 0.7;
-      context.fill();
-      context.stroke();
-    }
+    };
   },
-  readStlTriangles: (stl) => {
+  loadThreeViewer: async () => {
+    if (!window.openGardenDesigner.three) {
+      const [THREE, stlModule, controlsModule] = await Promise.all([
+        import("https://esm.sh/three@0.160.0"),
+        import("https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js"),
+        import("https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js")
+      ]);
+
+      window.openGardenDesigner.three = THREE;
+      window.openGardenDesigner.stlLoader = stlModule.STLLoader;
+      window.openGardenDesigner.orbitControls = controlsModule.OrbitControls;
+    }
+
+    return {
+      THREE: window.openGardenDesigner.three,
+      STLLoader: window.openGardenDesigner.stlLoader,
+      OrbitControls: window.openGardenDesigner.orbitControls
+    };
+  },
+  stlToLoaderInput: (stl) => {
     if (typeof stl === "string") {
-      return window.openGardenDesigner.readAsciiStl(stl);
+      return new TextEncoder().encode(stl).buffer;
     }
 
     if (stl instanceof ArrayBuffer) {
-      return window.openGardenDesigner.readBinaryStl(new Uint8Array(stl));
+      return stl;
     }
 
     if (stl instanceof Uint8Array) {
-      return window.openGardenDesigner.readBinaryStl(stl);
+      return stl.buffer.slice(stl.byteOffset, stl.byteOffset + stl.byteLength);
     }
 
     if (ArrayBuffer.isView(stl)) {
-      return window.openGardenDesigner.readBinaryStl(new Uint8Array(stl.buffer, stl.byteOffset, stl.byteLength));
+      return stl.buffer.slice(stl.byteOffset, stl.byteOffset + stl.byteLength);
     }
 
-    return [];
-  },
-  readAsciiStl: (text) => {
-    const triangles = [];
-    const facetPattern = /facet\s+normal\s+([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+outer\s+loop\s+vertex\s+([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+vertex\s+([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+vertex\s+([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+endloop\s+endfacet/gi;
-
-    for (const match of text.matchAll(facetPattern)) {
-      const numbers = match.slice(1).map(Number);
-      if (numbers.some((value) => !Number.isFinite(value))) {
-        continue;
-      }
-
-      triangles.push({
-        normal: { x: numbers[0], y: numbers[1], z: numbers[2] },
-        vertices: [
-          { x: numbers[3], y: numbers[4], z: numbers[5] },
-          { x: numbers[6], y: numbers[7], z: numbers[8] },
-          { x: numbers[9], y: numbers[10], z: numbers[11] }
-        ]
-      });
-    }
-
-    return triangles;
-  },
-  readBinaryStl: (bytes) => {
-    if (bytes.byteLength < 84) {
-      return [];
-    }
-
-    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-    const count = view.getUint32(80, true);
-    const expectedLength = 84 + count * 50;
-    if (expectedLength > bytes.byteLength) {
-      return [];
-    }
-
-    const triangles = [];
-    let offset = 84;
-    for (let index = 0; index < count; index += 1) {
-      const normal = {
-        x: view.getFloat32(offset, true),
-        y: view.getFloat32(offset + 4, true),
-        z: view.getFloat32(offset + 8, true)
-      };
-      offset += 12;
-
-      const vertices = [];
-      for (let vertex = 0; vertex < 3; vertex += 1) {
-        vertices.push({
-          x: view.getFloat32(offset, true),
-          y: view.getFloat32(offset + 4, true),
-          z: view.getFloat32(offset + 8, true)
-        });
-        offset += 12;
-      }
-
-      offset += 2;
-      triangles.push({ normal, vertices });
-    }
-
-    return triangles;
+    return new ArrayBuffer(0);
   }
 };
