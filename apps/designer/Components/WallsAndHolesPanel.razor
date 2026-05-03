@@ -7,16 +7,6 @@
         <MudSelectItem T="string" Value="@("Rectangle")">Rectangle</MudSelectItem>
         <MudSelectItem T="string" Value="@("Circle")">Circle</MudSelectItem>
     </MudSelect>
-    <MudGrid Spacing="2">
-        <MudItem xs="6">
-            <MudNumericField T="int" Label="Rows" Min="1" Max="10" @bind-Value="State.HoleRows" @bind-Value:after="NotifyChanged" />
-        </MudItem>
-        <MudItem xs="6">
-            <MudNumericField T="int" Label="Columns" Min="1" Max="10" @bind-Value="State.HoleColumns" @bind-Value:after="NotifyChanged" />
-        </MudItem>
-    </MudGrid>
-    <MudNumericField T="double" Label="Hole Diameter" Min="1" Max="15" Step="0.5" @bind-Value="State.HoleDiameter" @bind-Value:after="NotifyChanged" Adornment="Adornment.End" AdornmentText="mm" />
-    <MudNumericField T="double" Label="Hole Area Padding" Min="0" Max="80" Step="0.5" @bind-Value="State.HolePadding" @bind-Value:after="NotifyChanged" Adornment="Adornment.End" AdornmentText="mm" />
 </MudPaper>
 
 @code {
