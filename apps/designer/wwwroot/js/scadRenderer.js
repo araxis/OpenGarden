@@ -2,7 +2,7 @@ window.openGardenScadRenderer = (() => {
 
     const _MODULE_URL = 'js/openscad.js';
     const _MODULE_VERSION = 'wasm-entry-safe-2';
-    const _SCAD_VERSION = 'freestanding-manual-placement-1';
+    const _SCAD_VERSION = 'cell-feature-defaults-1';
     const _LIB_ROOTS = [
         '/usr/share/openscad/libraries',
         '/usr/local/share/openscad/libraries',

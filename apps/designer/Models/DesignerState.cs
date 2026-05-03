@@ -21,15 +21,8 @@ public sealed class DesignerState
     public double WallThickness { get; set; } = 2;
     public double BaseThickness { get; set; } = 2;
 
-    public string HolePattern { get; set; } = "Rectangle";
-    public int HoleRows { get; set; } = 4;
-    public int HoleColumns { get; set; } = 4;
-    public double HoleDiameter { get; set; } = 5;
-    public double HolePadding { get; set; } = 25;
-
     public string GridRows { get; set; } = "1*";
     public string GridColumns { get; set; } = "1*";
-    public string DefaultFeature { get; set; } = FeatureTypes.Pot;
     public double GridWallThickness { get; set; } = 2;
     public List<CellFeatureConfig> CellFeatures { get; } = [new()];
 
@@ -53,14 +46,8 @@ public sealed class DesignerState
         $"Seat_Height = {Format(SeatHeight)};",
         $"Wall_Thickness = {Format(WallThickness)};",
         $"Base_Thickness = {Format(BaseThickness)};",
-        $"Hole_Pattern = \"{HolePattern}\";",
-        $"Hole_Rows = {HoleRows};",
-        $"Hole_Columns = {HoleColumns};",
-        $"Hole_Diameter = {Format(HoleDiameter)};",
-        $"Hole_Area_Padding = {Format(HolePadding)};",
         $"Grid_Row_Sizes = \"{Escape(GridRows)}\";",
         $"Grid_Column_Sizes = \"{Escape(GridColumns)}\";",
-        $"Cell_Default_Feature = \"{DefaultFeature}\";",
         $"Grid_Cell_Spans = \"{Escape(GenerateCellSpans())}\";",
         $"Grid_Wall_Thickness = {Format(GridWallThickness)};",
         $"Cell_Feature_Overrides = \"{Escape(GenerateFeatureOverrides())}\";"

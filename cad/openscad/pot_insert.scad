@@ -19,7 +19,6 @@ holeDiameter = 5;
 seatHeight = 5;
 gridRowSizes = "1*";
 gridColumnSizes = "1*";
-cellDefaultFeature = "Pot";
 gridCellSpans = "";
 gridWallThickness = 2;
 cellFeatureOverrides = "";
@@ -40,7 +39,7 @@ module PotInsert(
   seatHeight = seatHeight,
   gridRowSizes = gridRowSizes,
   gridColumnSizes = gridColumnSizes,
-  cellDefaultFeature = cellDefaultFeature,
+  cellDefaultFeature = "Pot",
   gridCellSpans = gridCellSpans,
   gridWallThickness = gridWallThickness,
   cellFeatureOverrides = cellFeatureOverrides,
@@ -175,7 +174,7 @@ module Base(
   holeDiameter,
   gridRowSizes,
   gridColumnSizes,
-  cellDefaultFeature,
+  cellDefaultFeature = "Pot",
   gridCellSpans,
   gridWallThickness,
   cellFeatureOverrides = ""
@@ -210,7 +209,7 @@ module BottomFeaturePattern(
   width, depth, wallThickness,
   holeAreaPadding, holePattern, holeRows, holeCols, holeDiameter,
   gridRowSizes, gridColumnSizes,
-  cellDefaultFeature, gridCellSpans,
+  cellDefaultFeature = "Pot", gridCellSpans,
   gridWallThickness,
   cellFeatureOverrides = ""
 ) {
