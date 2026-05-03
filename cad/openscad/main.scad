@@ -36,18 +36,6 @@ Wall_Thickness = 2; // [1:0.25:8]
 // Thickness of the drain/insert base.
 Base_Thickness = 2; // [1:0.25:8]
 
-/*[Drain Hole Pattern]*/
-// Shape of the drain hole layout in each pot insert grid cell.
-Hole_Pattern = "Rectangle"; // [Rectangle, Circle]
-// Per cell. Rectangle: row count. Circle: maximum ring count.
-Hole_Rows = 4; // [1:1:10]
-// Per cell. Rectangle: column count. Circle: holes added per ring.
-Hole_Columns = 4; // [1:1:10]
-// Diameter of each drain hole.
-Hole_Diameter = 5; // [1:0.5:15]
-// Padding around each cell's drain hole pattern.
-Hole_Area_Padding = 25; // [0:0.5:80]
-
 /*[Insert Grid]*/
 // Comma-separated front/back row sizes. Each item creates one row. Use *, 2*, 1, or 25%.
 Grid_Row_Sizes = "1*";
@@ -87,11 +75,12 @@ frontChamfer = Front_Chamfer;
 chamferBackSide = Chamfer_Back_Side;
 holdHeight = height * holdHeightRatio;
 potHeight = height - holdHeight;
-holePattern = Hole_Pattern;
-holeRows = Hole_Rows;
-holeCols = Hole_Columns;
-holeDiameter = Hole_Diameter;
-holeAreaPadding = Hole_Area_Padding;
+// Drain hole defaults — configured per cell via Cell_Feature_Overrides.
+holePattern = "Rectangle";
+holeRows = 4;
+holeCols = 4;
+holeDiameter = 5;
+holeAreaPadding = 25;
 gridRowSizes = Grid_Row_Sizes;
 gridColumnSizes = Grid_Column_Sizes;
 cellDefaultFeature = Cell_Default_Feature;
