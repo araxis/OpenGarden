@@ -41,9 +41,14 @@ window.openGardenDesigner = {
         elapsedMs: performance.now() - started
       };
     } catch (error) {
+      const message = error?.message
+        ?? error?.toString?.()
+        ?? JSON.stringify(error)
+        ?? "OpenSCAD render failed.";
+
       return {
         ok: false,
-        message: error?.message ?? "OpenSCAD render failed.",
+        message,
         downloadUrl: "",
         fileName: "",
         byteLength: 0,

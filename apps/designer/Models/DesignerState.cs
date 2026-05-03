@@ -101,8 +101,8 @@ public sealed class DesignerState
         }
 
         module drain_holes_cell(x0, y0, w, d, rows, cols, diameter, padding) {
-          usable_w = max(0, w - padding * 2);
-          usable_d = max(0, d - padding * 2);
+          usable_w = w - padding * 2;
+          usable_d = d - padding * 2;
           for (x = [1:cols])
             for (y = [1:rows])
               translate([
@@ -114,11 +114,8 @@ public sealed class DesignerState
         }
 
         module fill_tube_cell(x0, y0, w, d, clearance) {
-          cut_w = max(0, w - clearance * 2);
-          cut_d = max(0, d - clearance * 2);
-          if (cut_w > 0 && cut_d > 0)
-            translate([x0 + clearance, y0 + clearance, -0.2])
-              cube([cut_w, cut_d, base + 0.4]);
+          translate([x0 + clearance, y0 + clearance, -0.2])
+            cube([w - clearance * 2, d - clearance * 2, base + 0.4]);
         }
 
         module wick_port_cell(x0, y0, w, d, diameter) {
@@ -128,13 +125,13 @@ public sealed class DesignerState
 
         module lid_lip_cell(x0, y0, w, d, lip_depth, lip_width) {
           translate([x0 + lip_width, y0 + lip_width, insert_height - lip_depth])
-            cube([max(0, w - lip_width * 2), max(0, d - lip_width * 2), lip_depth + 0.2]);
+            cube([w - lip_width * 2, d - lip_width * 2, lip_depth + 0.2]);
         }
 
         difference() {
           union() {
-            color("lightgray") open_box(width, depth, insert_height);
-            color("gray") grid_walls(width, depth, insert_height);
+            open_box(width, depth, insert_height);
+            grid_walls(width, depth, insert_height);
         {{featureScad.Additive}}
           }
         {{featureScad.Subtractive}}
