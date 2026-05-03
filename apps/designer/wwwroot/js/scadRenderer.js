@@ -1,6 +1,7 @@
 window.openGardenScadRenderer = (() => {
 
     const _MODULE_URL = 'js/openscad.js';
+    const _MODULE_VERSION = 'wasm-table-safe-1';
     const _LIB_ROOTS = [
         '/usr/share/openscad/libraries',
         '/usr/local/share/openscad/libraries',
@@ -152,7 +153,7 @@ self.onmessage = async function({ data: { scadFiles, configBlock, moduleUrl, lib
             worker.postMessage({
                 scadFiles: [..._scadFiles],
                 configBlock,
-                moduleUrl: new URL(_MODULE_URL, document.baseURI).href,
+                moduleUrl: new URL(`${_MODULE_URL}?v=${_MODULE_VERSION}`, document.baseURI).href,
                 libRoots: _LIB_ROOTS
             });
         });
