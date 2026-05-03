@@ -1,9 +1,9 @@
 <MudPaper Class="section-panel" Elevation="0">
     <MudText Typo="Typo.subtitle1" Class="panel-title">Pot Size</MudText>
-    <MudNumericField T="double" Label="Height" Min="40" Max="450" Step="0.5" @bind-Value="State.PotHeight" @bind-Value:after="NotifyChanged" Adornment="Adornment.End" AdornmentText="mm" />
-    <MudNumericField T="double" Label="Width" Min="30" Max="450" Step="0.5" @bind-Value="State.PotWidth" @bind-Value:after="NotifyChanged" Adornment="Adornment.End" AdornmentText="mm" />
-    <MudNumericField T="double" Label="Depth" Min="30" Max="450" Step="0.5" @bind-Value="State.PotDepth" @bind-Value:after="NotifyChanged" Adornment="Adornment.End" AdornmentText="mm" />
-    <MudSlider T="double" Min="0.1" Max="0.6" Step="0.01" @bind-Value="State.ReservoirRatio" @bind-Value:after="NotifyChanged" Color="Color.Secondary">Reservoir: @(State.ReservoirRatio.ToString("0.00"))</MudSlider>
+    <MudSlider T="double" Min="40" Max="450" Step="0.5" @bind-Value="State.PotHeight" @bind-Value:after="NotifyChanged" Color="Color.Primary">Height: @(State.PotHeight.ToString("0.#")) mm</MudSlider>
+    <MudSlider T="double" Min="30" Max="450" Step="0.5" @bind-Value="State.PotWidth" @bind-Value:after="NotifyChanged" Color="Color.Primary">Width: @(State.PotWidth.ToString("0.#")) mm</MudSlider>
+    <MudSlider T="double" Min="30" Max="450" Step="0.5" @bind-Value="State.PotDepth" @bind-Value:after="NotifyChanged" Color="Color.Primary">Depth: @(State.PotDepth.ToString("0.#")) mm</MudSlider>
+    <MudSlider T="double" Min="0.1" Max="0.6" Step="0.01" @bind-Value="State.ReservoirRatio" @bind-Value:after="NotifyChanged" Color="Color.Secondary">Reservoir ratio: @(State.ReservoirRatio.ToString("0.00"))</MudSlider>
 </MudPaper>
 
 @code {

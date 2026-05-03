@@ -1,8 +1,8 @@
 <MudPaper Class="section-panel" Elevation="0">
     <MudText Typo="Typo.subtitle1" Class="panel-title">Walls and Holes</MudText>
-    <MudNumericField T="double" Label="Seat Height" Min="1" Max="5" Step="0.5" @bind-Value="State.SeatHeight" @bind-Value:after="NotifyChanged" Adornment="Adornment.End" AdornmentText="mm" />
-    <MudNumericField T="double" Label="Wall Thickness" Min="1" Max="8" Step="0.25" @bind-Value="State.WallThickness" @bind-Value:after="NotifyChanged" Adornment="Adornment.End" AdornmentText="mm" />
-    <MudNumericField T="double" Label="Base Thickness" Min="1" Max="8" Step="0.25" @bind-Value="State.BaseThickness" @bind-Value:after="NotifyChanged" Adornment="Adornment.End" AdornmentText="mm" />
+    <MudSlider T="double" Min="1" Max="5" Step="0.5" @bind-Value="State.SeatHeight" @bind-Value:after="NotifyChanged" Color="Color.Primary">Seat height: @(State.SeatHeight.ToString("0.#")) mm</MudSlider>
+    <MudSlider T="double" Min="1" Max="8" Step="0.25" @bind-Value="State.WallThickness" @bind-Value:after="NotifyChanged" Color="Color.Primary">Wall thickness: @(State.WallThickness.ToString("0.##")) mm</MudSlider>
+    <MudSlider T="double" Min="1" Max="8" Step="0.25" @bind-Value="State.BaseThickness" @bind-Value:after="NotifyChanged" Color="Color.Primary">Base thickness: @(State.BaseThickness.ToString("0.##")) mm</MudSlider>
 </MudPaper>
 
 @code {

@@ -1,6 +1,6 @@
 <MudPaper Class="feature-panel" Elevation="0">
     <MudText Typo="Typo.subtitle2">Wick Port</MudText>
-    <MudNumericField T="double" Label="Diameter" Min="2" Max="30" Step="0.5" @bind-Value="Feature.Diameter" @bind-Value:after="NotifyChanged" Adornment="Adornment.End" AdornmentText="mm" />
+    <MudSlider T="double" Min="2" Max="30" Step="0.5" @bind-Value="Feature.Diameter" @bind-Value:after="NotifyChanged" Color="Color.Primary">Diameter: @(Feature.Diameter.ToString("0.#")) mm</MudSlider>
     <MudSwitch T="bool" Color="Color.Primary" Label="Add rim" @bind-Value="Feature.Rim" @bind-Value:after="NotifyChanged" />
 </MudPaper>
 
