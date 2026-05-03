@@ -4,16 +4,10 @@
         <MudSelectItem T="string" Value="@("Rectangle")">Rectangle grid</MudSelectItem>
         <MudSelectItem T="string" Value="@("Circle")">Circular cluster</MudSelectItem>
     </MudSelect>
-    <MudGrid Spacing="2">
-        <MudItem xs="6">
-            <MudNumericField T="int" Label="Rows" Min="1" Max="10" @bind-Value="Feature.Rows" @bind-Value:after="NotifyChanged" />
-        </MudItem>
-        <MudItem xs="6">
-            <MudNumericField T="int" Label="Columns" Min="1" Max="10" @bind-Value="Feature.Columns" @bind-Value:after="NotifyChanged" />
-        </MudItem>
-    </MudGrid>
-    <MudNumericField T="double" Label="Diameter" Min="1" Max="15" Step="0.5" @bind-Value="Feature.Diameter" @bind-Value:after="NotifyChanged" Adornment="Adornment.End" AdornmentText="mm" />
-    <MudNumericField T="double" Label="Area Padding" Min="0" Max="80" Step="0.5" @bind-Value="Feature.Padding" @bind-Value:after="NotifyChanged" Adornment="Adornment.End" AdornmentText="mm" />
+    <MudSlider T="int" Min="1" Max="10" @bind-Value="Feature.Rows" @bind-Value:after="NotifyChanged" Color="Color.Primary">Rows: @Feature.Rows</MudSlider>
+    <MudSlider T="int" Min="1" Max="10" @bind-Value="Feature.Columns" @bind-Value:after="NotifyChanged" Color="Color.Primary">Columns: @Feature.Columns</MudSlider>
+    <MudSlider T="double" Min="1" Max="15" Step="0.5" @bind-Value="Feature.Diameter" @bind-Value:after="NotifyChanged" Color="Color.Primary">Diameter: @(Feature.Diameter.ToString("0.#")) mm</MudSlider>
+    <MudSlider T="double" Min="0" Max="80" Step="0.5" @bind-Value="Feature.Padding" @bind-Value:after="NotifyChanged" Color="Color.Primary">Area padding: @(Feature.Padding.ToString("0.#")) mm</MudSlider>
 </MudPaper>
 
 @code {

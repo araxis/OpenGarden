@@ -2,7 +2,7 @@
     <MudText Typo="Typo.subtitle1" Class="panel-title">Insert Grid</MudText>
     <MudTextField Label="Row Sizes" @bind-Value="State.GridRows" @bind-Value:after="NotifyChanged" HelperText="Examples: 1* or 1*,2*,25%" />
     <MudTextField Label="Column Sizes" @bind-Value="State.GridColumns" @bind-Value:after="NotifyChanged" HelperText="Examples: 1*,1*,1*" />
-    <MudNumericField T="double" Label="Grid Wall Thickness" Min="0.8" Max="6" Step="0.2" @bind-Value="State.GridWallThickness" @bind-Value:after="NotifyChanged" Adornment="Adornment.End" AdornmentText="mm" />
+    <MudSlider T="double" Min="0.8" Max="6" Step="0.2" @bind-Value="State.GridWallThickness" @bind-Value:after="NotifyChanged" Color="Color.Primary">Grid wall thickness: @(State.GridWallThickness.ToString("0.#")) mm</MudSlider>
 
     <MudDivider Class="my-4" />
     <CellFeatureList State="State" OnChanged="OnChanged" />

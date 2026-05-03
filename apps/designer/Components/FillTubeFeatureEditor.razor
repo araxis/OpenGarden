@@ -1,6 +1,6 @@
 <MudPaper Class="feature-panel" Elevation="0">
     <MudText Typo="Typo.subtitle2">Fill Tube</MudText>
-    <MudNumericField T="double" Label="Wall Clearance" Min="0" Max="5" Step="0.1" @bind-Value="Feature.Clearance" @bind-Value:after="NotifyChanged" Adornment="Adornment.End" AdornmentText="mm" />
+    <MudSlider T="double" Min="0" Max="5" Step="0.1" @bind-Value="Feature.Clearance" @bind-Value:after="NotifyChanged" Color="Color.Primary">Wall clearance: @(Feature.Clearance.ToString("0.#")) mm</MudSlider>
 </MudPaper>
 
 @code {
