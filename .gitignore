@@ -9,3 +9,7 @@
 /.dotnet-home/
 /.nuget/
 /artifacts/
+
+# Auto-generated at build time by the CopyScadFiles MSBuild target.
+# Do not commit — CI populates this during dotnet publish.
+/apps/designer/wwwroot/scad/

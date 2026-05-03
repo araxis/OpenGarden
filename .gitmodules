@@ -1,0 +1,4 @@
+[submodule "cad/bosl2"]
+	path = cad/bosl2
+	url = https://github.com/BelfrySCAD/BOSL2
+	branch = master
