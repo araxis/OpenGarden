@@ -5,7 +5,7 @@ type: project
 ---
 # OpenGarden v2 — architecture rewrite plan
 
-**Status as of 2026-05-09:** v2 scaffold branch active at `refactor/v2-architecture`. Memory folder exists in repo root. Initial v2 skeleton is implemented under `cad/openscad/v2/`: `main.scad`, `grid.scad`, `carrier.scad`, component dispatcher, `empty`, and first real `pot` component. Carrier/component Z placement has been corrected so print-layout parts sit on Z=0 and assembly lifts components to the carrier top.
+**Status as of 2026-05-09:** v2 scaffold branch active at `refactor/v2-architecture`. Memory folder exists in repo root. Initial v2 skeleton is implemented under `cad/openscad/v2/`: `main.scad`, `grid.scad`, `carrier.scad`, component dispatcher, `empty`, and first real `pot` component. Carrier/component Z placement has been corrected so print-layout parts sit on Z=0 and assembly lifts components to the carrier top. The design direction has pivoted from positive per-cell boxes to a **solid product shell plus subtractive cell tools**.
 
 ## Why a rewrite
 
@@ -29,11 +29,12 @@ v2 reframes the system into **three layers with hard boundaries**, each with one
 │        │                                    │
 │        ▼  passed to:                        │
 │  ┌───────────────────────────────────────┐  │
-│  │  Component (Pot, FillTube, Box, ...)  │  │
-│  │  ─ one component per cell             │  │
-│  │  ─ owns own wallThickness, chamfer    │  │
-│  │  ─ draws whatever inside its rect     │  │
-│  │  ─ knows nothing about grid/carrier   │  │
+│  │  Shell Tools (PotCavity, BoxCavity,   │  │
+│  │               FillTubeCavity, ...)    │  │
+│  │  ─ one subtractive tool per cell      │  │
+│  │  ─ cuts into the unified shell        │  │
+│  │  ─ optional printable accessory parts │  │
+│  │  ─ knows nothing about neighbors      │  │
 │  └───────────────────────────────────────┘  │
 └─────────────────────────────────────────────┘
               ↑ stacked on top of ↑
@@ -73,37 +74,59 @@ cell_back_margin   cell_back_padding
 - **`wall_fusion: true` convenience flag** at grid level → automatically sets internal-side margin to `-wallThickness/2`. User can override per-side or per-cell.
 - Naming: `fwd` (not `front`).
 
-### Component contract
+### Solid shell + subtractive tool model
 
-Single signature for every component:
+Locked decision: v2 should feel like a real product, not a row of positive rectangular pots. The main upper piece starts as a **filled, rounded/chamfered shell**, then grid cells apply subtractive tools to carve useful spaces from it.
+
+This means:
+- The product exterior is one coherent body.
+- Cell layout controls where cuts happen.
+- Cell tools remove material: `PotCavity`, `BoxCavity`, `FillTubeCavity`, `SeedTrayCavity`, `LidRecess`, etc.
+- Tool height/depth controls behavior:
+  - shallow cut = tray / lid recess
+  - medium cut = seed tray / shallow insert
+  - deep cut = pot cavity
+  - near-full-depth cut = old tall insert style
+- Positive parts are reserved for separable accessories: lids, labels, light bridges, trellis posts, sensor covers.
+
+The first implementation of this pivot is:
+- `cad/openscad/v2/shell.scad` with `ProductShell()`
+- `cad/openscad/v2/components/pot_cavity.scad`
+- `Default_Cell_Tool = "pot_cavity"` in `v2/main.scad`
+
+### Component/tool contract
+
+Single signature for every subtractive cell tool:
 
 ```scad
-module component_NAME(cell_w, cell_d, cell_h, params, cell_id = [0, 0]) {
-  // draws whatever it wants inside its rectangle
-  // never sees cx, cy, neighbors, grid, carrier
+module component_NAME__tool(cell_w, cell_d, cell_h, params, cell_id = [0, 0], shell_height = 100) {
+  // draws negative geometry to subtract from the shell
+  // never sees cx, cy, neighbors, grid, or carrier
   // cell_id is for debug echo only — must not affect geometry
 }
 ```
 
-- Components receive post-padding rectangle dimensions. No knowledge of grid, neighbors, or carrier.
+- Tools receive post-padding rectangle dimensions. No knowledge of grid, neighbors, or carrier.
 - `cell_id = [row, col]` is **debug-only** — `echo("[1,2] pot rendering with depth=2")` style. Must not affect geometry. Documented in component contract.
-- Component declares its own `wallThickness` — defaulted appropriately per component (Pot=2, WickPort=0, etc.).
-- Adding a component = drop one SCAD file + one line in dispatch. Forever.
+- Adding a tool = drop one SCAD file + one line in dispatch. Forever.
+- If a tool has separable parts, expose them through `component_NAME__parts()` and normal part modules such as `component_NAME__lid()`.
 
-### Strict component model
+### Strict cell model
 
-Locked decision: **one component per cell**. Do not bring v1-style feature stacking into v2.
+Locked decision: **one subtractive tool per cell**. Do not bring v1-style feature stacking into v2.
 
-Rationale: a pot with drain holes and a lid is a `Pot` component with pot parameters, not `DrainHoles + LidLip + Box` layered together. Feature stacking was the core v1 failure mode because it made simple behavior depend on chamfers, spans, planes, shared walls, neighbor cells, and evaluation order.
+Rationale: a pot cavity with drain holes and a lid seat is a `PotCavity` tool with parameters, not `DrainHoles + LidLip + Box` layered together. Feature stacking was the core v1 failure mode because it made simple behavior depend on chamfers, spans, planes, shared walls, neighbor cells, and evaluation order.
 
 The v2 rule is intentionally stricter:
 - Grid lays out rectangles.
-- Component owns all geometry inside its rectangle.
+- Shell owns the exterior product body.
+- Cell tool owns the negative geometry inside its rectangle.
 - Carrier owns the foundation.
-- No component should need to know about neighboring cells.
-- No grid code should need to know how a pot lid, drain hole, fill tube, or box is modeled.
+- Positive accessories are separate printable parts.
+- No tool should need to know about neighboring cells.
+- No grid code should need to know how a pot cavity, drain hole, fill tube, or box is modeled.
 
-This should make new component behavior cheap to add: one component file + one dispatcher line.
+This should make new behavior cheap to add: one tool file + one dispatcher line.
 
 ### Build order discipline
 

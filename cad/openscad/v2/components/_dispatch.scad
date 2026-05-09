@@ -2,10 +2,12 @@ include <BOSL2/std.scad>
 include <_params.scad>
 include <empty.scad>
 include <pot.scad>
+include <pot_cavity.scad>
 
 function component_parts(name) =
   name == "empty" ? component_empty__parts()
   : name == "pot" ? component_pot__parts()
+  : name == "pot_cavity" ? component_pot_cavity__parts()
   : ["main"];
 
 module component_apply(name, part, cell_w, cell_d, cell_h, params = [], cell_id = [0, 0]) {
@@ -19,7 +21,31 @@ module component_apply(name, part, cell_w, cell_d, cell_h, params = [], cell_id 
     } else if (part == "lid") {
       component_pot__lid(cell_w, cell_d, cell_h, params, cell_id);
     }
+  } else if (name == "pot_cavity") {
+    if (part == "lid") {
+      component_pot_cavity__lid(cell_w, cell_d, cell_h, params, cell_id);
+    }
   }
+}
+
+module component_tool_apply(name, cell_w, cell_d, cell_h, params = [], cell_id = [0, 0], shell_height = 100) {
+  if (name == "pot_cavity") {
+    component_pot_cavity__tool(cell_w, cell_d, cell_h, params, cell_id, shell_height);
+  }
+}
+
+module render_cell_tools(cells, tool_name = "pot_cavity", params = [], shell_height = 100) {
+  for (cell = cells)
+    translate([cell[0], cell[1], 0])
+      component_tool_apply(
+        tool_name,
+        cell[2],
+        cell[3],
+        cell[4],
+        params,
+        [cell[5], cell[6]],
+        shell_height
+      );
 }
 
 module render_components(cells, component_name = "empty", params = [], part = "main") {
