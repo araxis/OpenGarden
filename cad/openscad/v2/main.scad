@@ -23,10 +23,11 @@ Print_Spacing = 20; // [5:1:80]
 Pot_Width  = 70; // [30:0.5:450]
 Pot_Depth  = 70; // [30:0.5:450]
 Pot_Height = 100; // [40:0.5:450]
+Component_Height = 70; // [20:0.5:300]
 
 Grid_Row_Sizes = "1*,1*";
 Grid_Column_Sizes = "1*,1*";
-Grid_Default_Margin = [0, 0, 0, 0];
+Grid_Default_Margin = [2, 2, 2, 2];
 Grid_Default_Padding = [0, 0, 0, 0];
 Grid_Wall_Fusion = false;
 Grid_Fusion_Thickness = 2;
@@ -38,7 +39,21 @@ Carrier_Reservoir_Height = 30; // [5:0.5:100]
 Carrier_Base_Thickness = 2; // [1:0.25:8]
 Carrier_Chamfer = 2; // [0:0.5:20]
 
-Default_Component = "empty";
+Default_Component = "pot"; // [empty, pot]
+Default_Component_Params = [
+  ["wall", 2],
+  ["base", 2],
+  ["chamfer", 2],
+  ["holes_rows", 3],
+  ["holes_cols", 3],
+  ["holes_diameter", 4],
+  ["holes_padding", 12],
+  ["lid_seat_depth", 2],
+  ["lid_seat_width", 1.5],
+  ["lid_thickness", 2],
+  ["lid_clearance", 0.4],
+  ["lid_grip", true]
+];
 
 /*[Hidden]*/
 $fn = Render_Quality == "Export" ? 100 : 32;
@@ -51,7 +66,7 @@ cells = grid_layout(
   fusion_thickness=Grid_Fusion_Thickness,
   total_width=Pot_Width,
   total_depth=Pot_Depth,
-  total_height=Pot_Height
+  total_height=Component_Height
 );
 
 // ===== Orchestration =====
@@ -60,7 +75,7 @@ if (Output_Mode == "Assembly") {
 } else if (Output_Mode == "Print Layout") {
   PrintLayout();
 } else if (Output_Mode == "Component Only") {
-  render_components(cells, Default_Component);
+  render_components(cells, Default_Component, Default_Component_Params);
 } else if (Output_Mode == "Carrier Only") {
   CarrierLayer();
 }
@@ -69,7 +84,8 @@ module Assembly() {
   if (Carrier_Enabled)
     CarrierLayer();
 
-  render_components(cells, Default_Component);
+  translate([0, 0, Carrier_Reservoir_Height])
+    render_components(cells, Default_Component, Default_Component_Params);
 }
 
 module PrintLayout() {
@@ -77,7 +93,7 @@ module PrintLayout() {
     CarrierLayer();
 
   translate([Pot_Width + Print_Spacing, 0, 0])
-    render_components_print_layout(cells, Default_Component, spacing=Print_Spacing);
+    render_component_parts_print_layout(cells, Default_Component, Default_Component_Params, spacing=Print_Spacing);
 }
 
 module CarrierLayer() {

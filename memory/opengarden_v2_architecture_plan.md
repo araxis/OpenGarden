@@ -5,7 +5,7 @@ type: project
 ---
 # OpenGarden v2 — architecture rewrite plan
 
-**Status as of 2026-05-09:** v2 scaffold branch active at `refactor/v2-architecture`. Memory folder exists in repo root. Initial v2 skeleton is implemented under `cad/openscad/v2/`: `main.scad`, `grid.scad`, `carrier.scad`, and the first `components/` dispatcher with an `empty` component.
+**Status as of 2026-05-09:** v2 scaffold branch active at `refactor/v2-architecture`. Memory folder exists in repo root. Initial v2 skeleton is implemented under `cad/openscad/v2/`: `main.scad`, `grid.scad`, `carrier.scad`, component dispatcher, `empty`, and first real `pot` component.
 
 ## Why a rewrite
 
@@ -90,6 +90,50 @@ module component_NAME(cell_w, cell_d, cell_h, params, cell_id = [0, 0]) {
 - Component declares its own `wallThickness` — defaulted appropriately per component (Pot=2, WickPort=0, etc.).
 - Adding a component = drop one SCAD file + one line in dispatch. Forever.
 
+### Strict component model
+
+Locked decision: **one component per cell**. Do not bring v1-style feature stacking into v2.
+
+Rationale: a pot with drain holes and a lid is a `Pot` component with pot parameters, not `DrainHoles + LidLip + Box` layered together. Feature stacking was the core v1 failure mode because it made simple behavior depend on chamfers, spans, planes, shared walls, neighbor cells, and evaluation order.
+
+The v2 rule is intentionally stricter:
+- Grid lays out rectangles.
+- Component owns all geometry inside its rectangle.
+- Carrier owns the foundation.
+- No component should need to know about neighboring cells.
+- No grid code should need to know how a pot lid, drain hole, fill tube, or box is modeled.
+
+This should make new component behavior cheap to add: one component file + one dispatcher line.
+
+### Build order discipline
+
+Locked decision: prove v2 with real geometry before expanding grid power.
+
+Implementation order:
+1. Basic grid layout.
+2. First real `Pot` component.
+3. Carrier assembly with removable component placement.
+4. Spans.
+5. Splits.
+6. Designer rewrite.
+
+Avoid implementing spans, splits, sparse side overrides, and wall-fusion polish before `Pot` validates the component contract. The grid can become powerful later; first it must carry a real printable object cleanly.
+
+### Component parameter format
+
+Locked decision: use readable list-of-pairs params for v2 components.
+
+```scad
+params = [
+  ["wall", 2],
+  ["base", 2],
+  ["chamfer", 5],
+  ["holes_rows", 4]
+];
+```
+
+Reasoning: positional arrays are shorter, but brittle while the architecture is evolving. List-of-pairs are easier to read, easier to extend, and make generated SCAD from the designer clearer. If render performance becomes a real issue later, params can be optimized behind the same component contract.
+
 ### Carrier (foundation layer)
 
 - **(1a)** Single `Carrier()` module with feature flags (back plate on/off, drain pan on/off, reservoir height, etc.) — composes its sub-pieces internally
@@ -172,7 +216,7 @@ Each step = one commit, reviewable independently.
 4. **`carrier.scad`** — Carrier() with flags (first pass implemented: simple reservoir/foundation, optional placeholder back plate)
 5. **dispatcher + empty component** — validates contract end-to-end (implemented)
 6. **`v2/main.scad` orchestrator + smoke test** — 2×2 of Empty renders just the carrier (implemented)
-7. **`pot.scad`** — first real component with lid (multi-part)
+7. **`pot.scad`** — first real component with lid (multi-part) (implemented first pass)
 8. **fill_tube, box, wick_port** — one commit each
 9. **designer rewrite** — parallel work, can start after step 5
 10. **switch-over** — promote `v2/` to top-level, delete legacy
@@ -250,25 +294,38 @@ dotnet build apps/designer/OpenGarden.Designer.csproj
 
 Implemented in this memory update.
 
-## Next design decision before Pot component
+## Pot component — first pass
 
-Before implementing `pot.scad`, lock the exact v2 component parameter format. Candidate direction:
+Implement `cad/openscad/v2/components/pot.scad` as the first real component.
 
-```scad
-params = [
-  ["wall", 2],
-  ["base", 2],
-  ["chamfer", 5],
-  ["holes_pattern", "rectangle"],
-  ["holes_rows", 4],
-  ["holes_cols", 4],
-  ["holes_diameter", 5],
-  ["lid", true],
-  ["lid_seat_depth", 2]
-];
-```
+First-pass scope:
+- `component_pot__parts() = ["main", "lid"]` (implemented)
+- `component_pot__main(...)` renders an open pot body inside its cell rectangle (implemented)
+- bottom drain holes belong to the pot component (implemented)
+- lid seat/lip belongs to the pot component (implemented)
+- `component_pot__lid(...)` renders a simple printable lid plate (implemented)
+- dispatcher supports `pot` (implemented)
+- `v2/main.scad` default component becomes `pot` for smoke testing (implemented)
 
-Open question: keep this list-of-pairs format, or use one positional vector per component for speed/readability in OpenSCAD?
+Keep out of first pass:
+- spans
+- splits
+- per-cell component selection DSL
+- designer rewrite
+- OpenGrid back plate integration
+
+Important implementation note: OpenSCAD `if/else` routing in `_dispatch.scad` must use braces. Without braces, the `else if (name == "pot")` can bind to the inner `part` check and make non-empty components silently render nothing.
+
+Smoke-test behavior:
+- `Assembly` renders the carrier plus four removable pot components on top of it.
+- `Print Layout` renders carrier, pot bodies, and separate lids.
+- `Component Only` renders only the pot bodies.
+- `Carrier Only` renders only the carrier.
+
+Current simplifications:
+- all cells use the same default component and params
+- print layout is a simple row of parts, not an optimized packing layout
+- the carrier is still a simple reservoir/foundation; OpenGrid back plate integration remains later
 
 ## Migration / build sequence (sketch)
 
