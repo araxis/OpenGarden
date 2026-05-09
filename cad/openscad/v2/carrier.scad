@@ -33,29 +33,32 @@ module Carrier(
   spin              = 0,
   orient            = UP
 ) {
+  carrier_height = use_drain_pan ? reservoir_height + base_thickness : height;
   safe_chamfer = min(chamfer, base_thickness / 3, reservoir_height / 3);
 
-  attachable(anchor, spin, orient, size=[width, depth, height]) {
+  attachable(anchor, spin, orient, size=[width, depth, carrier_height]) {
     union() {
-      if (use_drain_pan)
-        rect_tube(
-          size=[width, depth],
-          h=reservoir_height,
-          wall=base_thickness,
+      if (use_drain_pan) {
+        cuboid(
+          [width, depth, base_thickness],
           chamfer=safe_chamfer,
-          ichamfer=safe_chamfer,
           anchor=BOTTOM
-        )
-          attach(BOTTOM, TOP, overlap=0.01)
-            cuboid(
-              [width, depth, base_thickness],
-              chamfer=safe_chamfer,
-              anchor=TOP
-            );
+        );
+
+        up(base_thickness)
+          rect_tube(
+            size=[width, depth],
+            h=reservoir_height,
+            wall=base_thickness,
+            chamfer=safe_chamfer,
+            ichamfer=safe_chamfer,
+            anchor=BOTTOM
+          );
+      }
 
       if (use_back_plate)
-        translate([0, depth / 2 + base_thickness / 2, height / 2])
-          cuboid([width, base_thickness, height], chamfer=safe_chamfer, anchor=CENTER);
+        translate([0, depth / 2 + base_thickness / 2, carrier_height / 2])
+          cuboid([width, base_thickness, carrier_height], chamfer=safe_chamfer, anchor=CENTER);
     }
 
     children();

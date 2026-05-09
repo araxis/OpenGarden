@@ -68,6 +68,9 @@ cells = grid_layout(
   total_depth=Pot_Depth,
   total_height=Component_Height
 );
+Carrier_Component_Z = Carrier_Enabled && Carrier_Drain_Pan
+  ? Carrier_Base_Thickness + Carrier_Reservoir_Height
+  : 0;
 
 // ===== Orchestration =====
 if (Output_Mode == "Assembly") {
@@ -84,7 +87,7 @@ module Assembly() {
   if (Carrier_Enabled)
     CarrierLayer();
 
-  translate([0, 0, Carrier_Reservoir_Height])
+  translate([0, 0, Carrier_Component_Z])
     render_components(cells, Default_Component, Default_Component_Params);
 }
 

@@ -5,7 +5,7 @@ type: project
 ---
 # OpenGarden v2 — architecture rewrite plan
 
-**Status as of 2026-05-09:** v2 scaffold branch active at `refactor/v2-architecture`. Memory folder exists in repo root. Initial v2 skeleton is implemented under `cad/openscad/v2/`: `main.scad`, `grid.scad`, `carrier.scad`, component dispatcher, `empty`, and first real `pot` component.
+**Status as of 2026-05-09:** v2 scaffold branch active at `refactor/v2-architecture`. Memory folder exists in repo root. Initial v2 skeleton is implemented under `cad/openscad/v2/`: `main.scad`, `grid.scad`, `carrier.scad`, component dispatcher, `empty`, and first real `pot` component. Carrier/component Z placement has been corrected so print-layout parts sit on Z=0 and assembly lifts components to the carrier top.
 
 ## Why a rewrite
 
@@ -140,6 +140,14 @@ Reasoning: positional arrays are shorter, but brittle while the architecture is 
 - **(2b)** Footprint **shared** at `main.scad` top level via `Pot_Width` / `Pot_Depth`. Grid AND carrier both consume the same input — no inter-module dependency.
 - **(3a)** Drain pan is a **generic reservoir** under the entire grid footprint — not targeted at specific cell drain hole positions.
 - **Removable components from day 1** — components are not union'd into the drain pan. Drain pan has a flat top (or a raised lip matching the grid footprint); components rest on it. This means each component is an independent printable part that can be lifted out.
+
+### Z placement contract
+
+- Every independently printable v2 part must start at **Z=0** in print orientation.
+- Carrier geometry owns its own full printable height: `base_thickness + reservoir_height` for the drain pan case.
+- The carrier base occupies `0..base_thickness`; reservoir walls occupy `base_thickness..base_thickness+reservoir_height`.
+- Assembly is the only place that lifts removable components onto the carrier. Components sit at `Carrier_Base_Thickness + Carrier_Reservoir_Height` when the drain pan carrier is enabled.
+- Components should not compensate for carrier height internally; their bottom remains Z=0 in their own module.
 
 ### Migration approach
 - **Greenfield rewrite** — drop old `cell_features/`, redesign in parallel, switch over once parity reached, then delete old.
