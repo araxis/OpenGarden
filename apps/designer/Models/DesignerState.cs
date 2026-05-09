@@ -66,28 +66,43 @@ public sealed class DesignerState
         var rowCount = TrackCount(GridRows);
         var columnCount = TrackCount(GridColumns);
 
-        // Later entries win. We resolve spans by:
-        // 1) pick the last-defined span for each anchor cell (row,col)
-        // 2) accept spans in precedence order, skipping any that overlap already-accepted spans
-        var seenAnchors = new HashSet<(int Row, int Col)>();
-        var candidates = new List<EffectiveSpan>();
+        // Spans are anchor-level topology. Multiple feature entries can target the
+        // same anchor cell (for different planes), so we merge them first:
+        // - keep the largest span requested on that anchor
+        // - keep latest-entry precedence for overlap resolution across anchors
+        var byAnchor = new Dictionary<(int Row, int Col), SpanCandidate>();
 
-        for (var i = CellFeatures.Count - 1; i >= 0; i--)
+        for (var i = 0; i < CellFeatures.Count; i++)
         {
             var feature = CellFeatures[i];
             var row = Math.Clamp(feature.Row, 1, rowCount);
             var col = Math.Clamp(feature.Column, 1, columnCount);
-
-            if (!seenAnchors.Add((row, col)))
-                continue;
 
             var maxRowSpan = Math.Max(1, rowCount - row + 1);
             var maxColSpan = Math.Max(1, columnCount - col + 1);
             var spanRows = Math.Clamp(feature.SpanRows, 1, maxRowSpan);
             var spanCols = Math.Clamp(feature.SpanColumns, 1, maxColSpan);
 
-            candidates.Add(new EffectiveSpan(row, col, spanRows, spanCols));
+            var key = (row, col);
+            if (byAnchor.TryGetValue(key, out var existing))
+            {
+                byAnchor[key] = new SpanCandidate(
+                    row,
+                    col,
+                    Math.Max(existing.SpanRows, spanRows),
+                    Math.Max(existing.SpanColumns, spanCols),
+                    Math.Max(existing.Precedence, i)
+                );
+            }
+            else
+            {
+                byAnchor[key] = new SpanCandidate(row, col, spanRows, spanCols, i);
+            }
         }
+
+        var candidates = byAnchor.Values
+            .OrderByDescending(candidate => candidate.Precedence)
+            .ToList();
 
         var accepted = new List<EffectiveSpan>();
         foreach (var candidate in candidates) // precedence order: later entries first
@@ -98,7 +113,7 @@ public sealed class DesignerState
             ));
 
             if (!overlaps)
-                accepted.Add(candidate);
+                accepted.Add(new EffectiveSpan(candidate.Row, candidate.Column, candidate.SpanRows, candidate.SpanColumns));
         }
 
         // Emit in stable row/col order for readability.
@@ -154,6 +169,7 @@ public sealed class DesignerState
     };
 
     private readonly record struct EffectiveSpan(int Row, int Column, int SpanRows, int SpanColumns);
+    private readonly record struct SpanCandidate(int Row, int Column, int SpanRows, int SpanColumns, int Precedence);
 
     private static bool RegionsOverlap(
         int rowA, int colA, int rowsA, int colsA,
