@@ -5,7 +5,7 @@ type: project
 ---
 # OpenGarden v2 — architecture rewrite plan
 
-**Status as of 2026-05-09:** v2 scaffold branch active at `refactor/v2-architecture`. Memory folder exists in repo root. Initial v2 skeleton is implemented under `cad/openscad/v2/`: `main.scad`, `grid.scad`, `carrier.scad`, component dispatcher, `empty`, and first real `pot` component. Carrier/component Z placement has been corrected so print-layout parts sit on Z=0 and assembly lifts components to the carrier top. The design direction has pivoted from positive per-cell boxes to a **solid product shell plus subtractive cell tools**.
+**Status as of 2026-05-09:** v2 scaffold branch active at `refactor/v2-architecture`. Memory folder exists in repo root. Initial v2 skeleton is implemented under `cad/openscad/v2/`. Carrier/component Z placement has been corrected so print-layout parts sit on Z=0 and assembly lifts components to the carrier top. The design direction has pivoted from positive per-cell boxes to a **solid top shell plus subtractive cell tools**. Current proof target is intentionally **one cell only**: one top shell, one grid cell, one cavity tool.
 
 ## Why a rewrite
 
@@ -93,6 +93,26 @@ The first implementation of this pivot is:
 - `cad/openscad/v2/shell.scad` with `ProductShell()`
 - `cad/openscad/v2/components/pot_cavity.scad`
 - `Default_Cell_Tool = "pot_cavity"` in `v2/main.scad`
+
+### One-cell proof first
+
+Correction locked on 2026-05-09: do **not** expand v2 with multi-cell layouts, rich accessories, lids, holes, or carrier-first presentation until the base subtractive contract is precise.
+
+The current default scene must stay simple:
+- `Output_Mode = "Shell Only"`
+- `Grid_Row_Sizes = "1*"`
+- `Grid_Column_Sizes = "1*"`
+- one solid top shell with `Shell_Width`, `Shell_Depth`, `Shell_Height`
+- grid padding/margin defines where the cavity starts and how much rim remains
+- the selected cell tool subtracts from the shell
+- `cavity_height` controls how deep the top-down cut is
+
+Design intent:
+- small `cavity_height` = shallow recess / lid-like tray
+- medium `cavity_height` = planter tray
+- large `cavity_height` = old deeper pot style
+
+Avoid extra tool-level wall offsets in this first proof. The cavity rectangle should come directly from the grid cell after margin/padding.
 
 ### Component/tool contract
 

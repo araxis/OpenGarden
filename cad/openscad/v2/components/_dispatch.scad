@@ -21,10 +21,6 @@ module component_apply(name, part, cell_w, cell_d, cell_h, params = [], cell_id 
     } else if (part == "lid") {
       component_pot__lid(cell_w, cell_d, cell_h, params, cell_id);
     }
-  } else if (name == "pot_cavity") {
-    if (part == "lid") {
-      component_pot_cavity__lid(cell_w, cell_d, cell_h, params, cell_id);
-    }
   }
 }
 
