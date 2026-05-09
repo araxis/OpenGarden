@@ -5,7 +5,7 @@ type: project
 ---
 # OpenGarden v2 — shell/grid/subtract restart
 
-**Status as of 2026-05-09:** v2 was restarted from scratch on `refactor/v2-architecture`. The active proof is intentionally tiny: one top shell, one grid position, one real pot-shaped subtractive component. Do not reintroduce carrier, drain, OpenGrid back plate, lids, feature registry, or rich components until this base idea is correct.
+**Status as of 2026-05-09:** v2 was restarted from scratch on `refactor/v2-architecture`. The active proof is intentionally tiny: one top shell, one grid position, one real pot-shaped subtractive component with bottom drain holes. Do not reintroduce carrier, drain reservoir, OpenGrid back plate, lids, feature registry, or rich components until this base idea is correct.
 
 ## Core Idea
 
@@ -13,6 +13,8 @@ Start with a single solid top shell. The shell itself is the product body:
 
 - `TopShell()` is a BOSL2 `prismoid`
 - it has `size1`, `size2`, `h`
+- `size1` is the top shell size in current usage
+- `size2` is the bottom shell size in current usage
 - it can be chamfered and later rounded
 - it owns the visible outside form
 
@@ -29,6 +31,9 @@ Then subtract a component from the shell:
 - use BOSL2 `tag()` in the subtractive component
 - first subtractive component is `Pot()`
 - `Pot()` is pot-shaped, not just a rectangular cut: top size comes from the grid cell and bottom size is reduced by taper
+- shell thickness is explicit, currently `Shell_Thickness`
+- pot height is currently `Shell_Height - Shell_Thickness`
+- `Pot()` also subtracts bottom drain holes through the remaining shell floor
 - no drain, no OpenGrid, no carrier, no printable lids in this step
 
 ## Current Files
@@ -61,7 +66,7 @@ grid_cell_size(shell_size, rows, cols, padding)
 `Pot()`:
 
 ```scad
-module Pot(top_size, h, taper, chamfer, tag_name)
+module Pot(top_size, h, floor, taper, chamfer, hole_rows, hole_cols, hole_diameter, hole_padding, tag_name)
 ```
 
 `main.scad` composes them:
