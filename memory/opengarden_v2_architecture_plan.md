@@ -105,12 +105,14 @@ The current default scene must stay simple:
 - one solid top shell with `Shell_Width`, `Shell_Depth`, `Shell_Height`
 - grid padding/margin defines where the cavity starts and how much rim remains
 - the selected cell tool subtracts from the shell
-- `cavity_height` controls how deep the top-down cut is
+- `Cavity_Height` is a top-level customizer parameter and controls how deep the top-down cut is
+- `Cavity_Floor` leaves material under the cut
+- `Cavity_Chamfer` controls the cut tool's chamfer
 
 Design intent:
-- small `cavity_height` = shallow recess / lid-like tray
-- medium `cavity_height` = planter tray
-- large `cavity_height` = old deeper pot style
+- small `Cavity_Height` = shallow recess / lid-like tray
+- medium `Cavity_Height` = planter tray
+- large `Cavity_Height` = old deeper pot style
 
 Avoid extra tool-level wall offsets in this first proof. The cavity rectangle should come directly from the grid cell after margin/padding.
 

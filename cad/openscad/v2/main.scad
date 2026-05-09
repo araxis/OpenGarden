@@ -23,13 +23,16 @@ Print_Spacing = 20; // [5:1:80]
 Shell_Width  = 200; // [30:0.5:450]
 Shell_Depth  = 70; // [30:0.5:450]
 Shell_Height = 40; // [10:0.5:300]
+Shell_Chamfer = 2; // [0:0.5:20]
 
 Grid_Row_Sizes = "1*";
 Grid_Column_Sizes = "1*";
 Grid_Default_Margin = [0, 0, 0, 0];
 Grid_Default_Padding = [6, 6, 6, 6];
-Grid_Wall_Fusion = false;
-Grid_Fusion_Thickness = 2;
+
+Cavity_Height = 25; // [1:0.5:300]
+Cavity_Floor = 2; // [0.4:0.25:20]
+Cavity_Chamfer = 2; // [0:0.5:20]
 
 Carrier_Enabled = true;
 Carrier_Back_Plate = false;
@@ -38,11 +41,10 @@ Carrier_Reservoir_Height = 30; // [5:0.5:100]
 Carrier_Base_Thickness = 2; // [1:0.25:8]
 Carrier_Chamfer = 2; // [0:0.5:20]
 
-Default_Cell_Tool = "pot_cavity"; // [pot_cavity]
 Default_Cell_Tool_Params = [
-  ["floor", 2],
-  ["cavity_height", 25],
-  ["cavity_chamfer", 2]
+  ["floor", Cavity_Floor],
+  ["cavity_height", Cavity_Height],
+  ["cavity_chamfer", Cavity_Chamfer]
 ];
 
 /*[Hidden]*/
@@ -52,8 +54,6 @@ cells = grid_layout(
   cols_str=Grid_Column_Sizes,
   default_margin=Grid_Default_Margin,
   default_padding=Grid_Default_Padding,
-  wall_fusion=Grid_Wall_Fusion,
-  fusion_thickness=Grid_Fusion_Thickness,
   total_width=Shell_Width,
   total_depth=Shell_Depth,
   total_height=Shell_Height
@@ -95,10 +95,9 @@ module ShellLayer() {
     Shell_Depth,
     Shell_Height,
     cells,
-    tool_name=Default_Cell_Tool,
+    tool_name="pot_cavity",
     params=Default_Cell_Tool_Params,
-    wall=2,
-    chamfer=Carrier_Chamfer,
+    chamfer=Shell_Chamfer,
     anchor=BOTTOM
   );
 }

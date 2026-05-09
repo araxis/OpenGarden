@@ -13,7 +13,6 @@ module ProductShell(
   cells,
   tool_name = "pot_cavity",
   params = [],
-  wall = 2,
   chamfer = 4,
   anchor = BOTTOM,
   spin = 0,
