@@ -5,7 +5,7 @@ type: project
 ---
 # OpenGarden v2 — shell/grid/subtract restart
 
-**Status as of 2026-05-09:** v2 was restarted from scratch on `refactor/v2-architecture`. The active proof is intentionally tiny: one top shell, one grid position, one subtractive pot cut. Do not reintroduce carrier, drain, OpenGrid back plate, lids, feature registry, or rich components until this base idea is correct.
+**Status as of 2026-05-09:** v2 was restarted from scratch on `refactor/v2-architecture`. The active proof is intentionally tiny: one top shell, one grid position, one real pot-shaped subtractive component. Do not reintroduce carrier, drain, OpenGrid back plate, lids, feature registry, or rich components until this base idea is correct.
 
 ## Core Idea
 
@@ -27,7 +27,8 @@ Then subtract a component from the shell:
 
 - use BOSL2 `diff()` in the shell
 - use BOSL2 `tag()` in the subtractive component
-- first subtractive component is `PotCut()`
+- first subtractive component is `Pot()`
+- `Pot()` is pot-shaped, not just a rectangular cut: top size comes from the grid cell and bottom size is reduced by taper
 - no drain, no OpenGrid, no carrier, no printable lids in this step
 
 ## Current Files
@@ -37,7 +38,7 @@ cad/openscad/v2/
 ├── main.scad   // parameter wiring and first proof scene
 ├── shell.scad  // TopShell(), prismoid + diff()
 ├── grid.scad   // grid_cell_size(), grid_cell_center()
-└── pot.scad    // PotCut(), tagged subtractive prismoid
+└── pot.scad    // Pot(), tagged pot-shaped subtractive prismoid
 ```
 
 All older v2 files were removed.
@@ -57,10 +58,10 @@ grid_cell_center(shell_size, rows, cols, row, col, padding)
 grid_cell_size(shell_size, rows, cols, padding)
 ```
 
-`PotCut()`:
+`Pot()`:
 
 ```scad
-module PotCut(size, h, chamfer, tag_name)
+module Pot(top_size, h, taper, chamfer, tag_name)
 ```
 
 `main.scad` composes them:
@@ -68,7 +69,7 @@ module PotCut(size, h, chamfer, tag_name)
 ```scad
 TopShell(...)
   translate([cell_center[0], cell_center[1], Shell_Height])
-    PotCut(size=cell_size, h=Pot_Height, chamfer=Pot_Chamfer);
+    Pot(top_size=cell_size, h=Pot_Height, taper=Pot_Taper, chamfer=Pot_Chamfer);
 ```
 
 ## Locked Rules For This Phase

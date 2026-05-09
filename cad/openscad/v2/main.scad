@@ -18,6 +18,7 @@ Cell_Column = 1;
 Cell_Padding = [6, 6, 6, 6]; // [left, right, fwd, back]
 
 Pot_Height = 25;
+Pot_Taper = 6;
 Pot_Chamfer = 1;
 
 cell_size = grid_cell_size(Shell_Size_Top, Grid_Rows, Grid_Columns, Cell_Padding);
@@ -31,4 +32,4 @@ TopShell(
   rounding=Shell_Rounding
 )
   translate([cell_center[0], cell_center[1], Shell_Height])
-    PotCut(size=cell_size, h=Pot_Height, chamfer=Pot_Chamfer);
+    Pot(top_size=cell_size, h=Pot_Height, taper=Pot_Taper, chamfer=Pot_Chamfer);
