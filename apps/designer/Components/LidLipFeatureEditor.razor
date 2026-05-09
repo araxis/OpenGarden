@@ -1,7 +1,10 @@
 <MudPaper Class="feature-panel" Elevation="0">
     <MudText Typo="Typo.subtitle2">Lid Lip</MudText>
+    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-2">
+        Recess at cell top for a seat. Takes up to <i>width</i> from each wall; clamped per-side by available wall material (outer wall thickness, half a divider for shared walls, less on chamfered edges).
+    </MudText>
     <MudSlider T="double" Min="0.5" Max="8" Step="0.25" @bind-Value="Feature.Depth" @bind-Value:after="NotifyChanged" Color="Color.Primary">Recess depth: @(Feature.Depth.ToString("0.##")) mm</MudSlider>
-    <MudSlider T="double" Min="1" Max="20" Step="0.5" @bind-Value="Feature.Width" @bind-Value:after="NotifyChanged" Color="Color.Primary">Lip width: @(Feature.Width.ToString("0.#")) mm</MudSlider>
+    <MudSlider T="double" Min="0.5" Max="5" Step="0.25" @bind-Value="Feature.Width" @bind-Value:after="NotifyChanged" Color="Color.Primary">Seat width: @(Feature.Width.ToString("0.##")) mm</MudSlider>
 </MudPaper>
 
 @code {

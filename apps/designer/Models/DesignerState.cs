@@ -281,7 +281,7 @@ public sealed class DrainHoleFeature
 public sealed class LidLipFeature
 {
     public double Depth { get; set; } = 2;
-    public double Width { get; set; } = 8;
+    public double Width { get; set; } = 1;
 }
 
 public sealed class WickPortFeature
