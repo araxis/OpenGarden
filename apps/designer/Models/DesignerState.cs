@@ -54,58 +54,106 @@ public sealed class DesignerState
     });
 
     public string GenerateCellSpans() =>
-        string.Join(";", EffectiveCellFeatures()
-            .Where(entry => entry.SpanRows > 1 || entry.SpanColumns > 1)
-            .Select(entry => $"{entry.Row},{entry.Column}={entry.SpanRows}x{entry.SpanColumns}"));
+        string.Join(";", EffectiveSpans()
+            .Where(span => span.SpanRows > 1 || span.SpanColumns > 1)
+            .Select(span => $"{span.Row},{span.Column}={span.SpanRows}x{span.SpanColumns}"));
 
     public string GenerateFeatureOverrides() =>
-        string.Join("; ", EffectiveCellFeatures().Select(entry => entry.OverrideText));
+        string.Join("; ", EffectiveOverrides());
 
-    private IEnumerable<EffectiveCellFeature> EffectiveCellFeatures()
+    private IEnumerable<EffectiveSpan> EffectiveSpans()
     {
         var rowCount = TrackCount(GridRows);
         var columnCount = TrackCount(GridColumns);
 
-        // Spans must be non-overlapping for the OpenSCAD grid helpers. We enforce this by
-        // resolving overlaps by order: later entries override earlier entries.
-        var effective = new List<EffectiveCellFeature>();
+        // Later entries win. We resolve spans by:
+        // 1) pick the last-defined span for each anchor cell (row,col)
+        // 2) accept spans in precedence order, skipping any that overlap already-accepted spans
+        var seenAnchors = new HashSet<(int Row, int Col)>();
+        var candidates = new List<EffectiveSpan>();
 
-        foreach (var feature in CellFeatures)
+        for (var i = CellFeatures.Count - 1; i >= 0; i--)
         {
+            var feature = CellFeatures[i];
             var row = Math.Clamp(feature.Row, 1, rowCount);
             var col = Math.Clamp(feature.Column, 1, columnCount);
+
+            if (!seenAnchors.Add((row, col)))
+                continue;
 
             var maxRowSpan = Math.Max(1, rowCount - row + 1);
             var maxColSpan = Math.Max(1, columnCount - col + 1);
             var spanRows = Math.Clamp(feature.SpanRows, 1, maxRowSpan);
             var spanCols = Math.Clamp(feature.SpanColumns, 1, maxColSpan);
 
-            // Remove any earlier entries that overlap this region; this makes "later wins"
-            // behavior match the UI ordering and avoids emitting invalid overlapping spans.
-            effective.RemoveAll(existing => RegionsOverlap(
-                existing.Row, existing.Column, existing.SpanRows, existing.SpanColumns,
-                row, col, spanRows, spanCols
-            ));
-
-            effective.Add(new EffectiveCellFeature(
-                row,
-                col,
-                spanRows,
-                spanCols,
-                feature.ToOverrideText(row, col)
-            ));
+            candidates.Add(new EffectiveSpan(row, col, spanRows, spanCols));
         }
 
-        return effective;
+        var accepted = new List<EffectiveSpan>();
+        foreach (var candidate in candidates) // precedence order: later entries first
+        {
+            var overlaps = accepted.Any(existing => RegionsOverlap(
+                existing.Row, existing.Column, existing.SpanRows, existing.SpanColumns,
+                candidate.Row, candidate.Column, candidate.SpanRows, candidate.SpanColumns
+            ));
+
+            if (!overlaps)
+                accepted.Add(candidate);
+        }
+
+        // Emit in stable row/col order for readability.
+        return accepted.OrderBy(s => s.Row).ThenBy(s => s.Column);
     }
 
-    private readonly record struct EffectiveCellFeature(
-        int Row,
-        int Column,
-        int SpanRows,
-        int SpanColumns,
-        string OverrideText
-    );
+    private IEnumerable<string> EffectiveOverrides()
+    {
+        var rowCount = TrackCount(GridRows);
+        var columnCount = TrackCount(GridColumns);
+
+        // OpenSCAD picks the first matching override for a given (row,col,plane),
+        // so to implement "later wins" we emit overrides in reverse UI order.
+        var emitted = new HashSet<(int Row, int Col, FeaturePlane Plane)>();
+        var output = new List<string>();
+
+        for (var i = CellFeatures.Count - 1; i >= 0; i--)
+        {
+            var feature = CellFeatures[i];
+            var plane = PlaneFor(feature.Feature);
+            if (plane == FeaturePlane.None)
+                continue;
+
+            var row = Math.Clamp(feature.Row, 1, rowCount);
+            var col = Math.Clamp(feature.Column, 1, columnCount);
+
+            if (!emitted.Add((row, col, plane)))
+                continue;
+
+            output.Add(feature.ToOverrideText(row, col));
+        }
+
+        // Keep in precedence order (later entries first) so OpenSCAD's "first match wins"
+        // lookup behaves like "later wins".
+        return output;
+    }
+
+    private enum FeaturePlane
+    {
+        None,
+        Bottom,
+        TopLip
+    }
+
+    private static FeaturePlane PlaneFor(string featureType) => featureType switch
+    {
+        FeatureTypes.LidLip => FeaturePlane.TopLip,
+        FeatureTypes.DrainHoles => FeaturePlane.Bottom,
+        FeatureTypes.FillTube => FeaturePlane.Bottom,
+        FeatureTypes.WickPort => FeaturePlane.Bottom,
+        FeatureTypes.Box => FeaturePlane.Bottom,
+        _ => FeaturePlane.None
+    };
+
+    private readonly record struct EffectiveSpan(int Row, int Column, int SpanRows, int SpanColumns);
 
     private static bool RegionsOverlap(
         int rowA, int colA, int rowsA, int colsA,

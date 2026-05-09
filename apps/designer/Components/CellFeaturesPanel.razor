@@ -3,7 +3,9 @@
         <MudText Typo="Typo.subtitle1" Class="panel-title" Style="margin:0">Cell Features</MudText>
         <MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="AddFeature" title="Add cell feature" />
     </MudStack>
-    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3">Configure each grid cell's feature — drain holes, lid lip, wick port, fill tube, or closed box.</MudText>
+    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3">
+        Configure each grid cell's features. Later entries override earlier entries when they target the same cell and plane.
+    </MudText>
 
     <MudExpansionPanels MultiExpansion="true" Elevation="0">
         @for (var i = 0; i < State.CellFeatures.Count; i++)
