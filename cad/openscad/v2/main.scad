@@ -1,117 +1,34 @@
-// v2 main orchestrator
-//
-// Composes the three layers — grid, shell tools, carrier — into a final model.
-// Reads top-level customizer parameters (Shell_Width, Shell_Depth, etc.) and feeds
-// them to both the grid (for cell layout) and the carrier (for footprint).
-//
-// Top-level orchestration only. No geometry math lives here — that belongs
-// inside grid.scad / shell.scad / carrier.scad / components/.
-//
-// Status: scaffold. Intentionally empty — wiring lands in a later commit
-// once grid/carrier/dispatcher have real behavior.
-
+include <BOSL2/std.scad>
 include <grid.scad>
-include <carrier.scad>
 include <shell.scad>
+include <pot.scad>
 
-// ===== Top-level customizer parameters =====
+$fn = 48;
 
-Output_Mode = "Shell Only"; // [Shell Only, Print Layout, Assembly, Carrier Only]
-Render_Quality = "Preview"; // [Preview, Export]
-Print_Spacing = 20; // [5:1:80]
+Shell_Size_Bottom = [200, 70];
+Shell_Size_Top = [190, 60];
+Shell_Height = 40;
+Shell_Chamfer = 2;
+Shell_Rounding = 0;
 
-Shell_Width  = 200; // [30:0.5:450]
-Shell_Depth  = 70; // [30:0.5:450]
-Shell_Height = 40; // [10:0.5:300]
-Shell_Chamfer = 2; // [0:0.5:20]
+Grid_Rows = 1;
+Grid_Columns = 1;
+Cell_Row = 1;
+Cell_Column = 1;
+Cell_Padding = [6, 6, 6, 6]; // [left, right, fwd, back]
 
-Grid_Row_Sizes = "1*";
-Grid_Column_Sizes = "1*";
-Grid_Default_Margin = [0, 0, 0, 0];
-Grid_Default_Padding = [6, 6, 6, 6];
+Pot_Height = 25;
+Pot_Chamfer = 1;
 
-Cavity_Height = 25; // [1:0.5:300]
-Cavity_Floor = 2; // [0.4:0.25:20]
-Cavity_Chamfer = 2; // [0:0.5:20]
+cell_size = grid_cell_size(Shell_Size_Top, Grid_Rows, Grid_Columns, Cell_Padding);
+cell_center = grid_cell_center(Shell_Size_Top, Grid_Rows, Grid_Columns, Cell_Row, Cell_Column, Cell_Padding);
 
-Carrier_Enabled = true;
-Carrier_Back_Plate = false;
-Carrier_Drain_Pan = true;
-Carrier_Reservoir_Height = 30; // [5:0.5:100]
-Carrier_Base_Thickness = 2; // [1:0.25:8]
-Carrier_Chamfer = 2; // [0:0.5:20]
-
-Default_Cell_Tool_Params = [
-  ["floor", Cavity_Floor],
-  ["cavity_height", Cavity_Height],
-  ["cavity_chamfer", Cavity_Chamfer]
-];
-
-/*[Hidden]*/
-$fn = Render_Quality == "Export" ? 100 : 32;
-cells = grid_layout(
-  rows_str=Grid_Row_Sizes,
-  cols_str=Grid_Column_Sizes,
-  default_margin=Grid_Default_Margin,
-  default_padding=Grid_Default_Padding,
-  total_width=Shell_Width,
-  total_depth=Shell_Depth,
-  total_height=Shell_Height
-);
-Carrier_Component_Z = Carrier_Enabled && Carrier_Drain_Pan
-  ? Carrier_Base_Thickness + Carrier_Reservoir_Height
-  : 0;
-
-// ===== Orchestration =====
-if (Output_Mode == "Assembly") {
-  Assembly();
-} else if (Output_Mode == "Print Layout") {
-  PrintLayout();
-} else if (Output_Mode == "Shell Only") {
-  ShellLayer();
-} else if (Output_Mode == "Carrier Only") {
-  CarrierLayer();
-}
-
-module Assembly() {
-  if (Carrier_Enabled)
-    CarrierLayer();
-
-  translate([0, 0, Carrier_Component_Z])
-    ShellLayer();
-}
-
-module PrintLayout() {
-  if (Carrier_Enabled)
-    CarrierLayer();
-
-  translate([Shell_Width + Print_Spacing, 0, 0])
-    ShellLayer();
-}
-
-module ShellLayer() {
-  ProductShell(
-    Shell_Width,
-    Shell_Depth,
-    Shell_Height,
-    cells,
-    tool_name="pot_cavity",
-    params=Default_Cell_Tool_Params,
-    chamfer=Shell_Chamfer,
-    anchor=BOTTOM
-  );
-}
-
-module CarrierLayer() {
-  Carrier(
-    Shell_Width,
-    Shell_Depth,
-    Shell_Height,
-    use_back_plate=Carrier_Back_Plate,
-    use_drain_pan=Carrier_Drain_Pan,
-    reservoir_height=Carrier_Reservoir_Height,
-    base_thickness=Carrier_Base_Thickness,
-    chamfer=Carrier_Chamfer,
-    anchor=BOTTOM
-  );
-}
+TopShell(
+  size1=Shell_Size_Bottom,
+  size2=Shell_Size_Top,
+  h=Shell_Height,
+  chamfer=Shell_Chamfer,
+  rounding=Shell_Rounding
+)
+  translate([cell_center[0], cell_center[1], Shell_Height])
+    PotCut(size=cell_size, h=Pot_Height, chamfer=Pot_Chamfer);

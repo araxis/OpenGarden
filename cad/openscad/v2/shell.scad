@@ -1,31 +1,24 @@
-// Product shell (v2)
-//
-// Owns the unified exterior product body. The shell starts as one filled,
-// rounded solid and cell tools subtract usable cavities from it.
-
 include <BOSL2/std.scad>
-include <components/_dispatch.scad>
 
-module ProductShell(
-  width,
-  depth,
-  height,
-  cells,
-  tool_name = "pot_cavity",
-  params = [],
-  chamfer = 4,
-  anchor = BOTTOM,
-  spin = 0,
-  orient = UP
+module TopShell(
+  size1 = [200, 70],
+  size2 = [190, 60],
+  h = 40,
+  chamfer = 2,
+  rounding = 0,
+  subtract_tag = "cut"
 ) {
-  safe_chamfer = min(chamfer, width / 8, depth / 8, height / 5);
+  safe_chamfer = min(chamfer, h / 4, min(size1[0], size1[1], size2[0], size2[1]) / 6);
+  safe_rounding = min(rounding, min(size1[0], size1[1], size2[0], size2[1]) / 6);
 
-  attachable(anchor, spin, orient, size=[width, depth, height]) {
-    difference() {
-      cuboid([width, depth, height], chamfer=safe_chamfer, anchor=BOTTOM);
-      render_cell_tools(cells, tool_name, params, shell_height=height);
-    }
-
-    children();
-  }
+  diff(subtract_tag)
+    prismoid(
+      size1=size1,
+      size2=size2,
+      h=h,
+      chamfer=safe_chamfer,
+      rounding=safe_rounding,
+      anchor=BOTTOM
+    )
+      children();
 }
