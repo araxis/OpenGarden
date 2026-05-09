@@ -1,16 +1,16 @@
 <MudStack Spacing="2">
     <MudGrid Spacing="2">
         <MudItem xs="6" md="3">
-            <MudNumericField T="int" Label="Row" Min="1" Max="@RowCount" @bind-Value="Feature.Row" @bind-Value:after="NotifyChanged" />
+            <MudNumericField T="int" Label="Row" Min="1" Max="@RowCount" @bind-Value="Feature.Row" @bind-Value:after="OnRowOrColumnChanged" />
         </MudItem>
         <MudItem xs="6" md="3">
-            <MudNumericField T="int" Label="Column" Min="1" Max="@ColumnCount" @bind-Value="Feature.Column" @bind-Value:after="NotifyChanged" />
+            <MudNumericField T="int" Label="Column" Min="1" Max="@ColumnCount" @bind-Value="Feature.Column" @bind-Value:after="OnRowOrColumnChanged" />
         </MudItem>
         <MudItem xs="6" md="3">
-            <MudNumericField T="int" Label="Row Span" Min="1" Max="@RowCount" @bind-Value="Feature.SpanRows" @bind-Value:after="NotifyChanged" />
+            <MudNumericField T="int" Label="Row Span" Min="1" Max="@MaxRowSpan" @bind-Value="Feature.SpanRows" @bind-Value:after="NotifyChanged" />
         </MudItem>
         <MudItem xs="6" md="3">
-            <MudNumericField T="int" Label="Column Span" Min="1" Max="@ColumnCount" @bind-Value="Feature.SpanColumns" @bind-Value:after="NotifyChanged" />
+            <MudNumericField T="int" Label="Column Span" Min="1" Max="@MaxColumnSpan" @bind-Value="Feature.SpanColumns" @bind-Value:after="NotifyChanged" />
         </MudItem>
     </MudGrid>
 
@@ -23,7 +23,11 @@
 
     <FeatureSettings Feature="Feature" OnChanged="OnChanged" />
 
-    <MudStack Row="true" Justify="Justify.FlexEnd">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+        <MudStack Row="true" Spacing="1">
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowUpward" Color="Color.Primary" Disabled="@(!CanMoveUp)" OnClick="MoveUp" title="Move up" />
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowDownward" Color="Color.Primary" Disabled="@(!CanMoveDown)" OnClick="MoveDown" title="Move down" />
+        </MudStack>
         <MudButton Color="Color.Error" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Delete" OnClick="Remove">Remove</MudButton>
     </MudStack>
 </MudStack>
@@ -44,9 +48,35 @@
     [Parameter]
     public EventCallback<CellFeatureConfig> OnRemove { get; set; }
 
+    [Parameter]
+    public bool CanMoveUp { get; set; }
+
+    [Parameter]
+    public bool CanMoveDown { get; set; }
+
+    [Parameter]
+    public EventCallback OnMoveUp { get; set; }
+
+    [Parameter]
+    public EventCallback OnMoveDown { get; set; }
+
+    private int MaxRowSpan => Math.Max(1, RowCount - Feature.Row + 1);
+    private int MaxColumnSpan => Math.Max(1, ColumnCount - Feature.Column + 1);
+
     private Task NotifyChanged() => OnChanged.InvokeAsync();
 
     private Task Remove() => OnRemove.InvokeAsync(Feature);
+
+    private Task MoveUp() => OnMoveUp.InvokeAsync();
+
+    private Task MoveDown() => OnMoveDown.InvokeAsync();
+
+    private Task OnRowOrColumnChanged()
+    {
+        Feature.SpanRows = Math.Clamp(Feature.SpanRows, 1, MaxRowSpan);
+        Feature.SpanColumns = Math.Clamp(Feature.SpanColumns, 1, MaxColumnSpan);
+        return OnChanged.InvokeAsync();
+    }
 
     private static string Label(string feature) => feature switch
     {

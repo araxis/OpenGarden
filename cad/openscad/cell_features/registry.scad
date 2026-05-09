@@ -94,7 +94,11 @@ module feature_apply(
   defaultDrainRows = 4,
   defaultDrainCols = 4,
   defaultDrainDiameter = 5,
-  defaultDrainPadding = 25
+  defaultDrainPadding = 25,
+  lidMaxLeft = 0,
+  lidMaxRight = 0,
+  lidMaxFront = 0,
+  lidMaxBack = 0
 ) {
   if (name == "drain_holes")
     feature_drain_holes(
@@ -119,7 +123,11 @@ module feature_apply(
       cell_w,
       cell_d,
       feature_number_param(spec, row, col, plane, "depth", 2),
-      feature_number_param(spec, row, col, plane, "width", 1.5)
+      feature_number_param(spec, row, col, plane, "width", 1.5),
+      lidMaxLeft,
+      lidMaxRight,
+      lidMaxFront,
+      lidMaxBack
     );
   else if (name == "box")
     feature_box();

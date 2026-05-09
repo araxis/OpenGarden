@@ -54,12 +54,142 @@ public sealed class DesignerState
     });
 
     public string GenerateCellSpans() =>
-        string.Join(";", CellFeatures
-            .Where(feature => feature.SpanRows > 1 || feature.SpanColumns > 1)
-            .Select(feature => $"{feature.Row},{feature.Column}={feature.SpanRows}x{feature.SpanColumns}"));
+        string.Join(";", EffectiveSpans()
+            .Where(span => span.SpanRows > 1 || span.SpanColumns > 1)
+            .Select(span => $"{span.Row},{span.Column}={span.SpanRows}x{span.SpanColumns}"));
 
     public string GenerateFeatureOverrides() =>
-        string.Join("; ", CellFeatures.Select(feature => feature.ToOverrideText()));
+        string.Join("; ", EffectiveOverrides());
+
+    private IEnumerable<EffectiveSpan> EffectiveSpans()
+    {
+        var rowCount = TrackCount(GridRows);
+        var columnCount = TrackCount(GridColumns);
+
+        // Spans are anchor-level topology. Multiple feature entries can target the
+        // same anchor cell (for different planes), so we merge them first:
+        // - keep the largest span requested on that anchor
+        // - keep latest-entry precedence for overlap resolution across anchors
+        var byAnchor = new Dictionary<(int Row, int Col), SpanCandidate>();
+
+        for (var i = 0; i < CellFeatures.Count; i++)
+        {
+            var feature = CellFeatures[i];
+            var row = Math.Clamp(feature.Row, 1, rowCount);
+            var col = Math.Clamp(feature.Column, 1, columnCount);
+
+            var maxRowSpan = Math.Max(1, rowCount - row + 1);
+            var maxColSpan = Math.Max(1, columnCount - col + 1);
+            var spanRows = Math.Clamp(feature.SpanRows, 1, maxRowSpan);
+            var spanCols = Math.Clamp(feature.SpanColumns, 1, maxColSpan);
+
+            var key = (row, col);
+            if (byAnchor.TryGetValue(key, out var existing))
+            {
+                byAnchor[key] = new SpanCandidate(
+                    row,
+                    col,
+                    Math.Max(existing.SpanRows, spanRows),
+                    Math.Max(existing.SpanColumns, spanCols),
+                    Math.Max(existing.Precedence, i)
+                );
+            }
+            else
+            {
+                byAnchor[key] = new SpanCandidate(row, col, spanRows, spanCols, i);
+            }
+        }
+
+        var candidates = byAnchor.Values
+            .OrderByDescending(candidate => candidate.Precedence)
+            .ToList();
+
+        var accepted = new List<EffectiveSpan>();
+        foreach (var candidate in candidates) // precedence order: later entries first
+        {
+            var overlaps = accepted.Any(existing => RegionsOverlap(
+                existing.Row, existing.Column, existing.SpanRows, existing.SpanColumns,
+                candidate.Row, candidate.Column, candidate.SpanRows, candidate.SpanColumns
+            ));
+
+            if (!overlaps)
+                accepted.Add(new EffectiveSpan(candidate.Row, candidate.Column, candidate.SpanRows, candidate.SpanColumns));
+        }
+
+        // Emit in stable row/col order for readability.
+        return accepted.OrderBy(s => s.Row).ThenBy(s => s.Column);
+    }
+
+    private IEnumerable<string> EffectiveOverrides()
+    {
+        var rowCount = TrackCount(GridRows);
+        var columnCount = TrackCount(GridColumns);
+
+        // OpenSCAD picks the first matching override for a given (row,col,plane),
+        // so to implement "later wins" we emit overrides in reverse UI order.
+        var emitted = new HashSet<(int Row, int Col, FeaturePlane Plane)>();
+        var output = new List<string>();
+
+        for (var i = CellFeatures.Count - 1; i >= 0; i--)
+        {
+            var feature = CellFeatures[i];
+            var plane = PlaneFor(feature.Feature);
+            if (plane == FeaturePlane.None)
+                continue;
+
+            var row = Math.Clamp(feature.Row, 1, rowCount);
+            var col = Math.Clamp(feature.Column, 1, columnCount);
+
+            if (!emitted.Add((row, col, plane)))
+                continue;
+
+            output.Add(feature.ToOverrideText(row, col));
+        }
+
+        // Keep in precedence order (later entries first) so OpenSCAD's "first match wins"
+        // lookup behaves like "later wins".
+        return output;
+    }
+
+    private enum FeaturePlane
+    {
+        None,
+        Bottom,
+        TopLip
+    }
+
+    private static FeaturePlane PlaneFor(string featureType) => featureType switch
+    {
+        FeatureTypes.LidLip => FeaturePlane.TopLip,
+        FeatureTypes.DrainHoles => FeaturePlane.Bottom,
+        FeatureTypes.FillTube => FeaturePlane.Bottom,
+        FeatureTypes.WickPort => FeaturePlane.Bottom,
+        FeatureTypes.Box => FeaturePlane.Bottom,
+        _ => FeaturePlane.None
+    };
+
+    private readonly record struct EffectiveSpan(int Row, int Column, int SpanRows, int SpanColumns);
+    private readonly record struct SpanCandidate(int Row, int Column, int SpanRows, int SpanColumns, int Precedence);
+
+    private static bool RegionsOverlap(
+        int rowA, int colA, int rowsA, int colsA,
+        int rowB, int colB, int rowsB, int colsB
+    )
+    {
+        var aRow0 = rowA;
+        var aRow1 = rowA + rowsA - 1;
+        var aCol0 = colA;
+        var aCol1 = colA + colsA - 1;
+
+        var bRow0 = rowB;
+        var bRow1 = rowB + rowsB - 1;
+        var bCol0 = colB;
+        var bCol1 = colB + colsB - 1;
+
+        var rowsOverlap = aRow0 <= bRow1 && bRow0 <= aRow1;
+        var colsOverlap = aCol0 <= bCol1 && bCol0 <= aCol1;
+        return rowsOverlap && colsOverlap;
+    }
 
     public static int TrackCount(string value) =>
         string.IsNullOrWhiteSpace(value) ? 1 : value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Length;
@@ -96,9 +226,11 @@ public sealed class CellFeatureConfig
     public WickPortFeature WickPort { get; set; } = new();
     public FillTubeFeature FillTube { get; set; } = new();
 
-    public string ToOverrideText()
+    public string ToOverrideText() => ToOverrideText(Row, Column);
+
+    public string ToOverrideText(int row, int column)
     {
-        var builder = new StringBuilder($"{Row},{Column}: {FeatureTypes.ToAlias(Feature)}");
+        var builder = new StringBuilder($"{row},{column}: {FeatureTypes.ToAlias(Feature)}");
 
         foreach (var parameter in Parameters())
         {
@@ -149,7 +281,7 @@ public sealed class DrainHoleFeature
 public sealed class LidLipFeature
 {
     public double Depth { get; set; } = 2;
-    public double Width { get; set; } = 8;
+    public double Width { get; set; } = 1;
 }
 
 public sealed class WickPortFeature

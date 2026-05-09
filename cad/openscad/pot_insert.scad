@@ -284,7 +284,11 @@ module TopLipPattern(
               cell_d = grid_span_track_size(inner_d, gridRowSizes,    rows, divider, row, row_span),
               cx = grid_span_track_center(inner_w, gridColumnSizes, cols, divider, col, col_span),
               cy_centered = grid_span_track_center(inner_d, gridRowSizes, rows, divider, row, row_span),
-              cy_union = wallThickness + cy_centered + inner_d / 2
+              cy_union = wallThickness + cy_centered + inner_d / 2,
+              left_wall  = col == 0 ? wallThickness : divider / 2,
+              right_wall = col + col_span >= cols ? wallThickness : divider / 2,
+              front_wall = row == 0 ? wallThickness : divider / 2,
+              back_wall  = row + row_span >= rows ? wallThickness : divider / 2
             )
               translate([cx, cy_union, height])
                 tag("lid_lip")
@@ -294,7 +298,11 @@ module TopLipPattern(
                     cell_w,
                     cell_d,
                     height,
-                    cellFeatureOverrides, row + 1, col + 1
+                    cellFeatureOverrides, row + 1, col + 1,
+                    lidMaxLeft=left_wall,
+                    lidMaxRight=right_wall,
+                    lidMaxFront=front_wall,
+                    lidMaxBack=back_wall
                   );
 }
 
