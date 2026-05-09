@@ -1,98 +1,85 @@
 ---
 name: OpenGarden v2 architecture plan
-description: ACTIVE restart of the OpenSCAD v2 model around a prismoid top shell, simple grid layout, and BOSL2 diff/tag subtraction.
+description: ACTIVE restart of the OpenSCAD v2 model. Current step is a real standalone pot before shell/grid subtraction.
 type: project
 ---
-# OpenGarden v2 — shell/grid/subtract restart
+# OpenGarden v2 — restart plan
 
-**Status as of 2026-05-09:** v2 was restarted from scratch on `refactor/v2-architecture`. The active proof is intentionally tiny: one top shell, one grid position, one real pot-shaped subtractive component with bottom drain holes. Do not reintroduce carrier, drain reservoir, OpenGrid back plate, lids, feature registry, or rich components until this base idea is correct.
+**Status as of 2026-05-09:** v2 was restarted from scratch on `refactor/v2-architecture`. The current step is intentionally smaller than shell/grid composition: build a real standalone pot first. Do not connect the pot to shell/grid subtraction until the pot itself is correct.
 
-## Core Idea
+## Current Step: Real Pot First
 
-Start with a single solid top shell. The shell itself is the product body:
+Imagine there is no shell.
 
-- `TopShell()` is a BOSL2 `prismoid`
-- it has `size1`, `size2`, `h`
-- `size1` is the top shell size in current usage
-- `size2` is the bottom shell size in current usage
-- it can be chamfered and later rounded
-- it owns the visible outside form
+`Pot()` must be a real printable pot:
 
-Then apply a grid layout to the shell's top surface:
+- positive geometry
+- tapered outer body
+- hollow interior
+- configurable wall thickness
+- configurable floor thickness
+- bottom drain holes
+- no shell dependency
+- no tag/diff dependency
 
-- grid rows and columns divide the top shell surface
-- `row, col` identifies where a subtractive component should be placed
-- padding controls the usable rectangle inside that grid cell
-- later, margin can control spacing between adjacent cells
+Current parameters:
 
-Then subtract a component from the shell:
+- `Pot_Top_Size`
+- `Pot_Height`
+- `Pot_Wall`
+- `Pot_Floor`
+- `Pot_Taper`
+- `Pot_Chamfer`
+- `Pot_Hole_Rows`
+- `Pot_Hole_Columns`
+- `Pot_Hole_Diameter`
+- `Pot_Hole_Padding`
 
-- use BOSL2 `diff()` in the shell
-- use BOSL2 `tag()` in the subtractive component
-- first subtractive component is `Pot()`
-- `Pot()` is pot-shaped, not just a rectangular cut: top size comes from the grid cell and bottom size is reduced by taper
-- shell thickness is explicit, currently `Shell_Thickness`
-- pot height is currently `Shell_Height - Shell_Thickness`
-- `Pot()` also subtracts bottom drain holes through the remaining shell floor
-- no drain, no OpenGrid, no carrier, no printable lids in this step
+## Later Idea: Shell/Grid/Subtract
+
+After the standalone pot is correct, then return to:
+
+- `TopShell()` as a BOSL2 `prismoid`
+- grid layout on the shell top surface
+- use row/column to place a pot-derived subtraction tool
+- use BOSL2 `diff()`/`tag()` for shell subtraction
+
+Do not mix this later step back into `Pot()` itself.
 
 ## Current Files
 
 ```text
 cad/openscad/v2/
 ├── main.scad   // parameter wiring and first proof scene
-├── shell.scad  // TopShell(), prismoid + diff()
-├── grid.scad   // grid_cell_size(), grid_cell_center()
-└── pot.scad    // Pot(), tagged pot-shaped subtractive prismoid
+├── pot.scad    // Pot(), real standalone pot
+├── shell.scad  // parked for later shell/subtract work
+└── grid.scad   // parked for later grid placement work
 ```
 
 All older v2 files were removed.
 
 ## Current Contract
 
-`TopShell()`:
-
-```scad
-module TopShell(size1, size2, h, chamfer, rounding, subtract_tag)
-```
-
-`grid_cell_center()` and `grid_cell_size()`:
-
-```scad
-grid_cell_center(shell_size, rows, cols, row, col, padding)
-grid_cell_size(shell_size, rows, cols, padding)
-```
-
 `Pot()`:
 
 ```scad
-module Pot(top_size, h, floor, taper, chamfer, hole_rows, hole_cols, hole_diameter, hole_padding, tag_name)
-```
-
-`main.scad` composes them:
-
-```scad
-TopShell(...)
-  translate([cell_center[0], cell_center[1], Shell_Height])
-    Pot(top_size=cell_size, h=Pot_Height, taper=Pot_Taper, chamfer=Pot_Chamfer);
+module Pot(top_size, h, wall, floor, taper, chamfer, hole_rows, hole_cols, hole_diameter, hole_padding)
 ```
 
 ## Locked Rules For This Phase
 
 - Keep the model simple.
-- Prove one cell first.
-- Shell is positive geometry.
-- Components are subtractive tools for now.
-- Grid only computes placement and size.
-- Use `diff()` / `tag()` instead of hand-written `difference()` routing.
-- Do not add carrier, drain pan, OpenGrid back plate, lid generation, feature stacking, or UI wiring yet.
+- Prove the pot first.
+- `Pot()` is not a cut tool.
+- `Pot()` must not know about shell thickness or grid cell placement.
+- Do not add carrier, drain pan, OpenGrid back plate, lid generation, feature stacking, shell subtraction, or UI wiring yet.
 
 ## Verified
 
 OpenSCAD Nightly export passed:
 
 ```powershell
-& 'C:\Program Files\OpenSCAD (Nightly)\openscad.com' -q -o tmp_v2_restart.stl cad\openscad\v2\main.scad
+& 'C:\Program Files\OpenSCAD (Nightly)\openscad.com' -q -o tmp_v2_real_pot.stl cad\openscad\v2\main.scad
 ```
 
-PNG preview confirmed: one chamfered prismoid shell with one inset pot cut.
+PNG previews confirmed: one standalone tapered pot with hollow interior, visible wall thickness, a floor, and bottom drain holes.
