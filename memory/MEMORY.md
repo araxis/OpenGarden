@@ -1,0 +1,9 @@
+- [OpenGarden overview](opengarden_overview.md) — modular self-watering planter + Blazor WASM designer; Phase 1 done; v2 architecture rewrite is active
+- [v2 architecture plan](opengarden_v2_architecture_plan.md) — **ACTIVE** — greenfield rewrite of pot_insert into grid/component/carrier layers; design decisions locked one by one
+- [Designer app](project_designer_app.md) — apps/designer/ Blazor WASM, MudBlazor, WASM OpenSCAD render, current panel layout
+- [v1 cell-features (historical)](opengarden_cell_features_plan.md) — SUPERSEDED by v2; kept for context on what was learned and why we're rewriting
+- [Workflow preference](feedback_workflow_planfirst.md) — plan-first then implement; don't start code before review
+- [No AI attribution](feedback_no_ai_attribution.md) — never include Claude/AI Co-Authored-By or "Generated with..." trailers in commits, PRs, code, or docs
+- [User: Meisam](user_meisam.md) — developer on OpenGarden, Windows + OpenSCAD Nightly + BOSL2
+- [OpenSCAD env](reference_openscad_env.md) — local OpenSCAD path and how to invoke for STL exports
+- [Project workflow](reference_opengarden_workflow.md) — how Claude and user collaborate on this repo
