@@ -6,10 +6,23 @@
     <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3">Configure each grid cell's feature — drain holes, lid lip, wick port, fill tube, or closed box.</MudText>
 
     <MudExpansionPanels MultiExpansion="true" Elevation="0">
-        @foreach (var feature in State.CellFeatures)
+        @for (var i = 0; i < State.CellFeatures.Count; i++)
         {
+            var index = i;
+            var feature = State.CellFeatures[index];
+
             <MudExpansionPanel Text="@PanelTitle(feature)">
-                <CellFeatureEditor Feature="feature" RowCount="RowCount" ColumnCount="ColumnCount" OnChanged="OnChanged" OnRemove="RemoveFeature" />
+                <CellFeatureEditor
+                    Feature="feature"
+                    RowCount="RowCount"
+                    ColumnCount="ColumnCount"
+                    OnChanged="OnChanged"
+                    OnRemove="RemoveFeature"
+                    CanMoveUp="@(index > 0)"
+                    CanMoveDown="@(index < State.CellFeatures.Count - 1)"
+                    OnMoveUp="(() => MoveFeature(index, index - 1))"
+                    OnMoveDown="(() => MoveFeature(index, index + 1))"
+                />
             </MudExpansionPanel>
         }
     </MudExpansionPanels>
@@ -41,6 +54,19 @@
         if (State.CellFeatures.Count == 0)
             State.CellFeatures.Add(new CellFeatureConfig());
 
+        await OnChanged.InvokeAsync();
+    }
+
+    private async Task MoveFeature(int fromIndex, int toIndex)
+    {
+        if (fromIndex < 0 || fromIndex >= State.CellFeatures.Count)
+            return;
+        if (toIndex < 0 || toIndex >= State.CellFeatures.Count)
+            return;
+        if (fromIndex == toIndex)
+            return;
+
+        (State.CellFeatures[fromIndex], State.CellFeatures[toIndex]) = (State.CellFeatures[toIndex], State.CellFeatures[fromIndex]);
         await OnChanged.InvokeAsync();
     }
 
