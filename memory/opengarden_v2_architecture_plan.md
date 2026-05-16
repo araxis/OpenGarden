@@ -251,3 +251,6 @@ PNG previews confirmed:
   - `zone_top_z = container_h - default_insert_depth - support_clearance`
 - This keeps the support deck at one predictable height so one pot cannot accidentally sit lower and drown while neighboring pots stay dry.
 - Pot total height may vary later, but v2 baseline assumes a fixed insertion depth for all pot components.
+- Added triangular feet at the bottom of each slat to avoid fragile 90-degree rib-to-floor joints in FDM prints.
+- Added a small deck embed value so support slats overlap into the floor/adjacent material instead of merely touching surfaces.
+- Refined the slat foot so its ramp also embeds below the floor plane, making the bottom transition intentionally fused rather than relying on chamfer alone.

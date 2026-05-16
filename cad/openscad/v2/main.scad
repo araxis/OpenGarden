@@ -43,6 +43,8 @@ Container_Support_Deck_Rail_Width = 3;
 Container_Support_Deck_Rail_Gap = 7;
 Container_Support_Deck_Side_Gap = 8;
 Container_Support_Deck_Chamfer = 0.6;
+Container_Support_Deck_Foot = 2.5;
+Container_Support_Deck_Embed = 0.6;
 Container_Shell_Clearance = 0;
 Container_Z_Offset = 0;
 Exploded_View = false;
@@ -111,6 +113,8 @@ left((Shell_Top_Size[0] + Preview_Spacing) / 2)
         support_deck_rail_gap=Container_Support_Deck_Rail_Gap,
         support_deck_side_gap=Container_Support_Deck_Side_Gap,
         support_deck_chamfer=Container_Support_Deck_Chamfer,
+        support_deck_foot=Container_Support_Deck_Foot,
+        support_deck_embed=Container_Support_Deck_Embed,
         components=Components,
         shell_size=Shell_Top_Size,
         row_spec=Grid_Row_Sizes,

@@ -21,6 +21,8 @@ module ReservoirContainer(
   support_deck_rail_gap = 7,
   support_deck_side_gap = 8,
   support_deck_chamfer = 0.6,
+  support_deck_foot = 2.5,
+  support_deck_embed = 0.6,
   components = [],
   shell_size = top_size,
   row_spec = "1*",
@@ -119,6 +121,8 @@ module ReservoirContainer(
             rail_gap=support_deck_rail_gap,
             side_gap=support_deck_side_gap,
             chamfer=support_deck_chamfer,
+            foot=support_deck_foot,
+            embed=support_deck_embed,
             eps=eps
           );
       else
@@ -135,6 +139,8 @@ module ReservoirContainer(
           rail_gap=support_deck_rail_gap,
           side_gap=support_deck_side_gap,
           chamfer=support_deck_chamfer,
+          foot=support_deck_foot,
+          embed=support_deck_embed,
           eps=eps
         );
   }
@@ -150,6 +156,8 @@ module SupportDeckSlats(
   rail_gap,
   side_gap,
   chamfer,
+  foot,
+  embed,
   eps
 ) {
   // Fallback full-width deck when no component list is supplied.
@@ -164,6 +172,8 @@ module SupportDeckSlats(
     rail_gap=rail_gap,
     side_gap=side_gap,
     chamfer=chamfer,
+    foot=foot,
+    embed=embed,
     eps=eps
   );
 }
@@ -182,6 +192,8 @@ module ComponentSupportDeckSlats(
   rail_gap,
   side_gap,
   chamfer,
+  foot,
+  embed,
   eps
 ) {
   raw_type = v2_component_prop(component, "type", "pot_rect");
@@ -209,6 +221,8 @@ module ComponentSupportDeckSlats(
       rail_gap=rail_gap,
       side_gap=side_gap,
       chamfer=chamfer,
+      foot=foot,
+      embed=embed,
       eps=eps
     );
   }
@@ -225,13 +239,18 @@ module SupportDeckZone(
   rail_gap,
   side_gap,
   chamfer,
+  foot,
+  embed,
   eps
 ) {
   deck_top_z = container_h - insert_depth - support_clearance;
-  rail_z = floor - eps;
+  safe_embed = max(0, embed);
+  rail_z = floor - max(eps, safe_embed);
   rail_h = max(0, deck_top_z - rail_z);
-  usable_x = max(0.01, size[0] - side_gap * 2);
+  usable_x = max(0.01, size[0] - side_gap * 2 + safe_embed * 2);
   usable_y = max(0.01, size[1] - side_gap * 2);
+  foot_size = max(0, foot);
+  foot_h = min(foot_size, rail_h);
   pitch = max(0.1, rail_width + rail_gap);
   rail_count = max(1, floor((usable_y + rail_gap) / pitch));
   total_rails_y = rail_count * rail_width + max(0, rail_count - 1) * rail_gap;
@@ -241,9 +260,22 @@ module SupportDeckZone(
     translate([center[0], center[1], 0])
       for (i = [0:rail_count - 1])
         translate([0, start_y + i * pitch, rail_z])
-          cuboid(
-            [usable_x, rail_width, rail_h],
-            chamfer=min(chamfer, rail_width / 3, rail_h / 3),
-            anchor=BOTTOM
-          );
+          union() {
+            cuboid(
+              [usable_x, rail_width, rail_h],
+              chamfer=min(chamfer, rail_width / 3, rail_h / 3),
+              anchor=BOTTOM
+            );
+
+            if (foot_size > 0)
+              for (sy = [-1, 1])
+                translate([0, sy * (rail_width / 2 - safe_embed / 2), 0])
+                  rotate([90, 0, 90])
+                    linear_extrude(height=usable_x, center=true)
+                      polygon(points=[
+                        [0, -safe_embed],
+                        [sy * (foot_size + safe_embed), -safe_embed],
+                        [0, foot_h]
+                      ]);
+          }
 }
