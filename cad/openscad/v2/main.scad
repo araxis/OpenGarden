@@ -30,8 +30,8 @@ Shell_Pot_Clearance = 0.4;
 Container_Height = 60;
 Container_Wall = 2;
 Container_Floor = 2.4;
-Container_Chamfer = 1;
-Container_Rounding = 0;
+Container_Chamfer = 0;
+Container_Rounding = 1.2;
 Container_Seat_Ledge_Enabled = true;
 Container_Seat_Ledge_Drop = 3;
 Container_Seat_Ledge_Depth = 4;
@@ -94,7 +94,7 @@ left((Shell_Top_Size[0] + Preview_Spacing) / 2)
     up(Container_Z_Offset)
       ReservoirContainer(
         top_size=Shell_Bottom_Size,
-        bottom_size=[max(0.01, Shell_Bottom_Size[0] - 6), max(0.01, Shell_Bottom_Size[1] - 6)],
+        bottom_size=Shell_Bottom_Size,
         h=Container_Height,
         wall=Container_Wall,
         floor=Container_Floor,
