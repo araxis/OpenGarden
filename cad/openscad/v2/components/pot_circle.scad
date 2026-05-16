@@ -101,18 +101,10 @@ module CircleRim(
   safe_base = max(0.01, min(base_d, safe_outer));
   safe_inner = max(0.01, min(inner_d, min(safe_base, safe_outer) - 0.8));
   safe_chamfer = min(max(0, chamfer), safe_h / 2, safe_outer / 8);
-  shoulder_h = max(0.01, safe_h - safe_chamfer);
-  top_outer = max(0.01, safe_outer - safe_chamfer * 2);
   inner_top = max(0.01, safe_inner + safe_chamfer * 2);
 
   difference() {
-    union() {
-      cyl(d1=safe_base, d2=safe_outer, h=shoulder_h, anchor=BOTTOM);
-
-      if (safe_chamfer > 0)
-        up(shoulder_h - eps)
-          cyl(d1=safe_outer, d2=top_outer, h=safe_chamfer + eps, anchor=BOTTOM);
-    }
+    cyl(d1=safe_base, d2=safe_outer, h=safe_h, anchor=BOTTOM);
 
     down(eps)
       cyl(d=safe_inner, h=safe_h + eps * 3, anchor=BOTTOM);

@@ -124,6 +124,18 @@ module v2_component_cut(
         rim_chamfer=rim_chamfer,
         cut_epsilon=cut_epsilon
       );
+    else if (comp_type == "box")
+      BoxContainerCut(
+        cut_size=size,
+        shell_thickness=safe_thickness,
+        fit_clearance=fit_clearance,
+        insert_depth=insert_depth,
+        corner_radius=corner_radius,
+        rim_w=rim_w,
+        rim_h=rim_h,
+        rim_chamfer=rim_chamfer,
+        cut_epsilon=cut_epsilon
+      );
     else
       prismoid(
         size1=v2_is_pot_component(comp_type) ? cut_bottom_size : cut_top_size,
@@ -248,13 +260,20 @@ module v2_component_reference(
           hole_padding=default_hole_padding
         );
     else if (comp_type == "box")
-      BoxContainer(
-        top_size=size,
-        h=cavity_h,
-        wall=default_wall,
-        floor=default_floor,
-        chamfer=default_chamfer
-      );
+      render(convexity=12)
+        BoxContainer(
+          top_size=size,
+          h=cavity_h,
+          wall=default_wall,
+          floor=default_floor,
+          chamfer=default_chamfer,
+          corner_radius=corner_radius,
+          rim_w=rim_w,
+          rim_h=rim_h,
+          rim_chamfer=rim_chamfer,
+          insert_depth=insert_depth,
+          geom_epsilon=geom_epsilon
+        );
     else if (comp_type == "fill_tube" && show_fill_tube_reference)
       FillTubeReference(
         tube_w=v2_component_prop(component, "tube_w", min(size[0], 10)),

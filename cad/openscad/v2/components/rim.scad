@@ -26,7 +26,6 @@ module RectRim(
       size1=safe_base,
       size2=safe_outer,
       h=safe_h,
-      chamfer=safe_chamfer,
       anchor=BOTTOM
     );
 

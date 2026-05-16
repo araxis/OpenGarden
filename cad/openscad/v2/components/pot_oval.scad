@@ -155,13 +155,6 @@ module OvalRim(
     max(0.01, min(inner_size[1], min(safe_base[1], safe_outer[1]) - 0.8))
   ];
   safe_chamfer = min(max(0, chamfer), safe_h / 2, min(safe_outer[0], safe_outer[1]) / 8);
-  shoulder_h = max(0.01, safe_h - safe_chamfer);
-  top_outer = safe_chamfer > 0
-    ? [
-        max(0.01, safe_outer[0] - safe_chamfer * 2),
-        max(0.01, safe_outer[1] - safe_chamfer * 2)
-      ]
-    : safe_outer;
   inner_top = safe_chamfer > 0
     ? [
         max(0.01, safe_inner[0] + safe_chamfer * 2),
@@ -170,13 +163,7 @@ module OvalRim(
     : safe_inner;
 
   difference() {
-    union() {
-      OvalFrustum(safe_base, safe_outer, shoulder_h);
-
-      if (safe_chamfer > 0)
-        up(shoulder_h - eps)
-          OvalFrustum(safe_outer, top_outer, safe_chamfer + eps);
-    }
+    OvalFrustum(safe_base, safe_outer, safe_h);
 
     down(eps)
       OvalPrism(safe_inner, safe_h + eps * 3);

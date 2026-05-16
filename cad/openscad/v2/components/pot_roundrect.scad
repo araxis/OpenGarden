@@ -188,19 +188,11 @@ module RoundRectRim(
     max(0.01, min(inner_size[0], min(safe_base[0], safe_outer[0]) - 0.8)),
     max(0.01, min(inner_size[1], min(safe_base[1], safe_outer[1]) - 0.8))
   ];
-  safe_chamfer = min(max(0, chamfer), safe_h / 2, min(safe_outer[0], safe_outer[1]) / 8);
-  top_outer = safe_chamfer > 0
-    ? [
-        max(0.01, safe_outer[0] - safe_chamfer * 2),
-        max(0.01, safe_outer[1] - safe_chamfer * 2)
-      ]
-    : safe_outer;
-
   difference() {
     RoundRectFrustum(
       safe_base,
       safe_outer,
-      max(0.01, safe_h - safe_chamfer),
+      safe_h,
       PotRoundRectRadius(safe_outer, corner_radius)
     );
 
@@ -211,24 +203,6 @@ module RoundRectRim(
         PotRoundRectRadius(safe_inner, corner_radius - (safe_outer[0] - safe_inner[0]) / 2)
       );
   }
-
-  if (safe_chamfer > 0)
-    up(safe_h - safe_chamfer - eps)
-      difference() {
-        RoundRectFrustum(
-          safe_outer,
-          top_outer,
-          safe_chamfer + eps,
-          PotRoundRectRadius(safe_outer, corner_radius)
-        );
-
-        down(eps)
-          RoundRectPrism(
-            safe_inner,
-            safe_chamfer + eps * 3,
-            PotRoundRectRadius(safe_inner, corner_radius - (safe_outer[0] - safe_inner[0]) / 2)
-          );
-      }
 }
 
 module RoundRectPrism(size = [60, 30], h = 10, corner_radius = 6) {
