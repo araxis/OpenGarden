@@ -31,10 +31,9 @@ Grid_Column_Sizes = "1*,1*,1*,1*";
 Grid_Padding = [4, 4, 4, 4];
 
 /*[Shell Plate]*/
-// Top footprint of the shell plate [x, y] (mm).
+// Top footprint of the shell plate [x, y] (mm). Drops into the container opening.
+// The reservoir container outer footprint is derived from this + Container_Wall + Shell_Plate_Fit_Clearance per side.
 Shell_Top_Size = [200, 100];
-// Bottom footprint of the shell plate [x, y] (mm). Set unequal to Shell_Top_Size for a tapered plate.
-Shell_Bottom_Size = [200, 100];
 // Plate thickness (mm). Typical range 2..5.
 Shell_Thickness = 3; // [1:0.2:8]
 // Chamfer applied to the plate's outer edges (mm).
@@ -43,6 +42,8 @@ Shell_Chamfer = 0.8; // [0:0.1:3]
 Shell_Rounding = 0; // [0:0.5:30]
 // Slip-fit clearance between pot rims and their shell-plate seats (mm).
 Shell_Pot_Clearance = 0.4; // [0:0.05:1.5]
+// Slip-fit gap between the shell plate outer edge and the container inner wall (mm).
+Shell_Plate_Fit_Clearance = 0.4; // [0:0.05:1.5]
 
 /*[Pot Body]*/
 // Total pot height including the rim (mm).
@@ -123,6 +124,22 @@ Container_Support_Deck_Embed = 0.6; // [0:0.1:3]
 /*[Hidden]*/
 $fn = 48;
 
+// Bottom footprint of the shell plate — tracks Shell_Top_Size so the plate stays flat.
+// Override here for a tapered plate.
+Shell_Bottom_Size = Shell_Top_Size;
+
+// Reservoir container outer footprint — derived so the shell plate slip-fits inside.
+Container_Outer_Size = [
+  Shell_Top_Size[0] + Container_Wall * 2 + Shell_Plate_Fit_Clearance * 2,
+  Shell_Top_Size[1] + Container_Wall * 2 + Shell_Plate_Fit_Clearance * 2
+];
+
+// Z height at which the shell plate rests: on top of the seat ledge when enabled,
+// otherwise on the container's top rim.
+Shell_Rest_Z = Container_Seat_Ledge_Enabled
+  ? max(0, Container_Height - Container_Seat_Ledge_Drop)
+  : Container_Height;
+
 Components = [
   [["type", "pot_roundrect"], ["row", 1], ["col", 1], ["pot_h", Pot_Height], ["insert_depth", Pot_Insert_Depth], ["corner_radius", Pot_Corner_Radius], ["rim_w", Pot_Rim_Width], ["rim_h", Pot_Rim_Height], ["rim_chamfer", Pot_Rim_Chamfer]],
   [["type", "pot_circle"], ["row", 1], ["col", 2], ["pot_h", Pot_Height], ["insert_depth", Pot_Insert_Depth], ["rim_w", Pot_Rim_Width], ["rim_h", Pot_Rim_Height]],
@@ -156,12 +173,12 @@ if (Show_Component_References)
     for (component = Components)
       ComponentReference(component);
 
-left((Shell_Top_Size[0] + Preview_Spacing) / 2)
+left((Container_Outer_Size[0] + Preview_Spacing) / 2)
   union() {
     up(Container_Z_Offset)
       ReservoirContainer(
-        top_size=Shell_Bottom_Size,
-        bottom_size=Shell_Bottom_Size,
+        top_size=Container_Outer_Size,
+        bottom_size=Container_Outer_Size,
         h=Container_Height,
         wall=Container_Wall,
         floor=Container_Floor,
@@ -190,7 +207,7 @@ left((Shell_Top_Size[0] + Preview_Spacing) / 2)
 
     right(Shell_Preview_X_Offset)
       up(
-        (Container_Height + Container_Shell_Clearance)
+        Shell_Rest_Z + Container_Shell_Clearance
         + Container_Z_Offset
         + (Exploded_View ? Exploded_Z : 0)
       )
