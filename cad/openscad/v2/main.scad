@@ -2,6 +2,7 @@ include <BOSL2/std.scad>
 include <shell.scad>
 include <grid.scad>
 include <components/registry.scad>
+include <components/container.scad>
 
 $fn = 48;
 
@@ -25,6 +26,22 @@ Shell_Thickness = 3; // Typical range: 2..5 mm
 Shell_Chamfer = 0.8;
 Shell_Rounding = 0;
 Shell_Pot_Clearance = 0.4;
+
+Container_Height = 60;
+Container_Wall = 2;
+Container_Floor = 2.4;
+Container_Chamfer = 1;
+Container_Rounding = 0;
+Container_Seat_Ledge_Enabled = true;
+Container_Seat_Ledge_Drop = 3;
+Container_Seat_Ledge_Depth = 4;
+Container_Seat_Ledge_Thickness = 2;
+Container_Seat_Ledge_Chamfer = 1.2;
+Container_Shell_Clearance = 0;
+Container_Z_Offset = 0;
+Exploded_View = false;
+Exploded_Z = 8;
+Shell_Preview_X_Offset = 0;
 
 Grid_Row_Sizes = "1*";
 Grid_Column_Sizes = "1*,1*,1*";
@@ -67,17 +84,43 @@ if (Show_Component_References)
       ComponentReference(component);
 
 left((Shell_Top_Size[0] + Preview_Spacing) / 2)
-  ShellPlateWithComponents(
-    top_size=Shell_Top_Size,
-    bottom_size=Shell_Bottom_Size,
-    thickness=Shell_Thickness,
-    chamfer=Shell_Chamfer,
-    rounding=Shell_Rounding,
-    row_spec=Grid_Row_Sizes,
-    col_spec=Grid_Column_Sizes,
-    grid_padding=Grid_Padding,
-    default_taper=Pot_Taper,
-    default_cavity_height=Pot_Insert_Depth,
-    default_clearance=Shell_Pot_Clearance,
-    components=Components
-  );
+  union() {
+    up(Container_Z_Offset)
+      ReservoirContainer(
+        top_size=Shell_Bottom_Size,
+        bottom_size=[max(0.01, Shell_Bottom_Size[0] - 6), max(0.01, Shell_Bottom_Size[1] - 6)],
+        h=Container_Height,
+        wall=Container_Wall,
+        floor=Container_Floor,
+        chamfer=Container_Chamfer,
+        rounding=Container_Rounding,
+        seat_ledge_enabled=Container_Seat_Ledge_Enabled,
+        seat_ledge_drop=Container_Seat_Ledge_Drop,
+        seat_ledge_depth=Container_Seat_Ledge_Depth,
+        seat_ledge_thickness=Container_Seat_Ledge_Thickness,
+        seat_ledge_chamfer=Container_Seat_Ledge_Chamfer
+      );
+
+    right(Shell_Preview_X_Offset)
+      up(
+        (Container_Height + Container_Shell_Clearance)
+        + Container_Z_Offset
+        + (Exploded_View ? Exploded_Z : 0)
+      )
+        ShellPlateWithComponents(
+          top_size=Shell_Top_Size,
+          bottom_size=Shell_Bottom_Size,
+          thickness=Shell_Thickness,
+          chamfer=Shell_Chamfer,
+          rounding=Shell_Rounding,
+          row_spec=Grid_Row_Sizes,
+          col_spec=Grid_Column_Sizes,
+          grid_padding=Grid_Padding,
+          default_taper=Pot_Taper,
+          default_cavity_height=Pot_Insert_Depth,
+          default_clearance=Shell_Pot_Clearance,
+          default_cut_epsilon=0.2,
+          components=Components,
+          seat_enabled=false
+        );
+  }
