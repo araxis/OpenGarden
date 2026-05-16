@@ -12,6 +12,7 @@ Pot_Wall = 2;
 Pot_Floor = 3;
 Pot_Taper = 0;
 Pot_Chamfer = 1;
+Pot_Corner_Radius = 14;
 Pot_Rim_Width = 3;
 Pot_Rim_Height = 3;
 Pot_Rim_Chamfer = 0.6;
@@ -56,7 +57,7 @@ Grid_Column_Sizes = "1*,1*,1*";
 Grid_Padding = [4, 4, 4, 4]; // [left, right, front, back]
 
 Components = [
-  [["type", "pot_rect"], ["row", 1], ["col", 1], ["pot_h", Pot_Height], ["insert_depth", Pot_Insert_Depth], ["rim_w", Pot_Rim_Width], ["rim_h", Pot_Rim_Height], ["rim_chamfer", Pot_Rim_Chamfer]],
+  [["type", "pot_roundrect"], ["row", 1], ["col", 1], ["pot_h", Pot_Height], ["insert_depth", Pot_Insert_Depth], ["corner_radius", Pot_Corner_Radius], ["rim_w", Pot_Rim_Width], ["rim_h", Pot_Rim_Height], ["rim_chamfer", Pot_Rim_Chamfer]],
   [["type", "pot_circle"], ["row", 1], ["col", 2], ["pot_h", Pot_Height], ["insert_depth", Pot_Insert_Depth], ["rim_w", Pot_Rim_Width], ["rim_h", Pot_Rim_Height]],
   [["type", "pot_oval"], ["row", 1], ["col", 3], ["pot_h", Pot_Height], ["insert_depth", Pot_Insert_Depth], ["rim_w", Pot_Rim_Width], ["rim_h", Pot_Rim_Height], ["rim_chamfer", Pot_Rim_Chamfer]],
 ];

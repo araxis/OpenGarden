@@ -10,7 +10,7 @@ module PotOvalReference(
   chamfer = 0, // kept for API compatibility; not used in oval primitive
   rim_w = 3,
   rim_h = 3,
-  rim_chamfer = 0, // kept for API compatibility; not used in oval primitive
+  rim_chamfer = 0.6,
   hole_rows = 2,
   hole_cols = 8,
   hole_diameter = 3,
@@ -66,11 +66,14 @@ module PotOvalReference(
 
     if (rim_w > 0 && rim_h > 0)
       up(safe_rim_z - eps)
-        difference() {
-          OvalPrism(rim_outer, rim_h + eps);
-          down(eps)
-            OvalPrism(inner_at_rim, rim_h + eps * 2);
-        }
+        OvalRim(
+          outer_size=rim_outer,
+          base_size=body_at_rim,
+          inner_size=inner_at_rim,
+          h=rim_h + eps,
+          chamfer=rim_chamfer,
+          geom_epsilon=eps
+        );
   }
 }
 
@@ -82,7 +85,7 @@ module PotOvalCut(
   insert_depth = 37,
   rim_w = 3,
   rim_h = 3,
-  rim_chamfer = 0, // API compatibility
+  rim_chamfer = 0.6,
   cut_epsilon = 0.2
 ) {
   through = [
@@ -132,6 +135,58 @@ module PotOvalCut(
   }
 }
 
+module OvalRim(
+  outer_size = [50, 30],
+  base_size = [44, 24],
+  inner_size = [40, 20],
+  h = 3,
+  chamfer = 0.6,
+  geom_epsilon = 0.05
+) {
+  eps = max(0.001, geom_epsilon);
+  safe_h = max(0.2, h);
+  safe_outer = [max(0.01, outer_size[0]), max(0.01, outer_size[1])];
+  safe_base = [
+    max(0.01, min(base_size[0], safe_outer[0])),
+    max(0.01, min(base_size[1], safe_outer[1]))
+  ];
+  safe_inner = [
+    max(0.01, min(inner_size[0], min(safe_base[0], safe_outer[0]) - 0.8)),
+    max(0.01, min(inner_size[1], min(safe_base[1], safe_outer[1]) - 0.8))
+  ];
+  safe_chamfer = min(max(0, chamfer), safe_h / 2, min(safe_outer[0], safe_outer[1]) / 8);
+  shoulder_h = max(0.01, safe_h - safe_chamfer);
+  top_outer = safe_chamfer > 0
+    ? [
+        max(0.01, safe_outer[0] - safe_chamfer * 2),
+        max(0.01, safe_outer[1] - safe_chamfer * 2)
+      ]
+    : safe_outer;
+  inner_top = safe_chamfer > 0
+    ? [
+        max(0.01, safe_inner[0] + safe_chamfer * 2),
+        max(0.01, safe_inner[1] + safe_chamfer * 2)
+      ]
+    : safe_inner;
+
+  difference() {
+    union() {
+      OvalFrustum(safe_base, safe_outer, shoulder_h);
+
+      if (safe_chamfer > 0)
+        up(shoulder_h - eps)
+          OvalFrustum(safe_outer, top_outer, safe_chamfer + eps);
+    }
+
+    down(eps)
+      OvalPrism(safe_inner, safe_h + eps * 3);
+
+    if (safe_chamfer > 0)
+      up(safe_h - safe_chamfer - eps)
+        OvalFrustum(safe_inner, inner_top, safe_chamfer + eps * 3);
+  }
+}
+
 module PotOvalDrainHoles(size, floor, rows, cols, hole_d, padding, geom_epsilon = 0.05) {
   d = max(0.8, hole_d);
   eps = max(0.001, geom_epsilon);
@@ -157,7 +212,7 @@ module OvalPrism(size = [50, 30], h = 10) {
   sx = max(0.01, size[0] / 2);
   sy = max(0.01, size[1] / 2);
   scale([sx, sy, 1])
-    cyl(d=2, h=h, anchor=BOTTOM);
+    cyl(d=2, h=h, anchor=BOTTOM, $fn=max($fn, 24));
 }
 
 module OvalFrustum(size1 = [45, 25], size2 = [50, 30], h = 10) {
@@ -167,7 +222,7 @@ module OvalFrustum(size1 = [45, 25], size2 = [50, 30], h = 10) {
   sy2 = max(0.01, size2[1] / 2);
   linear_extrude(height=h, scale=[sx2 / sx1, sy2 / sy1], center=false)
     scale([sx1, sy1])
-      circle(d=2);
+      circle(d=2, $fn=max($fn, 24));
 }
 
 function PotOvalOffset(index, count, span) =

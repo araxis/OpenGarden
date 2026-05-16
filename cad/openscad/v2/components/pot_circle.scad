@@ -9,6 +9,7 @@ module PotCircleReference(
   taper = 0,
   rim_w = 3,
   rim_h = 3,
+  rim_chamfer = 0.6,
   hole_rows = 2,
   hole_cols = 2,
   hole_diameter = 3,
@@ -42,11 +43,14 @@ module PotCircleReference(
     }
     if (rim_w > 0 && rim_h > 0)
       up(safe_rim_z - eps)
-        difference() {
-          cyl(d=rim_outer_d, h=rim_h + eps, anchor=BOTTOM);
-          down(eps)
-            cyl(d=inner_d_at_rim, h=rim_h + eps * 2, anchor=BOTTOM);
-        }
+        CircleRim(
+          outer_d=rim_outer_d,
+          base_d=body_d_at_rim,
+          inner_d=inner_d_at_rim,
+          h=rim_h + eps,
+          chamfer=rim_chamfer,
+          geom_epsilon=eps
+        );
   }
 }
 
@@ -58,6 +62,7 @@ module PotCircleCut(
   insert_depth = 37,
   rim_w = 3,
   rim_h = 3,
+  rim_chamfer = 0.6,
   cut_epsilon = 0.2
 ) {
   through_d = max(0.01, diameter - rim_w * 2);
@@ -79,6 +84,42 @@ module PotCircleCut(
     d_top = max(0.01, through_d + safe_clearance * 2);
     d_bottom = max(0.01, through_d - taper_at_cut_depth * 2 + safe_clearance * 2);
     cyl(d1=d_bottom, d2=d_top, h=safe_t + 0.2, anchor=BOTTOM);
+  }
+}
+
+module CircleRim(
+  outer_d,
+  base_d,
+  inner_d,
+  h,
+  chamfer = 0.6,
+  geom_epsilon = 0.05
+) {
+  eps = max(0.001, geom_epsilon);
+  safe_h = max(0.2, h);
+  safe_outer = max(0.01, outer_d);
+  safe_base = max(0.01, min(base_d, safe_outer));
+  safe_inner = max(0.01, min(inner_d, min(safe_base, safe_outer) - 0.8));
+  safe_chamfer = min(max(0, chamfer), safe_h / 2, safe_outer / 8);
+  shoulder_h = max(0.01, safe_h - safe_chamfer);
+  top_outer = max(0.01, safe_outer - safe_chamfer * 2);
+  inner_top = max(0.01, safe_inner + safe_chamfer * 2);
+
+  difference() {
+    union() {
+      cyl(d1=safe_base, d2=safe_outer, h=shoulder_h, anchor=BOTTOM);
+
+      if (safe_chamfer > 0)
+        up(shoulder_h - eps)
+          cyl(d1=safe_outer, d2=top_outer, h=safe_chamfer + eps, anchor=BOTTOM);
+    }
+
+    down(eps)
+      cyl(d=safe_inner, h=safe_h + eps * 3, anchor=BOTTOM);
+
+    if (safe_chamfer > 0)
+      up(safe_h - safe_chamfer - eps)
+        cyl(d1=safe_inner, d2=inner_top, h=safe_chamfer + eps * 3, anchor=BOTTOM);
   }
 }
 
