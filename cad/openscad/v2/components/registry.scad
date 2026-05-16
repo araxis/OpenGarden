@@ -19,6 +19,7 @@ module v2_component_cut(
   default_taper,
   default_cavity_height,
   default_clearance,
+  default_cut_epsilon,
   shell_thickness
 ) {
   raw_type = v2_component_prop(component, "type", "pot_rect");
@@ -33,7 +34,7 @@ module v2_component_cut(
   rim_w = v2_component_prop(component, "rim_w", (comp_type == "pot_rect" || comp_type == "pot_circle" || comp_type == "pot_oval") ? 4 : 0);
   rim_h = v2_component_prop(component, "rim_h", (comp_type == "pot_rect" || comp_type == "pot_circle" || comp_type == "pot_oval") ? 2 : 0);
   rim_chamfer = v2_component_prop(component, "rim_chamfer", 0.6);
-  cut_epsilon = v2_component_prop(component, "cut_epsilon", 0.2);
+  cut_epsilon = v2_component_prop(component, "cut_epsilon", default_cut_epsilon);
   geom_epsilon = v2_component_prop(component, "geom_epsilon", 0.05);
   tube_w = v2_component_prop(component, "tube_w", 8);
   tube_d = v2_component_prop(component, "tube_d", 8);
@@ -62,7 +63,7 @@ module v2_component_cut(
     max(0.01, through_size[1] - taper_at_cut_depth * 2 + safe_clearance * 2)
   ];
 
-  translate([center[0], center[1], -0.1])
+  translate([center[0], center[1], -cut_epsilon])
     if (comp_type == "fill_tube")
       FillTubeCut(
         tube_w=tube_w,
@@ -109,7 +110,7 @@ module v2_component_cut(
       prismoid(
         size1=(comp_type == "pot_rect" || comp_type == "pot_circle" || comp_type == "pot_oval") ? cut_bottom_size : cut_top_size,
         size2=cut_top_size,
-        h=safe_thickness + 0.2,
+        h=safe_thickness + cut_epsilon * 2,
         anchor=BOTTOM
       );
 }

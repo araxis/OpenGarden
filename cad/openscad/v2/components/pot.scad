@@ -88,17 +88,33 @@ module Pot(
 }
 
 module PotDrainHoles(size, floor, rows, cols, diameter, padding) {
-  span_x = max(0, size[0] - padding);
-  span_y = max(0, size[1] - padding);
+  d = max(0.8, diameter);
+  eps = 0.05;
+  inset_x = max(d * 1.6, size[0] * 0.12);
+  inset_y = max(d * 1.6, size[1] * 0.12);
+  y_span = max(0, size[1] - inset_y * 2);
+  hole_pitch = max(d * 2.4, 8);
+  count_y = max(3, floor(y_span / hole_pitch) + 1);
+  edge_x = max(0, size[0] / 2 - inset_x);
+  use_two_rows = edge_x > d * 0.9;
 
-  for (row = [0:rows - 1])
-    for (col = [0:cols - 1])
-      translate([
-        PotHoleOffset(col, cols, span_x),
-        PotHoleOffset(row, rows, span_y),
-        -0.1
-      ])
-        cylinder(d=diameter, h=floor + 0.2, anchor=BOTTOM);
+  // Side rows (typical rectangular nursery/tray style)
+  for (i = [0:count_y - 1]) {
+    y = PotHoleOffset(i, count_y, y_span);
+    if (use_two_rows) {
+      translate([-edge_x, y, -eps])
+        cylinder(d=d, h=floor + eps * 2, anchor=BOTTOM);
+      translate([ edge_x, y, -eps])
+        cylinder(d=d, h=floor + eps * 2, anchor=BOTTOM);
+    } else {
+      translate([0, y, -eps])
+        cylinder(d=d, h=floor + eps * 2, anchor=BOTTOM);
+    }
+  }
+
+  // Center drain
+  translate([0, 0, -eps])
+    cylinder(d=d, h=floor + eps * 2, anchor=BOTTOM);
 }
 
 function PotHoleOffset(index, count, span) =

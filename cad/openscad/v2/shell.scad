@@ -80,8 +80,24 @@ module ShellPlateWithComponents(
   default_taper = 0,
   default_cavity_height = 37,
   default_clearance = 0.4,
-  components = [[["type", "pot"], ["row", 1], ["col", 1]]]
+  default_cut_epsilon = 0.2,
+  components = [[["type", "pot"], ["row", 1], ["col", 1]]],
+  seat_enabled = true,
+  seat_inset = 4,
+  seat_width = 3,
+  seat_height = 2,
+  seat_fit_clearance = 0.25
 ) {
+  groove_outer = [
+    max(0.01, bottom_size[0] - seat_inset * 2 + seat_fit_clearance * 2),
+    max(0.01, bottom_size[1] - seat_inset * 2 + seat_fit_clearance * 2)
+  ];
+  groove_inner = [
+    max(0.01, groove_outer[0] - seat_width * 2 - seat_fit_clearance * 4),
+    max(0.01, groove_outer[1] - seat_width * 2 - seat_fit_clearance * 4)
+  ];
+  safe_seat_h = min(max(0, seat_height + seat_fit_clearance), thickness - 0.2);
+
   difference() {
     ShellPlate(
       top_size=top_size,
@@ -90,6 +106,12 @@ module ShellPlateWithComponents(
       chamfer=chamfer,
       rounding=rounding
     );
+
+    if (seat_enabled && seat_width > 0 && safe_seat_h > 0.1 && groove_inner[0] > 0.5 && groove_inner[1] > 0.5)
+      difference() {
+        cuboid([groove_outer[0], groove_outer[1], safe_seat_h], anchor=BOTTOM);
+        cuboid([groove_inner[0], groove_inner[1], safe_seat_h + 0.05], anchor=BOTTOM);
+      }
 
     for (component = components)
       v2_component_cut(
@@ -101,6 +123,7 @@ module ShellPlateWithComponents(
         default_taper=default_taper,
         default_cavity_height=default_cavity_height,
         default_clearance=default_clearance,
+        default_cut_epsilon=default_cut_epsilon,
         shell_thickness=thickness
       );
   }

@@ -83,18 +83,22 @@ module PotCircleCut(
 }
 
 module PotCircleDrainHoles(diameter, floor, rows, cols, hole_d, padding, geom_epsilon = 0.05) {
-  span = max(0, diameter - padding);
+  d = max(0.8, hole_d);
   eps = max(0.001, geom_epsilon);
-  safe_radius = max(0, span / 2 - hole_d / 2 - eps);
-  for (row = [0:rows - 1])
-    for (col = [0:cols - 1])
-      let (
-        x = PotCircleOffset(col, cols, span),
-        y = PotCircleOffset(row, rows, span)
-      )
-        if (x * x + y * y <= safe_radius * safe_radius)
-          translate([x, y, -eps])
-            cyl(d=hole_d, h=floor + eps * 2, anchor=BOTTOM);
+  r = max(0, diameter / 2 - max(d * 2, diameter * 0.18));
+  ring_count = max(6, floor((2 * PI * r) / max(d * 2.6, 8)));
+
+  // Center drain
+  translate([0, 0, -eps])
+    cyl(d=d, h=floor + eps * 2, anchor=BOTTOM);
+
+  // Ring drains (typical round nursery style)
+  if (r > d * 0.8)
+    for (i = [0:ring_count - 1]) {
+      a = 360 * i / ring_count;
+      translate([r * cos(a), r * sin(a), -eps])
+        cyl(d=d, h=floor + eps * 2, anchor=BOTTOM);
+    }
 }
 
 function PotCircleOffset(index, count, span) =

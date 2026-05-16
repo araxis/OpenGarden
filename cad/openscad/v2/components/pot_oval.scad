@@ -133,22 +133,24 @@ module PotOvalCut(
 }
 
 module PotOvalDrainHoles(size, floor, rows, cols, hole_d, padding, geom_epsilon = 0.05) {
-  span_x = max(0, size[0] - padding);
-  span_y = max(0, size[1] - padding);
-  rx = max(0, span_x / 2 - hole_d / 2);
-  ry = max(0, span_y / 2 - hole_d / 2);
+  d = max(0.8, hole_d);
   eps = max(0.001, geom_epsilon);
+  rx = max(0, size[0] / 2 - max(d * 2, size[0] * 0.14));
+  ry = max(0, size[1] / 2 - max(d * 2, size[1] * 0.14));
+  perim_est = PI * (3 * (rx + ry) - sqrt(max(0.01, (3 * rx + ry) * (rx + 3 * ry))));
+  ring_count = max(8, floor(perim_est / max(d * 2.6, 8)));
 
-  for (row = [0:rows - 1])
-    for (col = [0:cols - 1])
-      let (
-        x = PotOvalOffset(col, cols, span_x),
-        y = PotOvalOffset(row, rows, span_y),
-        in_ellipse = (rx <= 0 || ry <= 0) ? false : ((x * x) / (rx * rx) + (y * y) / (ry * ry) <= 1)
-      )
-        if (in_ellipse)
-          translate([x, y, -eps])
-            cyl(d=hole_d, h=floor + eps * 2, anchor=BOTTOM);
+  // Center drain
+  translate([0, 0, -eps])
+    cyl(d=d, h=floor + eps * 2, anchor=BOTTOM);
+
+  // Ring drains (typical oval pot style)
+  if (rx > d * 0.8 && ry > d * 0.8)
+    for (i = [0:ring_count - 1]) {
+      a = 360 * i / ring_count;
+      translate([rx * cos(a), ry * sin(a), -eps])
+        cyl(d=d, h=floor + eps * 2, anchor=BOTTOM);
+    }
 }
 
 module OvalPrism(size = [50, 30], h = 10) {
