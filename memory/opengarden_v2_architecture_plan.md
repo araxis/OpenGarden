@@ -25,7 +25,9 @@ Typical usage:
 Sizing rule (locked):
 - Grid cell defines component footprint (`x/y`) for shell subtraction.
 - Pot width/depth are not primary controls in grid-subtraction flow.
-- Pot-related control in this flow is mainly `Cavity_Height` (z) plus fit/clearance.
+- Pot height and pot insert depth are separate controls:
+  - `pot_h` / `Pot_Height` defines the physical printed pot height.
+  - `insert_depth` / `Pot_Insert_Depth` defines where the rim/seat lands on Z and therefore how far the pot sits into the shell.
 - Track spec syntax supports mixed tokens per axis:
   - `N` = fixed size (mm), example `50`
   - `N%` = percent of usable span, example `25%`
@@ -44,22 +46,29 @@ Implemented now:
 
 - Real standalone `Pot()`.
 - `ShellPlate()` thin shell body.
-- `ShellPlateWithPotCut()` shell minus one pot-profile cut with clearance.
+- `ShellPlateWithComponents()` shell minus grid-placed subtractive component cuts.
+- Component registry under `cad/openscad/v2/components/`.
+- Reusable sloped `RectRim()` and matching `RectSeatCut()` primitives for print-friendly pot/deck seating.
 
 Still missing:
 
-- Grid-to-cut mapping (`row,col -> component`).
-- Multiple cuts in one shell build pass.
-- Component registry for `pot`, `box`, and upcoming tools.
+- Validation for out-of-range row/col and oversized cuts.
+- Richer component families and non-rectangular pot shapes.
+- Real water-container/reservoir body below the shell.
 
 ## Current Files
 
 ```text
 cad/openscad/v2/
-├── main.scad   // preview wiring and parameters
-├── pot.scad    // standalone pot geometry
-├── shell.scad  // shell plate and shell subtraction entrypoint
-└── grid.scad   // grid helpers (next integration target)
+├── main.scad              // preview wiring and parameters
+├── shell.scad             // shell plate and shell subtraction entrypoint
+├── grid.scad              // grid helpers
+└── components/
+    ├── registry.scad      // component dispatcher for cuts and references
+    ├── rim.scad           // reusable sloped rim and seat-cut primitives
+    ├── pot.scad           // standalone pot geometry
+    ├── box.scad           // hollow box component reference
+    └── fill_tube.scad     // fill-tube cut/reference helpers
 ```
 
 ## Contracts (Current)
@@ -67,7 +76,14 @@ cad/openscad/v2/
 `Pot()`:
 
 ```scad
-module Pot(top_size, h, wall, floor, taper, chamfer, hole_rows, hole_cols, hole_diameter, hole_padding)
+module Pot(top_size, h, wall, floor, taper, chamfer, rim_width, rim_height, rim_z, rim_chamfer, hole_rows, hole_cols, hole_diameter, hole_padding)
+```
+
+`RectRim()` and `RectSeatCut()`:
+
+```scad
+module RectRim(outer_size, base_size, inner_size, h, chamfer)
+module RectSeatCut(outer_size, through_size, shell_thickness, seat_depth, fit_clearance, chamfer, cut_epsilon)
 ```
 
 `ShellPlate()` and `ShellPlateWithPotCut()`:
@@ -87,13 +103,14 @@ Step B (done):
 - Add one cell selector (`Cut_Row`, `Cut_Col`) and place one pot cut by grid address.
 - Remove manual XY offset addressing for this path.
 - Use grid for cut placement and footprint (`x/y`) in this flow.
-- Use `Cavity_Height` for vertical pot-cut behavior.
+- Split physical pot height from insert depth.
+- Add sloped rim/seat primitives so pot inserts can rest in the top shell without support-heavy overhangs.
 
-Step C:
+Step C (done):
 - Add `box` subtractive component (simple rectangular cut profile).
 - Add component selector per cut (`pot | box`).
 
-Step D:
+Step D (done):
 - Add multiple cut entries (list of operations), still no spans yet.
 - Stable deterministic order: operations apply in listed order.
 
@@ -119,7 +136,7 @@ Step F:
 OpenSCAD Nightly export passed:
 
 ```powershell
-& 'C:\Program Files\OpenSCAD (Nightly)\openscad.com' -q -o tmp_v2_real_pot.stl cad\openscad\v2\main.scad
+& 'C:\Program Files\OpenSCAD (Nightly)\openscad.com' -q -o artifacts\v2-seat-cut-epsilon-test.stl cad\openscad\v2\main.scad
 ```
 
 PNG previews confirmed:
@@ -129,3 +146,17 @@ PNG previews confirmed:
 
 - Fixed v2 preview reference behavior for `box` in [`cad/openscad/v2/main.scad`](D:/Projects/OpenGarden/cad/openscad/v2/main.scad): it now renders via `BoxContainer(...)` (hollow cavity) instead of a solid `prismoid`.
 - Added `Show_FillTube_Reference = false` toggle in `main.scad`; fill tube remains subtract-only by default in reference preview.
+- Refactored v2 component structure into `cad/openscad/v2/components/` with one file per component:
+  - `pot.scad`
+  - `box.scad`
+  - `fill_tube.scad`
+  - plus shared `props.scad` and dispatcher `registry.scad`.
+- Removed legacy `cad/openscad/v2/pot.scad` so component ownership is now fully under `components/`.
+
+## 2026-05-16 (rim/seat update)
+
+- Added a reusable rim/seat primitive in `cad/openscad/v2/components/rim.scad`.
+- `RectRim()` is sloped from body size to rim size so the pot can print upright with little/no support.
+- `RectSeatCut()` creates the matching shell recess and through-hole, with `cut_epsilon` to avoid coplanar preview/export artifacts.
+- Pot references now use `pot_h` for physical pot height and `insert_depth` for rim Z position.
+- Default rim proportions use `Pot_Rim_Width = 3` and `Pot_Rim_Height = 3` to stay near a 45-degree printable shoulder.
