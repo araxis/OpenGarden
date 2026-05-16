@@ -181,3 +181,54 @@ PNG previews confirmed:
   - oval shell cut path
 - Added `geom_epsilon` support as a per-component override in registry and passed it through circular/oval references.
 - Wrapped circular and oval reference previews with `render(convexity=12)` to reduce OpenCSG preview artifacts that were not present in STL manifold exports.
+
+## 2026-05-16 (simple drain-hole policy)
+
+- Drain-hole mechanism simplified for day-to-day pot behavior.
+- Removed dependence on user-tuned row/column hole grids for pot variants.
+- New default patterns:
+  - `pot_rect`: two edge rows + center drain.
+  - `pot_circle`: center drain + circular ring.
+  - `pot_oval`: center drain + elliptical ring.
+- Goal: predictable "standard pot-like" output with minimal configuration.
+
+## 2026-05-16 (reservoir container baseline)
+
+- Added `cad/openscad/v2/components/container.scad` with a prismoid-based reservoir body.
+- Container is hollowed by inner prismoid subtraction, exposing simple controls:
+  - `top_size`, `bottom_size`, `h`
+  - `wall`, `floor`
+  - `chamfer`, `rounding`
+- Wired baseline preview in `v2/main.scad`:
+  - shell preview remains at top
+  - container preview can be shown below shell (`Container_Show`, `Container_Preview_Gap`).
+
+## 2026-05-16 (container seat support direction locked)
+
+- Replaced the earlier floating-post style seat supports with wall-attached curved corbels in `cad/openscad/v2/components/container.scad`.
+- New support behavior:
+  - corner corbels are generated from curved quarter-profile braces (squinch-like)
+  - optional mid-edge corbels remain controlled by `gusset_edge_supports`
+  - thin top seat rails bridge between corners for continuity
+- Kept existing public parameter names for now (`Gusset_*`) to avoid breaking current test presets while geometry behavior changed to the new printable direction.
+
+## 2026-05-16 (seat profile clarification)
+
+- User confirmed a **quarter-cove style profile** as reference for seat support shaping (sample file: `C:/Users/meisa/AppData/Local/Temp/quarter_cove.scad`).
+- The sample is reference-only (not copied verbatim): we should adapt its concave quarter-arc profile logic for container corner supports.
+- Implementation intent:
+  - keep supports wall-attached and printable without internal support
+  - use the quarter-cove curve language for smoother, cleaner load path
+  - avoid adding extra mechanisms unless explicitly requested
+
+## 2026-05-16 (container load pads)
+
+- Added the next support rule for v2: **shell locates pots, container carries pot weight**.
+- `ReservoirContainer()` now accepts the component list and grid settings so it can generate internal support pads beneath inserted pot components.
+- Support pad behavior:
+  - generated only for pot components (`pot_rect`, `pot_circle`, `pot_oval`)
+  - XY placement and shape are derived from the same grid/component footprint used by the shell
+  - top height is driven by `container_h - insert_depth - support_clearance`
+  - pads start from the container floor and stop just below the inserted pot bottom
+- Pads are now same-shape frames/rings by default instead of solid blocks, preserving water volume while still transferring load.
+- This keeps pot weight moving into the reservoir floor instead of relying on the thin shell plate.
