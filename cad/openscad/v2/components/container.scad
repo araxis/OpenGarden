@@ -15,19 +15,18 @@ module ReservoirContainer(
   seat_ledge_depth = 4,
   seat_ledge_thickness = 2,
   seat_ledge_chamfer = 1.2,
-  pot_support_enabled = true,
-  pot_support_clearance = 0.8,
-  pot_support_margin = 8,
-  pot_support_ring_width = 6,
-  pot_support_chamfer = 1,
+  support_deck_enabled = false,
+  support_deck_clearance = 0.8,
+  support_deck_rail_width = 3,
+  support_deck_rail_gap = 7,
+  support_deck_side_gap = 8,
+  support_deck_chamfer = 0.6,
   components = [],
   shell_size = top_size,
   row_spec = "1*",
   col_spec = "1*",
   grid_padding = [0, 0, 0, 0],
-  default_insert_depth = 37,
-  default_taper = 0,
-  default_rim_w = 3
+  default_insert_depth = 37
 ) {
   eps = 0.04;
   safe_h = max(1, h);
@@ -103,28 +102,73 @@ module ReservoirContainer(
             );
         }
 
-    if (pot_support_enabled)
-      for (component = components)
-        PotSupportPad(
-          component=component,
+    if (support_deck_enabled)
+      if (len(components) > 0)
+        for (component = components)
+          ComponentSupportDeckSlats(
+            component=component,
+            container_h=safe_h,
+            floor=safe_floor,
+            shell_size=shell_size,
+            row_spec=row_spec,
+            col_spec=col_spec,
+            grid_padding=grid_padding,
+            default_insert_depth=default_insert_depth,
+            support_clearance=support_deck_clearance,
+            rail_width=support_deck_rail_width,
+            rail_gap=support_deck_rail_gap,
+            side_gap=support_deck_side_gap,
+            chamfer=support_deck_chamfer,
+            eps=eps
+          );
+      else
+        SupportDeckSlats(
           container_h=safe_h,
           floor=safe_floor,
-          shell_size=shell_size,
-          row_spec=row_spec,
-          col_spec=col_spec,
-          grid_padding=grid_padding,
-          default_insert_depth=default_insert_depth,
-          default_taper=default_taper,
-          default_rim_w=default_rim_w,
-          support_clearance=pot_support_clearance,
-          support_margin=pot_support_margin,
-          support_ring_width=pot_support_ring_width,
-          support_chamfer=pot_support_chamfer
+          inner_size=[
+            min(inner_top[0], inner_bottom[0]),
+            min(inner_top[1], inner_bottom[1])
+          ],
+          insert_depth=default_insert_depth,
+          support_clearance=support_deck_clearance,
+          rail_width=support_deck_rail_width,
+          rail_gap=support_deck_rail_gap,
+          side_gap=support_deck_side_gap,
+          chamfer=support_deck_chamfer,
+          eps=eps
         );
   }
 }
 
-module PotSupportPad(
+module SupportDeckSlats(
+  container_h,
+  floor,
+  inner_size,
+  insert_depth,
+  support_clearance,
+  rail_width,
+  rail_gap,
+  side_gap,
+  chamfer,
+  eps
+) {
+  // Fallback full-width deck when no component list is supplied.
+  SupportDeckZone(
+    center=[0, 0],
+    size=inner_size,
+    container_h=container_h,
+    floor=floor,
+    insert_depth=insert_depth,
+    support_clearance=support_clearance,
+    rail_width=rail_width,
+    rail_gap=rail_gap,
+    side_gap=side_gap,
+    chamfer=chamfer,
+    eps=eps
+  );
+}
+
+module ComponentSupportDeckSlats(
   component,
   container_h,
   floor,
@@ -133,98 +177,73 @@ module PotSupportPad(
   col_spec,
   grid_padding,
   default_insert_depth,
-  default_taper,
-  default_rim_w,
   support_clearance,
-  support_margin,
-  support_ring_width,
-  support_chamfer
+  rail_width,
+  rail_gap,
+  side_gap,
+  chamfer,
+  eps
 ) {
   raw_type = v2_component_prop(component, "type", "pot_rect");
   comp_type = raw_type == "pot" ? "pot_rect" : raw_type;
 
-  if (comp_type == "pot_rect" || comp_type == "pot_circle" || comp_type == "pot_oval") {
+  if (comp_type != "fill_tube") {
     row = v2_component_prop(component, "row", 1);
     col = v2_component_prop(component, "col", 1);
     margin = v2_component_prop(component, "margin", 0);
-    rim_w = v2_component_prop(component, "rim_w", default_rim_w);
-    taper = v2_component_prop(component, "taper", default_taper);
-    insert_depth = v2_component_prop(component, "insert_depth", default_insert_depth);
     center = grid_cell_center(shell_size, row_spec, col_spec, row, col, grid_padding);
     cell_size = grid_cell_size(shell_size, row_spec, col_spec, row, col, grid_padding);
-    top_size = [
-      max(0.01, cell_size[0] - margin * 2 - rim_w * 2 - support_margin * 2),
-      max(0.01, cell_size[1] - margin * 2 - rim_w * 2 - support_margin * 2)
+    zone_size = [
+      max(0.01, cell_size[0] - margin * 2),
+      max(0.01, cell_size[1] - margin * 2)
     ];
-    bottom_size = [
-      max(0.01, top_size[0] - taper * 2),
-      max(0.01, top_size[1] - taper * 2)
-    ];
-    support_top_z = container_h - insert_depth - support_clearance;
-    support_eps = 0.04;
-    support_z = floor - support_eps;
-    support_h = max(0, support_top_z - support_z);
-    ring_w = max(1, support_ring_width);
-    inner_size = [
-      max(0.01, bottom_size[0] - ring_w * 2),
-      max(0.01, bottom_size[1] - ring_w * 2)
-    ];
-    inner_cut_size = [
-      inner_size[0] + support_eps,
-      inner_size[1] + support_eps
-    ];
-    inner_circle_d = max(0.01, min(bottom_size[0], bottom_size[1]) - ring_w * 2 + support_eps);
 
-    if (support_h > 0.5)
-      translate([center[0], center[1], support_z])
-        if (comp_type == "pot_circle")
-          difference() {
-            cyl(
-              d=max(0.01, min(bottom_size[0], bottom_size[1])),
-              h=support_h,
-              chamfer=min(support_chamfer, support_h / 3),
-              anchor=BOTTOM
-            );
-            down(support_eps / 2)
-              cyl(
-                d=inner_circle_d,
-                h=support_h + support_eps,
-                anchor=BOTTOM
-              );
-          }
-        else if (comp_type == "pot_oval")
-          difference() {
-            scale([max(0.01, bottom_size[0] / 2), max(0.01, bottom_size[1] / 2), 1])
-              cyl(
-                d=2,
-                h=support_h,
-                chamfer=min(support_chamfer, support_h / 3),
-                anchor=BOTTOM
-              );
-            down(support_eps / 2)
-              scale([max(0.01, inner_cut_size[0] / 2), max(0.01, inner_cut_size[1] / 2), 1])
-                cyl(
-                  d=2,
-                  h=support_h + support_eps,
-                  anchor=BOTTOM
-                );
-          }
-        else
-          difference() {
-            prismoid(
-              size1=bottom_size,
-              size2=bottom_size,
-              h=support_h,
-              chamfer=min(support_chamfer, support_h / 3, min(bottom_size[0], bottom_size[1]) / 6),
-              anchor=BOTTOM
-            );
-            down(support_eps / 2)
-              prismoid(
-                size1=inner_cut_size,
-                size2=inner_cut_size,
-                h=support_h + support_eps,
-                anchor=BOTTOM
-              );
-          }
+    SupportDeckZone(
+      center=center,
+      size=zone_size,
+      container_h=container_h,
+      floor=floor,
+      insert_depth=default_insert_depth,
+      support_clearance=support_clearance,
+      rail_width=rail_width,
+      rail_gap=rail_gap,
+      side_gap=side_gap,
+      chamfer=chamfer,
+      eps=eps
+    );
   }
+}
+
+module SupportDeckZone(
+  center,
+  size,
+  container_h,
+  floor,
+  insert_depth,
+  support_clearance,
+  rail_width,
+  rail_gap,
+  side_gap,
+  chamfer,
+  eps
+) {
+  deck_top_z = container_h - insert_depth - support_clearance;
+  rail_z = floor - eps;
+  rail_h = max(0, deck_top_z - rail_z);
+  usable_x = max(0.01, size[0] - side_gap * 2);
+  usable_y = max(0.01, size[1] - side_gap * 2);
+  pitch = max(0.1, rail_width + rail_gap);
+  rail_count = max(1, floor((usable_y + rail_gap) / pitch));
+  total_rails_y = rail_count * rail_width + max(0, rail_count - 1) * rail_gap;
+  start_y = -total_rails_y / 2 + rail_width / 2;
+
+  if (rail_h > 0.5)
+    translate([center[0], center[1], 0])
+      for (i = [0:rail_count - 1])
+        translate([0, start_y + i * pitch, rail_z])
+          cuboid(
+            [usable_x, rail_width, rail_h],
+            chamfer=min(chamfer, rail_width / 3, rail_h / 3),
+            anchor=BOTTOM
+          );
 }

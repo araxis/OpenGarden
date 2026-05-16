@@ -232,3 +232,22 @@ PNG previews confirmed:
   - pads start from the container floor and stop just below the inserted pot bottom
 - Pads are now same-shape frames/rings by default instead of solid blocks, preserving water volume while still transferring load.
 - This keeps pot weight moving into the reservoir floor instead of relying on the thin shell plate.
+
+## 2026-05-16 (shared slatted support deck experiment)
+
+- Added an alternate support strategy: a shared internal slatted deck inside `ReservoirContainer()`.
+- The deck is intentionally implemented as vertical ribs rising from the reservoir floor, not as a floating horizontal plate. This keeps it printable in the same orientation as the container.
+- Deck top height follows the fixed insert-depth contract:
+  - `deck_top_z = container_h - insert_depth - support_clearance`
+- For the current experiment, `main.scad` enables the shared deck and disables per-pot ring supports so the deck can be inspected clearly.
+- Intent: test whether one common support plane is cleaner than per-pot support rings when all pots share one `Pot_Insert_Depth`.
+
+## 2026-05-16 (grid-cell support deck replaces shape pads)
+
+- Shape-aware pot support rings/pads are now superseded by the slatted deck approach.
+- `ReservoirContainer()` support logic no longer depends on pot geometry shape.
+- Each component gets a rectangular slat support zone from its grid cell footprint.
+- Insert depth is fixed globally for now:
+  - `zone_top_z = container_h - default_insert_depth - support_clearance`
+- This keeps the support deck at one predictable height so one pot cannot accidentally sit lower and drown while neighboring pots stay dry.
+- Pot total height may vary later, but v2 baseline assumes a fixed insertion depth for all pot components.

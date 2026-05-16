@@ -37,11 +37,12 @@ Container_Seat_Ledge_Drop = 3;
 Container_Seat_Ledge_Depth = 4;
 Container_Seat_Ledge_Thickness = 2;
 Container_Seat_Ledge_Chamfer = 1.2;
-Container_Pot_Support_Enabled = true;
-Container_Pot_Support_Clearance = 0.8;
-Container_Pot_Support_Margin = 8;
-Container_Pot_Support_Ring_Width = 6;
-Container_Pot_Support_Chamfer = 1;
+Container_Support_Deck_Enabled = true;
+Container_Support_Deck_Clearance = 0.8;
+Container_Support_Deck_Rail_Width = 3;
+Container_Support_Deck_Rail_Gap = 7;
+Container_Support_Deck_Side_Gap = 8;
+Container_Support_Deck_Chamfer = 0.6;
 Container_Shell_Clearance = 0;
 Container_Z_Offset = 0;
 Exploded_View = false;
@@ -104,19 +105,18 @@ left((Shell_Top_Size[0] + Preview_Spacing) / 2)
         seat_ledge_depth=Container_Seat_Ledge_Depth,
         seat_ledge_thickness=Container_Seat_Ledge_Thickness,
         seat_ledge_chamfer=Container_Seat_Ledge_Chamfer,
-        pot_support_enabled=Container_Pot_Support_Enabled,
-        pot_support_clearance=Container_Pot_Support_Clearance,
-        pot_support_margin=Container_Pot_Support_Margin,
-        pot_support_ring_width=Container_Pot_Support_Ring_Width,
-        pot_support_chamfer=Container_Pot_Support_Chamfer,
+        support_deck_enabled=Container_Support_Deck_Enabled,
+        support_deck_clearance=Container_Support_Deck_Clearance,
+        support_deck_rail_width=Container_Support_Deck_Rail_Width,
+        support_deck_rail_gap=Container_Support_Deck_Rail_Gap,
+        support_deck_side_gap=Container_Support_Deck_Side_Gap,
+        support_deck_chamfer=Container_Support_Deck_Chamfer,
         components=Components,
         shell_size=Shell_Top_Size,
         row_spec=Grid_Row_Sizes,
         col_spec=Grid_Column_Sizes,
         grid_padding=Grid_Padding,
-        default_insert_depth=Pot_Insert_Depth,
-        default_taper=Pot_Taper,
-        default_rim_w=Pot_Rim_Width
+        default_insert_depth=Pot_Insert_Depth
       );
 
     right(Shell_Preview_X_Offset)
