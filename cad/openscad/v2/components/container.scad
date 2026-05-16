@@ -260,22 +260,42 @@ module SupportDeckZone(
     translate([center[0], center[1], 0])
       for (i = [0:rail_count - 1])
         translate([0, start_y + i * pitch, rail_z])
-          union() {
-            cuboid(
-              [usable_x, rail_width, rail_h],
-              chamfer=min(chamfer, rail_width / 3, rail_h / 3),
-              anchor=BOTTOM
-            );
+          FusedSupportRail(
+            length=usable_x,
+            width=rail_width,
+            h=rail_h,
+            foot=foot_size,
+            embed=safe_embed,
+            chamfer=chamfer
+          );
+}
 
-            if (foot_size > 0)
-              for (sy = [-1, 1])
-                translate([0, sy * (rail_width / 2 - safe_embed / 2), 0])
-                  rotate([90, 0, 90])
-                    linear_extrude(height=usable_x, center=true)
-                      polygon(points=[
-                        [0, -safe_embed],
-                        [sy * (foot_size + safe_embed), -safe_embed],
-                        [0, foot_h]
-                      ]);
-          }
+module FusedSupportRail(length, width, h, foot, embed, chamfer) {
+  shoe_h = min(max(1, foot * 0.55), h * 0.25);
+  shoe_width = width + foot * 2;
+  rail_chamfer = min(chamfer, width / 3, h / 3);
+  shoe_chamfer = min(chamfer, shoe_h / 3, shoe_width / 4);
+  top_web = max(width, 2);
+  arch_r = max(0.01, min(length / 2 - foot, h - shoe_h - top_web));
+  arch_z = shoe_h - arch_r * 0.35;
+
+  union() {
+    cuboid(
+      [length, shoe_width, shoe_h],
+      chamfer=shoe_chamfer,
+      anchor=BOTTOM
+    );
+
+    difference() {
+      cuboid(
+        [length, width, h],
+        chamfer=rail_chamfer,
+        anchor=BOTTOM
+      );
+
+      translate([0, 0, arch_z])
+        rotate([90, 0, 0])
+          cylinder(r=arch_r, h=width + 0.2, center=true);
+    }
+  }
 }

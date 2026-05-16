@@ -254,3 +254,7 @@ PNG previews confirmed:
 - Added triangular feet at the bottom of each slat to avoid fragile 90-degree rib-to-floor joints in FDM prints.
 - Added a small deck embed value so support slats overlap into the floor/adjacent material instead of merely touching surfaces.
 - Refined the slat foot so its ramp also embeds below the floor plane, making the bottom transition intentionally fused rather than relying on chamfer alone.
+- Replaced the over-shaped arch support with a simpler fused rail: a normal vertical support rib plus a wider low base shoe.
+- `support_deck_embed` controls how far the rail assembly overlaps into the reservoir floor; `support_deck_foot` controls the visible extra shoe width. This keeps the floor joint strong and predictable without relying on hidden curved geometry.
+- Support rail material reduction is now done by subtracting a single horizontal cylindrical bite from the rib body while leaving the fused floor shoe intact.
+- The cylindrical bite is positioned low, below the rib body, so it carves an underside arch only and leaves a continuous top beam.
