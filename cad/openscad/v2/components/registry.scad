@@ -1,9 +1,14 @@
 include <props.scad>
 include <rim.scad>
 include <pot.scad>
+include <pot_rect.scad>
+include <pot_circle.scad>
+include <pot_oval.scad>
 include <box.scad>
 include <fill_tube.scad>
 include <../grid.scad>
+
+function v2_odd_count(n) = max(1, n % 2 == 0 ? n + 1 : n);
 
 module v2_component_cut(
   component,
@@ -16,7 +21,8 @@ module v2_component_cut(
   default_clearance,
   shell_thickness
 ) {
-  comp_type = v2_component_prop(component, "type", "pot");
+  raw_type = v2_component_prop(component, "type", "pot_rect");
+  comp_type = raw_type == "pot" ? "pot_rect" : raw_type;
   row = v2_component_prop(component, "row", 1);
   col = v2_component_prop(component, "col", 1);
   fit_clearance = v2_component_prop(component, "clearance", default_clearance);
@@ -24,10 +30,11 @@ module v2_component_cut(
   insert_depth = v2_component_prop(component, "insert_depth", cavity_height);
   taper = v2_component_prop(component, "taper", default_taper);
   margin = v2_component_prop(component, "margin", 0);
-  rim_w = v2_component_prop(component, "rim_w", comp_type == "pot" ? 4 : 0);
-  seat_depth = v2_component_prop(component, "seat_depth", comp_type == "pot" ? 1.6 : 0);
-  seat_chamfer = v2_component_prop(component, "seat_chamfer", 0.6);
+  rim_w = v2_component_prop(component, "rim_w", (comp_type == "pot_rect" || comp_type == "pot_circle" || comp_type == "pot_oval") ? 4 : 0);
+  rim_h = v2_component_prop(component, "rim_h", (comp_type == "pot_rect" || comp_type == "pot_circle" || comp_type == "pot_oval") ? 2 : 0);
+  rim_chamfer = v2_component_prop(component, "rim_chamfer", 0.6);
   cut_epsilon = v2_component_prop(component, "cut_epsilon", 0.2);
+  geom_epsilon = v2_component_prop(component, "geom_epsilon", 0.05);
   tube_w = v2_component_prop(component, "tube_w", 8);
   tube_d = v2_component_prop(component, "tube_d", 8);
 
@@ -44,7 +51,7 @@ module v2_component_cut(
 
   safe_thickness = max(0.5, shell_thickness);
   safe_clearance = max(0, fit_clearance);
-  safe_cavity_height = max(0.5, comp_type == "pot" ? insert_depth : cavity_height);
+  safe_cavity_height = max(0.5, (comp_type == "pot_rect" || comp_type == "pot_circle" || comp_type == "pot_oval") ? insert_depth : cavity_height);
   taper_at_cut_depth = taper * min(1, safe_thickness / safe_cavity_height);
   cut_top_size = [
     max(0.01, through_size[0] + safe_clearance * 2),
@@ -63,19 +70,44 @@ module v2_component_cut(
         fit_clearance=fit_clearance,
         shell_thickness=safe_thickness
       );
-    else if (comp_type == "pot" && (rim_w > 0 || seat_depth > 0))
-      RectSeatCut(
-        outer_size=size,
-        through_size=through_size,
+    else if (comp_type == "pot_rect")
+      PotRectCut(
+        cut_size=size,
         shell_thickness=safe_thickness,
-        seat_depth=seat_depth,
         fit_clearance=fit_clearance,
-        chamfer=seat_chamfer,
+        taper=taper,
+        insert_depth=insert_depth,
+        rim_w=rim_w,
+        rim_h=rim_h,
+        rim_chamfer=rim_chamfer,
+        cut_epsilon=cut_epsilon
+      );
+    else if (comp_type == "pot_circle")
+      PotCircleCut(
+        diameter=min(size[0], size[1]),
+        shell_thickness=safe_thickness,
+        fit_clearance=fit_clearance,
+        taper=taper,
+        insert_depth=insert_depth,
+        rim_w=rim_w,
+        rim_h=rim_h,
+        cut_epsilon=cut_epsilon
+      );
+    else if (comp_type == "pot_oval")
+      PotOvalCut(
+        cut_size=size,
+        shell_thickness=safe_thickness,
+        fit_clearance=fit_clearance,
+        taper=taper,
+        insert_depth=insert_depth,
+        rim_w=rim_w,
+        rim_h=rim_h,
+        rim_chamfer=rim_chamfer,
         cut_epsilon=cut_epsilon
       );
     else
       prismoid(
-        size1=comp_type == "pot" ? cut_bottom_size : cut_top_size,
+        size1=(comp_type == "pot_rect" || comp_type == "pot_circle" || comp_type == "pot_oval") ? cut_bottom_size : cut_top_size,
         size2=cut_top_size,
         h=safe_thickness + 0.2,
         anchor=BOTTOM
@@ -100,13 +132,15 @@ module v2_component_reference(
   default_hole_padding = 14,
   show_fill_tube_reference = false
 ) {
-  comp_type = v2_component_prop(component, "type", "pot");
+  raw_type = v2_component_prop(component, "type", "pot_rect");
+  comp_type = raw_type == "pot" ? "pot_rect" : raw_type;
   row = v2_component_prop(component, "row", 1);
   col = v2_component_prop(component, "col", 1);
   margin = v2_component_prop(component, "margin", 0);
-  rim_w = v2_component_prop(component, "rim_w", comp_type == "pot" ? 4 : 0);
-  rim_h = v2_component_prop(component, "rim_h", comp_type == "pot" ? 2 : 0);
+  rim_w = v2_component_prop(component, "rim_w", (comp_type == "pot_rect" || comp_type == "pot_circle" || comp_type == "pot_oval") ? 4 : 0);
+  rim_h = v2_component_prop(component, "rim_h", (comp_type == "pot_rect" || comp_type == "pot_circle" || comp_type == "pot_oval") ? 2 : 0);
   rim_chamfer = v2_component_prop(component, "rim_chamfer", 0.6);
+  geom_epsilon = v2_component_prop(component, "geom_epsilon", 0.05);
   cavity_h = v2_component_prop(component, "cavity_h", default_cavity_height);
   insert_depth = v2_component_prop(component, "insert_depth", cavity_h);
   pot_h = v2_component_prop(component, "pot_h", default_pot_height);
@@ -119,23 +153,59 @@ module v2_component_reference(
   ];
 
   translate([center[0], center[1], 0])
-    if (comp_type == "pot")
-      Pot(
-        top_size=body_size,
-        h=pot_h,
+    if (comp_type == "pot_rect")
+      PotRectReference(
+        top_size=size,
+        pot_h=pot_h,
+        insert_depth=insert_depth,
         wall=default_wall,
         floor=default_floor,
         taper=default_taper,
         chamfer=default_chamfer,
-        rim_width=rim_w,
-        rim_height=rim_h,
-        rim_z=insert_depth,
+        rim_w=rim_w,
+        rim_h=rim_h,
         rim_chamfer=rim_chamfer,
         hole_rows=default_hole_rows,
         hole_cols=default_hole_cols,
         hole_diameter=default_hole_diameter,
         hole_padding=default_hole_padding
       );
+    else if (comp_type == "pot_circle")
+      render(convexity=12)
+        PotCircleReference(
+          diameter=min(size[0], size[1]),
+          pot_h=pot_h,
+          insert_depth=insert_depth,
+          wall=default_wall,
+          floor=default_floor,
+          taper=default_taper,
+          rim_w=rim_w,
+          rim_h=rim_h,
+          geom_epsilon=geom_epsilon,
+          hole_rows=v2_odd_count(default_hole_rows),
+          hole_cols=v2_odd_count(default_hole_cols),
+          hole_diameter=default_hole_diameter,
+          hole_padding=default_hole_padding
+        );
+    else if (comp_type == "pot_oval")
+      render(convexity=12)
+        PotOvalReference(
+          top_size=size,
+          pot_h=pot_h,
+          insert_depth=insert_depth,
+          wall=default_wall,
+          floor=default_floor,
+          taper=default_taper,
+          chamfer=default_chamfer,
+          rim_w=rim_w,
+          rim_h=rim_h,
+          rim_chamfer=rim_chamfer,
+          geom_epsilon=geom_epsilon,
+          hole_rows=v2_odd_count(default_hole_rows),
+          hole_cols=v2_odd_count(default_hole_cols),
+          hole_diameter=default_hole_diameter,
+          hole_padding=default_hole_padding
+        );
     else if (comp_type == "box")
       BoxContainer(
         top_size=size,

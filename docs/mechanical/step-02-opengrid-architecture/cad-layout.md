@@ -61,6 +61,35 @@ Per-cell named BOSL2 anchors (`cell_<row>_<col>_top`, `cell_<row>_<col>_wall_n`,
 
 ---
 
+## v2 Shell-First Layout (Active)
+
+The current active refactor for new geometry work is under:
+
+```text
+cad/openscad/v2/
+  main.scad
+  shell.scad
+  grid.scad
+  components/
+    props.scad
+    registry.scad
+    rim.scad
+    pot.scad
+    pot_rect.scad
+    pot_circle.scad
+    pot_oval.scad
+    box.scad
+    fill_tube.scad
+```
+
+Notes:
+- `registry.scad` is the host dispatch layer (placement + per-type routing).
+- Pot variants are split by type (`pot_rect`, `pot_circle`, `pot_oval`).
+- Rim/seat behavior is owned by pot-type modules.
+- `geom_epsilon` is supported per component to reduce coplanar/OpenCSG preview artifacts.
+
+---
+
 ## Target Folder Structure
 
 As the project grows, the CAD can move toward this structure:

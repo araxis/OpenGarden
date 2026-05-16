@@ -25,18 +25,15 @@ Shell_Thickness = 3; // Typical range: 2..5 mm
 Shell_Chamfer = 0.8;
 Shell_Rounding = 0;
 Shell_Pot_Clearance = 0.4;
-Shell_Seat_Depth = 2.4;
-Shell_Seat_Chamfer = 0.6;
 
 Grid_Row_Sizes = "1*";
 Grid_Column_Sizes = "1*,1*,1*";
 Grid_Padding = [4, 4, 4, 4]; // [left, right, front, back]
 
 Components = [
-  [["type", "pot"], ["row", 1], ["col", 1], ["pot_h", Pot_Height], ["insert_depth", Pot_Insert_Depth], ["rim_w", Pot_Rim_Width], ["rim_h", Pot_Rim_Height], ["rim_chamfer", Pot_Rim_Chamfer], ["seat_depth", Shell_Seat_Depth], ["seat_chamfer", Shell_Seat_Chamfer]],
-  [["type", "pot"], ["row", 1], ["col", 2], ["pot_h", Pot_Height], ["insert_depth", Pot_Insert_Depth], ["rim_w", Pot_Rim_Width], ["rim_h", Pot_Rim_Height], ["rim_chamfer", Pot_Rim_Chamfer], ["seat_depth", Shell_Seat_Depth], ["seat_chamfer", Shell_Seat_Chamfer]],
-  [["type", "pot"], ["row", 1], ["col", 3], ["pot_h", Pot_Height], ["insert_depth", Pot_Insert_Depth], ["rim_w", Pot_Rim_Width], ["rim_h", Pot_Rim_Height], ["rim_chamfer", Pot_Rim_Chamfer], ["seat_depth", Shell_Seat_Depth], ["seat_chamfer", Shell_Seat_Chamfer]],
-
+  [["type", "pot_rect"], ["row", 1], ["col", 1], ["pot_h", Pot_Height], ["insert_depth", Pot_Insert_Depth], ["rim_w", Pot_Rim_Width], ["rim_h", Pot_Rim_Height], ["rim_chamfer", Pot_Rim_Chamfer]],
+  [["type", "pot_circle"], ["row", 1], ["col", 2], ["pot_h", Pot_Height], ["insert_depth", Pot_Insert_Depth], ["rim_w", Pot_Rim_Width], ["rim_h", Pot_Rim_Height]],
+  [["type", "pot_oval"], ["row", 1], ["col", 3], ["pot_h", Pot_Height], ["insert_depth", Pot_Insert_Depth], ["rim_w", Pot_Rim_Width], ["rim_h", Pot_Rim_Height], ["rim_chamfer", Pot_Rim_Chamfer]],
 ];
 
 Preview_Spacing = 18;

@@ -160,3 +160,24 @@ PNG previews confirmed:
 - `RectSeatCut()` creates the matching shell recess and through-hole, with `cut_epsilon` to avoid coplanar preview/export artifacts.
 - Pot references now use `pot_h` for physical pot height and `insert_depth` for rim Z position.
 - Default rim proportions use `Pot_Rim_Width = 3` and `Pot_Rim_Height = 3` to stay near a 45-degree printable shoulder.
+
+## 2026-05-16 (pot-type architecture lock)
+
+- Locked new component direction: separate pot-type components instead of one generic pot shape flag.
+- Pot family now moves toward:
+  - `pot_rect`
+  - `pot_circle`
+  - `pot_oval`
+- Rim/seat ownership is moved into each pot-type component contract.
+- Shell no longer needs separate top-level seat controls for pot features; seat cut is derived from pot component parameters.
+- Registry remains host/orchestrator only (placement + dispatch), while pot-type modules own interface geometry details.
+
+## 2026-05-16 (oval + epsilon follow-up)
+
+- Added real `pot_oval` geometry module (no longer a rectangular wrapper), including:
+  - tapered oval body/cavity
+  - oval rim ring
+  - oval drain hole placement bounded by ellipse
+  - oval shell cut path
+- Added `geom_epsilon` support as a per-component override in registry and passed it through circular/oval references.
+- Wrapped circular and oval reference previews with `render(convexity=12)` to reduce OpenCSG preview artifacts that were not present in STL manifold exports.

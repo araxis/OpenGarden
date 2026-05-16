@@ -1,0 +1,179 @@
+include <BOSL2/std.scad>
+
+module PotOvalReference(
+  top_size = [180, 50],
+  pot_h = 55,
+  insert_depth = 37,
+  wall = 2,
+  floor = 3,
+  taper = 0,
+  chamfer = 0, // kept for API compatibility; not used in oval primitive
+  rim_w = 3,
+  rim_h = 3,
+  rim_chamfer = 0, // kept for API compatibility; not used in oval primitive
+  hole_rows = 2,
+  hole_cols = 8,
+  hole_diameter = 3,
+  hole_padding = 14,
+  geom_epsilon = 0.05
+) {
+  outer_top = [max(0.01, top_size[0]), max(0.01, top_size[1])];
+  outer_bottom = [
+    max(0.01, outer_top[0] - taper * 2),
+    max(0.01, outer_top[1] - taper * 2)
+  ];
+  inner_top = [
+    max(0.01, outer_top[0] - wall * 2),
+    max(0.01, outer_top[1] - wall * 2)
+  ];
+  inner_bottom = [
+    max(0.01, outer_bottom[0] - wall * 2),
+    max(0.01, outer_bottom[1] - wall * 2)
+  ];
+  eps = max(0.001, geom_epsilon);
+  safe_rim_z = min(max(0, insert_depth), pot_h);
+  body_at_rim = PotOvalSizeAtZ(outer_bottom, outer_top, pot_h, safe_rim_z);
+  inner_at_rim = [
+    max(0.01, body_at_rim[0] - wall * 2),
+    max(0.01, body_at_rim[1] - wall * 2)
+  ];
+  rim_outer = [
+    max(0.01, body_at_rim[0] + rim_w * 2),
+    max(0.01, body_at_rim[1] + rim_w * 2)
+  ];
+
+  union() {
+    difference() {
+      OvalFrustum(outer_bottom, outer_top, pot_h);
+
+      up(floor - eps)
+        OvalFrustum(
+          inner_bottom,
+          inner_top,
+          max(0.01, pot_h - floor) + eps * 2
+        );
+
+      PotOvalDrainHoles(
+        size=inner_bottom,
+        floor=floor,
+        rows=hole_rows,
+        cols=hole_cols,
+        hole_d=hole_diameter,
+        padding=hole_padding,
+        geom_epsilon=eps
+      );
+    }
+
+    if (rim_w > 0 && rim_h > 0)
+      up(safe_rim_z - eps)
+        difference() {
+          OvalPrism(rim_outer, rim_h + eps);
+          down(eps)
+            OvalPrism(inner_at_rim, rim_h + eps * 2);
+        }
+  }
+}
+
+module PotOvalCut(
+  cut_size = [180, 50],
+  shell_thickness = 3,
+  fit_clearance = 0.4,
+  taper = 0,
+  insert_depth = 37,
+  rim_w = 3,
+  rim_h = 3,
+  rim_chamfer = 0, // API compatibility
+  cut_epsilon = 0.2
+) {
+  through = [
+    max(0.01, cut_size[0] - rim_w * 2),
+    max(0.01, cut_size[1] - rim_w * 2)
+  ];
+  safe_t = max(0.5, shell_thickness);
+  safe_clearance = max(0, fit_clearance);
+  eps = max(0.01, cut_epsilon);
+  seat_depth = min(max(0, rim_h), safe_t);
+
+  seat_outer = [
+    max(0.01, cut_size[0] + safe_clearance * 2),
+    max(0.01, cut_size[1] + safe_clearance * 2)
+  ];
+  seat_through = [
+    max(0.01, through[0] + safe_clearance * 2),
+    max(0.01, through[1] + safe_clearance * 2)
+  ];
+
+  if (rim_w > 0 || rim_h > 0) {
+    if (seat_depth > 0)
+      up(safe_t - seat_depth - eps)
+        OvalFrustum(
+          seat_through,
+          seat_outer,
+          seat_depth + eps * 3
+        );
+
+    down(eps)
+      OvalPrism(
+        seat_through,
+        safe_t + eps * 3
+      );
+  } else {
+    safe_insert = max(0.5, insert_depth);
+    taper_at_cut_depth = taper * min(1, safe_t / safe_insert);
+    top_sz = [
+      max(0.01, through[0] + safe_clearance * 2),
+      max(0.01, through[1] + safe_clearance * 2)
+    ];
+    bottom_sz = [
+      max(0.01, through[0] - taper_at_cut_depth * 2 + safe_clearance * 2),
+      max(0.01, through[1] - taper_at_cut_depth * 2 + safe_clearance * 2)
+    ];
+    OvalFrustum(bottom_sz, top_sz, safe_t + 0.2);
+  }
+}
+
+module PotOvalDrainHoles(size, floor, rows, cols, hole_d, padding, geom_epsilon = 0.05) {
+  span_x = max(0, size[0] - padding);
+  span_y = max(0, size[1] - padding);
+  rx = max(0, span_x / 2 - hole_d / 2);
+  ry = max(0, span_y / 2 - hole_d / 2);
+  eps = max(0.001, geom_epsilon);
+
+  for (row = [0:rows - 1])
+    for (col = [0:cols - 1])
+      let (
+        x = PotOvalOffset(col, cols, span_x),
+        y = PotOvalOffset(row, rows, span_y),
+        in_ellipse = (rx <= 0 || ry <= 0) ? false : ((x * x) / (rx * rx) + (y * y) / (ry * ry) <= 1)
+      )
+        if (in_ellipse)
+          translate([x, y, -eps])
+            cyl(d=hole_d, h=floor + eps * 2, anchor=BOTTOM);
+}
+
+module OvalPrism(size = [50, 30], h = 10) {
+  sx = max(0.01, size[0] / 2);
+  sy = max(0.01, size[1] / 2);
+  scale([sx, sy, 1])
+    cyl(d=2, h=h, anchor=BOTTOM);
+}
+
+module OvalFrustum(size1 = [45, 25], size2 = [50, 30], h = 10) {
+  sx1 = max(0.01, size1[0] / 2);
+  sy1 = max(0.01, size1[1] / 2);
+  sx2 = max(0.01, size2[0] / 2);
+  sy2 = max(0.01, size2[1] / 2);
+  linear_extrude(height=h, scale=[sx2 / sx1, sy2 / sy1], center=false)
+    scale([sx1, sy1])
+      circle(d=2);
+}
+
+function PotOvalOffset(index, count, span) =
+  count <= 1 ? 0 : -span / 2 + index * span / (count - 1);
+
+function PotOvalSizeAtZ(bottom_size, top_size, h, z) =
+  let (t = h <= 0 ? 1 : min(max(0, z), h) / h)
+    [
+      bottom_size[0] + (top_size[0] - bottom_size[0]) * t,
+      bottom_size[1] + (top_size[1] - bottom_size[1]) * t
+    ];
