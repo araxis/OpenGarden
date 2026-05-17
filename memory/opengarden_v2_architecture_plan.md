@@ -111,7 +111,8 @@ Step C (done):
 - Add component selector per cut (`pot | box`).
 
 Step D (done):
-- Add multiple cut entries (list of operations), still no spans yet.
+- Add multiple cut entries (list of operations).
+- Components may use `row_span` / `col_span` to occupy a merged grid footprint.
 - Stable deterministic order: operations apply in listed order.
 
 Step E:

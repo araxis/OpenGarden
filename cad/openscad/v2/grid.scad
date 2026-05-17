@@ -99,26 +99,50 @@ function v2_grid_track_center(total, spec, count, divider, index) =
   v2_grid_track_edge(total, spec, count, divider, index)
   + v2_grid_track_size(total, spec, count, divider, index) / 2;
 
-function grid_cell_size(shell_size, row_spec, col_spec, row, col, padding, divider = 0) =
+function v2_grid_span_track_size(total, spec, count, divider, start, span) =
   let (
-    rows = v2_grid_track_count(row_spec),
-    cols = v2_grid_track_count(col_spec),
-    safe_row = min(max(1, row), rows) - 1,
-    safe_col = min(max(1, col), cols) - 1
+    safe_start = min(max(0, start), count - 1),
+    safe_span = min(max(1, span), count - safe_start),
+    last = safe_start + safe_span - 1
   )
-  [
-    max(0, v2_grid_track_size(shell_size[0], col_spec, cols, divider, safe_col) - padding[0] - padding[1]),
-    max(0, v2_grid_track_size(shell_size[1], row_spec, rows, divider, safe_row) - padding[2] - padding[3])
-  ];
+    v2_grid_track_edge(total, spec, count, divider, last)
+    + v2_grid_track_size(total, spec, count, divider, last)
+    - v2_grid_track_edge(total, spec, count, divider, safe_start);
+
+function v2_grid_span_track_center(total, spec, count, divider, start, span) =
+  v2_grid_track_edge(total, spec, count, divider, start)
+  + v2_grid_span_track_size(total, spec, count, divider, start, span) / 2;
+
+function grid_cell_size(shell_size, row_spec, col_spec, row, col, padding, divider = 0) =
+  grid_cell_span_size(shell_size, row_spec, col_spec, row, col, 1, 1, padding, divider);
 
 function grid_cell_center(shell_size, row_spec, col_spec, row, col, padding, divider = 0) =
+  grid_cell_span_center(shell_size, row_spec, col_spec, row, col, 1, 1, padding, divider);
+
+function grid_cell_span_size(shell_size, row_spec, col_spec, row, col, row_span, col_span, padding, divider = 0) =
   let (
     rows = v2_grid_track_count(row_spec),
     cols = v2_grid_track_count(col_spec),
     safe_row = min(max(1, row), rows) - 1,
     safe_col = min(max(1, col), cols) - 1,
-    base_x = v2_grid_track_center(shell_size[0], col_spec, cols, divider, safe_col),
-    base_y = v2_grid_track_center(shell_size[1], row_spec, rows, divider, safe_row)
+    safe_row_span = min(max(1, row_span), rows - safe_row),
+    safe_col_span = min(max(1, col_span), cols - safe_col)
+  )
+  [
+    max(0, v2_grid_span_track_size(shell_size[0], col_spec, cols, divider, safe_col, safe_col_span) - padding[0] - padding[1]),
+    max(0, v2_grid_span_track_size(shell_size[1], row_spec, rows, divider, safe_row, safe_row_span) - padding[2] - padding[3])
+  ];
+
+function grid_cell_span_center(shell_size, row_spec, col_spec, row, col, row_span, col_span, padding, divider = 0) =
+  let (
+    rows = v2_grid_track_count(row_spec),
+    cols = v2_grid_track_count(col_spec),
+    safe_row = min(max(1, row), rows) - 1,
+    safe_col = min(max(1, col), cols) - 1,
+    safe_row_span = min(max(1, row_span), rows - safe_row),
+    safe_col_span = min(max(1, col_span), cols - safe_col),
+    base_x = v2_grid_span_track_center(shell_size[0], col_spec, cols, divider, safe_col, safe_col_span),
+    base_y = v2_grid_span_track_center(shell_size[1], row_spec, rows, divider, safe_row, safe_row_span)
   )
   [
     base_x + (padding[0] - padding[1]) / 2,

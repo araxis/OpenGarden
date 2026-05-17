@@ -12,7 +12,7 @@ Show_FillTube_Reference = false;
 // X spacing between the reference group and the assembly group (mm).
 Preview_Spacing = 18; // [0:1:100]
 // X offset applied to the shell-plate preview (mm).
-Shell_Preview_X_Offset = 0; // [-100:0.5:100]
+Shell_Preview_X_Offset = 0; // [-500:1:500]
 // Z offset applied to the reservoir container in the preview (mm).
 Container_Z_Offset = 0; // [-50:0.5:50]
 // Vertical gap between container top and shell plate (mm).

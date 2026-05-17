@@ -202,9 +202,11 @@ module ComponentSupportDeckSlats(
   if (comp_type != "fill_tube") {
     row = v2_component_prop(component, "row", 1);
     col = v2_component_prop(component, "col", 1);
+    row_span = v2_component_prop(component, "row_span", 1);
+    col_span = v2_component_prop(component, "col_span", 1);
     margin = v2_component_prop(component, "margin", 0);
-    center = grid_cell_center(shell_size, row_spec, col_spec, row, col, grid_padding);
-    cell_size = grid_cell_size(shell_size, row_spec, col_spec, row, col, grid_padding);
+    center = grid_cell_span_center(shell_size, row_spec, col_spec, row, col, row_span, col_span, grid_padding);
+    cell_size = grid_cell_span_size(shell_size, row_spec, col_spec, row, col, row_span, col_span, grid_padding);
     zone_size = [
       max(0.01, cell_size[0] - margin * 2),
       max(0.01, cell_size[1] - margin * 2)

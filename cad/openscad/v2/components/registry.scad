@@ -29,6 +29,8 @@ module v2_component_cut(
   comp_type = raw_type == "pot" ? "pot_rect" : raw_type;
   row = v2_component_prop(component, "row", 1);
   col = v2_component_prop(component, "col", 1);
+  row_span = v2_component_prop(component, "row_span", 1);
+  col_span = v2_component_prop(component, "col_span", 1);
   fit_clearance = v2_component_prop(component, "clearance", default_clearance);
   cavity_height = v2_component_prop(component, "cavity_h", default_cavity_height);
   insert_depth = v2_component_prop(component, "insert_depth", cavity_height);
@@ -43,8 +45,8 @@ module v2_component_cut(
   tube_w = v2_component_prop(component, "tube_w", 8);
   tube_d = v2_component_prop(component, "tube_d", 8);
 
-  center = grid_cell_center(shell_size, row_spec, col_spec, row, col, grid_padding);
-  cell_size = grid_cell_size(shell_size, row_spec, col_spec, row, col, grid_padding);
+  center = grid_cell_span_center(shell_size, row_spec, col_spec, row, col, row_span, col_span, grid_padding);
+  cell_size = grid_cell_span_size(shell_size, row_spec, col_spec, row, col, row_span, col_span, grid_padding);
   size = [
     max(0.01, cell_size[0] - margin * 2),
     max(0.01, cell_size[1] - margin * 2)
@@ -167,6 +169,8 @@ module v2_component_reference(
   comp_type = raw_type == "pot" ? "pot_rect" : raw_type;
   row = v2_component_prop(component, "row", 1);
   col = v2_component_prop(component, "col", 1);
+  row_span = v2_component_prop(component, "row_span", 1);
+  col_span = v2_component_prop(component, "col_span", 1);
   margin = v2_component_prop(component, "margin", 0);
   corner_radius = v2_component_prop(component, "corner_radius", 12);
   rim_w = v2_component_prop(component, "rim_w", v2_is_pot_component(comp_type) ? 4 : 0);
@@ -176,8 +180,8 @@ module v2_component_reference(
   cavity_h = v2_component_prop(component, "cavity_h", default_cavity_height);
   insert_depth = v2_component_prop(component, "insert_depth", cavity_h);
   pot_h = v2_component_prop(component, "pot_h", default_pot_height);
-  center = grid_cell_center(shell_size, row_spec, col_spec, row, col, grid_padding);
-  cell_size = grid_cell_size(shell_size, row_spec, col_spec, row, col, grid_padding);
+  center = grid_cell_span_center(shell_size, row_spec, col_spec, row, col, row_span, col_span, grid_padding);
+  cell_size = grid_cell_span_size(shell_size, row_spec, col_spec, row, col, row_span, col_span, grid_padding);
   size = [max(0.01, cell_size[0] - margin * 2), max(0.01, cell_size[1] - margin * 2)];
   body_size = [
     max(0.01, size[0] - rim_w * 2),
