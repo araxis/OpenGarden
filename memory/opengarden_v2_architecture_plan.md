@@ -113,6 +113,7 @@ Step C (done):
 Step D (done):
 - Add multiple cut entries (list of operations).
 - Components may use `row_span` / `col_span` to occupy a merged grid footprint.
+- Components may use local subgrid props (`sub_row_sizes`, `sub_col_sizes`, `sub_row`, `sub_col`, `sub_row_span`, `sub_col_span`, `sub_padding`) to split their resolved footprint without mutating root grid topology.
 - Stable deterministic order: operations apply in listed order.
 
 Step E:
