@@ -106,8 +106,8 @@ Container_Seat_Ledge_Chamfer = 1.2; // [0:0.1:5]
 /*[Container Support Deck]*/
 // Slatted deck under pot positions to lift them off the reservoir floor.
 Container_Support_Deck_Enabled = true;
-// Deck generation mode. None disables deck geometry even when enabled.
-Container_Support_Deck_Mode = "Slatted"; // [None, Slatted]
+// Deck generation mode. Rails uses only long rails; Grid adds arch bridges between rails.
+Container_Support_Deck_Mode = "Grid"; // [None, Rails, Grid]
 // Vertical gap between deck top and the pot bottom (mm).
 Container_Support_Deck_Clearance = 0.8; // [0:0.1:5]
 // Width of each slat rail (mm).

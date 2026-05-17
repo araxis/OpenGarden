@@ -16,7 +16,7 @@ module ReservoirContainer(
   seat_ledge_thickness = 2,
   seat_ledge_chamfer = 1.2,
   support_deck_enabled = false,
-  support_deck_mode = "Slatted",
+  support_deck_mode = "Grid",
   support_deck_clearance = 0.8,
   support_deck_rail_width = 3,
   support_deck_rail_gap = 7,
@@ -121,6 +121,7 @@ module ReservoirContainer(
         chamfer=support_deck_chamfer,
         foot=support_deck_foot,
         embed=support_deck_embed,
+        include_bridges=support_deck_mode == "Grid",
         components=components,
         shell_size=shell_size,
         row_spec=row_spec,
@@ -143,6 +144,7 @@ module SupportDeckSlats(
   chamfer,
   foot,
   embed,
+  include_bridges = true,
   components = [],
   shell_size = inner_size,
   row_spec = "1*",
@@ -164,6 +166,7 @@ module SupportDeckSlats(
       chamfer=chamfer,
       foot=foot,
       embed=embed,
+      include_bridges=include_bridges,
       eps=eps
     );
 
@@ -236,6 +239,7 @@ module SupportDeckZone(
   chamfer,
   foot,
   embed,
+  include_bridges,
   eps
 ) {
   deck_top_z = container_h - insert_depth - support_clearance;
@@ -274,7 +278,7 @@ module SupportDeckZone(
               chamfer=chamfer
             );
 
-        if (rail_count > 1 && bridge_count > 0 && bridge_rise > 0.5)
+        if (include_bridges && rail_count > 1 && bridge_count > 0 && bridge_rise > 0.5)
           for (x_i = [0:bridge_count - 1])
             for (rail_i = [0:rail_count - 2])
               translate([
