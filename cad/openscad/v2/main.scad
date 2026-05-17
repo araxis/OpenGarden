@@ -3,6 +3,7 @@ include <shell.scad>
 include <grid.scad>
 include <components/registry.scad>
 include <components/container.scad>
+include <components/deck_frame.scad>
 
 /*[Preview]*/
 // Show component reference geometry alongside the assembly.
@@ -17,10 +18,14 @@ Shell_Preview_X_Offset = 0; // [-500:1:500]
 Container_Z_Offset = 0; // [-50:0.5:50]
 // Vertical gap between container top and shell plate (mm).
 Container_Shell_Clearance = 0; // [0:0.5:50]
-// Lift the shell off the container for an exploded view.
+// Lift the shell and deck frame off the container for an exploded view.
 Exploded_View = false;
 // Extra Z lift applied to the shell when Exploded_View is on (mm).
 Exploded_Z = 8; // [0:0.5:60]
+// Extra Z lift applied to the deck frame above the container when Exploded_View is on (mm).
+Deck_Frame_Exploded_Z = 20; // [0:1:80]
+// Show the deck frame in the assembled view.
+Show_Deck_Frame = true;
 
 /*[Grid]*/
 // Comma-separated row tokens — one per row. Use "1*", "2*", literal mm, or "25%".
@@ -103,25 +108,35 @@ Container_Seat_Ledge_Thickness = 2; // [0.5:0.1:10]
 // Chamfer on ledge edges (mm).
 Container_Seat_Ledge_Chamfer = 1.2; // [0:0.1:5]
 
-/*[Container Support Deck]*/
-// Slatted deck under pot positions to lift them off the reservoir floor.
-Container_Support_Deck_Enabled = true;
-// Deck generation mode. Rails uses only long rails; Grid adds arch bridges between rails.
-Container_Support_Deck_Mode = "Grid"; // [None, Rails, Grid]
-// Vertical gap between deck top and the pot bottom (mm).
-Container_Support_Deck_Clearance = 0.8; // [0:0.1:5]
-// Width of each slat rail (mm).
-Container_Support_Deck_Rail_Width = 3; // [1:0.1:10]
+/*[Guide Rails]*/
+// Add vertical guide rails to the container inner long walls for deck frame alignment.
+Guide_Rails_Enabled = true;
+// Guide rail width (mm).
+Guide_Rail_Width = 5; // [2:0.5:12]
+// Guide rail protrusion depth into the container interior (mm).
+Guide_Rail_Depth = 1.2; // [0.5:0.1:3]
+// Fit clearance between guide rail and deck frame channel, per side (mm).
+Guide_Rail_Clearance = 0.3; // [0:0.05:1]
+// Distance from inner corner to guide rail center along the long wall (mm).
+Guide_Rail_Corner_Offset = 16; // [5:0.5:60]
+
+/*[Deck Frame]*/
+// Vertical gap between deck slat tops and pot bottom (mm).
+Deck_Frame_Support_Clearance = 0.8; // [0:0.1:5]
+// Deck frame outer wall thickness (mm).
+Deck_Frame_Wall = 3; // [1.2:0.2:6]
+// Per-side fit clearance between frame outer edge and container inner wall (mm).
+Deck_Frame_Fit_Clearance = 0.3; // [0:0.05:1]
+// Slat width (mm).
+Deck_Frame_Slat_Width = 3; // [1:0.1:10]
 // Gap between adjacent slats (mm).
-Container_Support_Deck_Rail_Gap = 7; // [1:0.1:30]
-// Inset from each side of the supported zone (mm).
-Container_Support_Deck_Side_Gap = 8; // [0:0.5:30]
-// Chamfer on slat edges (mm).
-Container_Support_Deck_Chamfer = 0.6; // [0:0.1:3]
-// Foot extension at the base of each slat (mm).
-Container_Support_Deck_Foot = 2.5; // [0:0.1:10]
-// How far slats embed into the container floor for a fused joint (mm).
-Container_Support_Deck_Embed = 0.6; // [0:0.1:3]
+Deck_Frame_Slat_Gap = 7; // [1:0.1:30]
+// Y-axis inset from long frame walls to slat zone (mm). Slats always span full inner X.
+Deck_Frame_Slat_Side_Gap = 6; // [0:0.5:20]
+// Slat edge chamfer (mm).
+Deck_Frame_Slat_Chamfer = 0.6; // [0:0.1:3]
+// Add arch bridges between slats.
+Deck_Frame_Bridges = true;
 
 /*[Hidden]*/
 $fn = 48;
@@ -136,11 +151,22 @@ Container_Outer_Size = [
   Shell_Top_Size[1] + Container_Wall * 2 + Shell_Plate_Fit_Clearance * 2
 ];
 
+// Container inner footprint (outer minus two walls).
+Container_Inner_Size = [
+  Container_Outer_Size[0] - Container_Wall * 2,
+  Container_Outer_Size[1] - Container_Wall * 2
+];
+
 // Z height at which the shell plate rests: on top of the seat ledge when enabled,
 // otherwise on the container's top rim.
 Shell_Rest_Z = Container_Seat_Ledge_Enabled
   ? max(0, Container_Height - Container_Seat_Ledge_Drop)
   : Container_Height;
+
+// Deck frame height: from container floor surface up to the slat top (= pot insert level).
+Deck_Frame_Height = max(1,
+  Container_Height - Container_Floor - Pot_Insert_Depth - Deck_Frame_Support_Clearance
+);
 
 Components = [
   [["type", "pot_roundrect"], ["row", 1], ["col", 1], ["pot_h", Pot_Height], ["insert_depth", Pot_Insert_Depth], ["corner_radius", Pot_Corner_Radius], ["rim_w", Pot_Rim_Width], ["rim_h", Pot_Rim_Height], ["rim_chamfer", Pot_Rim_Chamfer]],
@@ -191,22 +217,35 @@ left((Container_Outer_Size[0] + Preview_Spacing) / 2)
         seat_ledge_depth=Container_Seat_Ledge_Depth,
         seat_ledge_thickness=Container_Seat_Ledge_Thickness,
         seat_ledge_chamfer=Container_Seat_Ledge_Chamfer,
-        support_deck_enabled=Container_Support_Deck_Enabled,
-        support_deck_mode=Container_Support_Deck_Mode,
-        support_deck_clearance=Container_Support_Deck_Clearance,
-        support_deck_rail_width=Container_Support_Deck_Rail_Width,
-        support_deck_rail_gap=Container_Support_Deck_Rail_Gap,
-        support_deck_side_gap=Container_Support_Deck_Side_Gap,
-        support_deck_chamfer=Container_Support_Deck_Chamfer,
-        support_deck_foot=Container_Support_Deck_Foot,
-        support_deck_embed=Container_Support_Deck_Embed,
-        components=Components,
-        shell_size=Shell_Top_Size,
-        row_spec=Grid_Row_Sizes,
-        col_spec=Grid_Column_Sizes,
-        grid_padding=Grid_Padding,
-        default_insert_depth=Pot_Insert_Depth
+        deck_rails_enabled=Guide_Rails_Enabled,
+        deck_rail_width=Guide_Rail_Width,
+        deck_rail_depth=Guide_Rail_Depth,
+        deck_rail_corner_offset=Guide_Rail_Corner_Offset
       );
+
+    if (Show_Deck_Frame)
+      up(Container_Z_Offset + Container_Floor
+        + (Exploded_View ? Container_Height - Container_Floor + Deck_Frame_Exploded_Z : 0))
+        DeckFrame(
+          container_inner_size=Container_Inner_Size,
+          frame_h=Deck_Frame_Height,
+          frame_wall=Deck_Frame_Wall,
+          fit_clearance=Deck_Frame_Fit_Clearance,
+          guide_rail_width=Guide_Rail_Width,
+          guide_rail_depth=Guide_Rail_Depth,
+          guide_rail_clearance=Guide_Rail_Clearance,
+          guide_rail_corner_offset=Guide_Rail_Corner_Offset,
+          slat_width=Deck_Frame_Slat_Width,
+          slat_gap=Deck_Frame_Slat_Gap,
+          slat_side_gap=Deck_Frame_Slat_Side_Gap,
+          slat_chamfer=Deck_Frame_Slat_Chamfer,
+          include_bridges=Deck_Frame_Bridges,
+          components=Components,
+          shell_size=Shell_Top_Size,
+          row_spec=Grid_Row_Sizes,
+          col_spec=Grid_Column_Sizes,
+          grid_padding=Grid_Padding
+        );
 
     right(Shell_Preview_X_Offset)
       up(
