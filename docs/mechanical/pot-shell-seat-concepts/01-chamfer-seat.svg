@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <rect width="1200" height="760" fill="#f7f8f5"/>
+  <text x="80" y="82" font-family="Arial, sans-serif" font-size="38" font-weight="700" fill="#1e2b24">Approach 1: chamfered seat ring</text>
+  <text x="80" y="124" font-family="Arial, sans-serif" font-size="22" fill="#526158">The shell opening has a bevel. The pot has a matching shoulder/flange. The shoulder stops at the seat, defining the insertion depth.</text>
+
+  <rect x="120" y="230" width="960" height="54" rx="4" fill="#6f7f76"/>
+  <path d="M440 284 L502 346 L698 346 L760 284 Z" fill="#9aa69f"/>
+  <path d="M502 346 L698 346 L698 590 L502 590 Z" fill="#d8dfd9" stroke="#5a665f" stroke-width="4"/>
+  <path d="M502 346 L542 386 L658 386 L698 346 Z" fill="#eef2ee" stroke="#5a665f" stroke-width="3"/>
+  <path d="M458 284 L502 346" stroke="#f2c94c" stroke-width="8" stroke-linecap="round"/>
+  <path d="M742 284 L698 346" stroke="#f2c94c" stroke-width="8" stroke-linecap="round"/>
+  <path d="M486 326 L506 346 L694 346 L714 326" stroke="#26352e" stroke-width="5" fill="none"/>
+  <line x1="790" y1="284" x2="790" y2="590" stroke="#2f5f8f" stroke-width="4"/>
+  <line x1="768" y1="284" x2="812" y2="284" stroke="#2f5f8f" stroke-width="4"/>
+  <line x1="768" y1="590" x2="812" y2="590" stroke="#2f5f8f" stroke-width="4"/>
+  <text x="824" y="445" font-family="Arial, sans-serif" font-size="26" font-weight="700" fill="#2f5f8f">insert depth</text>
+  <text x="824" y="478" font-family="Arial, sans-serif" font-size="24" fill="#2f5f8f">example: 100 mm</text>
+
+  <line x1="390" y1="322" x2="286" y2="204" stroke="#26352e" stroke-width="3"/>
+  <text x="96" y="194" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#26352e">shell bevel seat</text>
+  <text x="96" y="224" font-family="Arial, sans-serif" font-size="20" fill="#526158">self-centering, printable</text>
+
+  <line x1="520" y1="342" x2="284" y2="430" stroke="#26352e" stroke-width="3"/>
+  <text x="98" y="430" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#26352e">pot shoulder</text>
+  <text x="98" y="460" font-family="Arial, sans-serif" font-size="20" fill="#526158">sets final height</text>
+
+  <rect x="96" y="636" width="1008" height="62" rx="8" fill="#e6ebe7"/>
+  <text x="128" y="675" font-family="Arial, sans-serif" font-size="22" fill="#26352e">Best default: simple, strong, easy to parametrize as seat_depth / shoulder_height / clearance.</text>
+</svg>

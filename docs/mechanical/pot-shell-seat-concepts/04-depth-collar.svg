@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <rect width="1200" height="760" fill="#f7f8f5"/>
+  <text x="80" y="82" font-family="Arial, sans-serif" font-size="38" font-weight="700" fill="#1e2b24">Approach 4: removable depth collar</text>
+  <text x="80" y="124" font-family="Arial, sans-serif" font-size="22" fill="#526158">A separate spacer/collar snaps on the pot or sits on the shell. Changing collar height changes insertion depth without changing pot geometry.</text>
+
+  <rect x="140" y="230" width="920" height="56" rx="4" fill="#6f7f76"/>
+  <path d="M474 286 H726 L696 610 H504 Z" fill="#d8dfd9" stroke="#5a665f" stroke-width="4"/>
+  <rect x="432" y="286" width="336" height="76" rx="8" fill="#f2c94c" stroke="#806a17" stroke-width="4"/>
+  <path d="M480 362 H720" stroke="#806a17" stroke-width="4" stroke-dasharray="10 8"/>
+  <line x1="815" y1="286" x2="815" y2="610" stroke="#2f5f8f" stroke-width="4"/>
+  <line x1="793" y1="286" x2="837" y2="286" stroke="#2f5f8f" stroke-width="4"/>
+  <line x1="793" y1="610" x2="837" y2="610" stroke="#2f5f8f" stroke-width="4"/>
+  <text x="852" y="440" font-family="Arial, sans-serif" font-size="26" font-weight="700" fill="#2f5f8f">depth = pot height</text>
+  <text x="852" y="473" font-family="Arial, sans-serif" font-size="24" fill="#2f5f8f">minus collar height</text>
+
+  <line x1="454" y1="316" x2="278" y2="416" stroke="#26352e" stroke-width="3"/>
+  <text x="96" y="406" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#26352e">swap collar</text>
+  <text x="96" y="436" font-family="Arial, sans-serif" font-size="20" fill="#526158">10 mm, 25 mm, 50 mm variants</text>
+
+  <path d="M428 516 H512" stroke="#526158" stroke-width="5"/>
+  <path d="M688 516 H772" stroke="#526158" stroke-width="5"/>
+  <text x="415" y="556" font-family="Arial, sans-serif" font-size="20" fill="#526158">optional clip tabs</text>
+
+  <rect x="96" y="636" width="1008" height="62" rx="8" fill="#e6ebe7"/>
+  <text x="128" y="675" font-family="Arial, sans-serif" font-size="22" fill="#26352e">Best for experiments: tune depth with cheap collars before locking the final shell/reservoir design.</text>
+</svg>

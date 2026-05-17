@@ -1,5 +1,6 @@
 include <BOSL2/std.scad>
 include <grid.scad>
+include <components/registry.scad>
 
 module ShellPlate(
   top_size = [200, 70],
@@ -67,69 +68,6 @@ module ShellPlateWithPotCut(
   }
 }
 
-function v2_component_prop(component, name, fallback, i = 0) =
-  i >= len(component) ? fallback
-  : component[i][0] == name ? component[i][1]
-  : v2_component_prop(component, name, fallback, i + 1);
-
-module v2_component_cut(
-  component,
-  shell_size,
-  row_spec,
-  col_spec,
-  grid_padding,
-  default_taper,
-  default_cavity_height,
-  default_clearance,
-  shell_thickness
-) {
-  comp_type = v2_component_prop(component, "type", "pot");
-  row = v2_component_prop(component, "row", 1);
-  col = v2_component_prop(component, "col", 1);
-  fit_clearance = v2_component_prop(component, "clearance", default_clearance);
-  cavity_height = v2_component_prop(component, "cavity_h", default_cavity_height);
-  taper = v2_component_prop(component, "taper", default_taper);
-  margin = v2_component_prop(component, "margin", 0);
-  tube_w = v2_component_prop(component, "tube_w", 8);
-  tube_d = v2_component_prop(component, "tube_d", 8);
-
-  center = grid_cell_center(shell_size, row_spec, col_spec, row, col, grid_padding);
-  size = grid_cell_size(shell_size, row_spec, col_spec, row, col, grid_padding);
-
-  safe_thickness = max(0.5, shell_thickness);
-  safe_clearance = max(0, fit_clearance);
-  safe_cavity_height = max(0.5, cavity_height);
-  taper_at_cut_depth = taper * min(1, safe_thickness / safe_cavity_height);
-
-  usable_size = [
-    max(0.01, size[0] - margin * 2),
-    max(0.01, size[1] - margin * 2)
-  ];
-  cut_top_size = comp_type == "fill_tube"
-    ? [
-        max(0.01, tube_w + safe_clearance * 2),
-        max(0.01, tube_d + safe_clearance * 2)
-      ]
-    : [
-        max(0.01, usable_size[0] + safe_clearance * 2),
-        max(0.01, usable_size[1] + safe_clearance * 2)
-      ];
-  cut_bottom_size = comp_type == "pot"
-    ? [
-        max(0.01, size[0] - taper_at_cut_depth * 2 + safe_clearance * 2),
-        max(0.01, size[1] - taper_at_cut_depth * 2 + safe_clearance * 2)
-      ]
-    : cut_top_size;
-
-  translate([center[0], center[1], -0.1])
-    prismoid(
-      size1=cut_bottom_size,
-      size2=cut_top_size,
-      h=safe_thickness + 0.2,
-      anchor=BOTTOM
-    );
-}
-
 module ShellPlateWithComponents(
   top_size = [200, 70],
   bottom_size = [196, 66],
@@ -142,8 +80,24 @@ module ShellPlateWithComponents(
   default_taper = 0,
   default_cavity_height = 37,
   default_clearance = 0.4,
-  components = [[["type", "pot"], ["row", 1], ["col", 1]]]
+  default_cut_epsilon = 0.2,
+  components = [[["type", "pot"], ["row", 1], ["col", 1]]],
+  seat_enabled = true,
+  seat_inset = 4,
+  seat_width = 3,
+  seat_height = 2,
+  seat_fit_clearance = 0.25
 ) {
+  groove_outer = [
+    max(0.01, bottom_size[0] - seat_inset * 2 + seat_fit_clearance * 2),
+    max(0.01, bottom_size[1] - seat_inset * 2 + seat_fit_clearance * 2)
+  ];
+  groove_inner = [
+    max(0.01, groove_outer[0] - seat_width * 2 - seat_fit_clearance * 4),
+    max(0.01, groove_outer[1] - seat_width * 2 - seat_fit_clearance * 4)
+  ];
+  safe_seat_h = min(max(0, seat_height + seat_fit_clearance), thickness - 0.2);
+
   difference() {
     ShellPlate(
       top_size=top_size,
@@ -152,6 +106,12 @@ module ShellPlateWithComponents(
       chamfer=chamfer,
       rounding=rounding
     );
+
+    if (seat_enabled && seat_width > 0 && safe_seat_h > 0.1 && groove_inner[0] > 0.5 && groove_inner[1] > 0.5)
+      difference() {
+        cuboid([groove_outer[0], groove_outer[1], safe_seat_h], anchor=BOTTOM);
+        cuboid([groove_inner[0], groove_inner[1], safe_seat_h + 0.05], anchor=BOTTOM);
+      }
 
     for (component = components)
       v2_component_cut(
@@ -163,6 +123,7 @@ module ShellPlateWithComponents(
         default_taper=default_taper,
         default_cavity_height=default_cavity_height,
         default_clearance=default_clearance,
+        default_cut_epsilon=default_cut_epsilon,
         shell_thickness=thickness
       );
   }
