@@ -115,6 +115,7 @@ Step D (done):
 - Components may use `row_span` / `col_span` to occupy a merged grid footprint.
 - Components may use local subgrid props (`sub_row_sizes`, `sub_col_sizes`, `sub_row`, `sub_col`, `sub_row_span`, `sub_col_span`, `sub_padding`) to split their resolved footprint without mutating root grid topology.
 - Component category defines default depth/support policy: pot-like components and boxes default to `support_mode="deck"` and shared insert depth; utility components default to `support_mode="none"`. Any component may override `insert_depth` and `support_mode`.
+- Container support deck is a continuous reservoir-level deck (`Container_Support_Deck_Mode = "Slatted"` or `"None"`), with keepouts subtracted for components whose `support_mode` is not `"deck"`.
 - Stable deterministic order: operations apply in listed order.
 
 Step E:

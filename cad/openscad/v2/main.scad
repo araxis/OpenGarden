@@ -106,6 +106,8 @@ Container_Seat_Ledge_Chamfer = 1.2; // [0:0.1:5]
 /*[Container Support Deck]*/
 // Slatted deck under pot positions to lift them off the reservoir floor.
 Container_Support_Deck_Enabled = true;
+// Deck generation mode. None disables deck geometry even when enabled.
+Container_Support_Deck_Mode = "Slatted"; // [None, Slatted]
 // Vertical gap between deck top and the pot bottom (mm).
 Container_Support_Deck_Clearance = 0.8; // [0:0.1:5]
 // Width of each slat rail (mm).
@@ -190,6 +192,7 @@ left((Container_Outer_Size[0] + Preview_Spacing) / 2)
         seat_ledge_thickness=Container_Seat_Ledge_Thickness,
         seat_ledge_chamfer=Container_Seat_Ledge_Chamfer,
         support_deck_enabled=Container_Support_Deck_Enabled,
+        support_deck_mode=Container_Support_Deck_Mode,
         support_deck_clearance=Container_Support_Deck_Clearance,
         support_deck_rail_width=Container_Support_Deck_Rail_Width,
         support_deck_rail_gap=Container_Support_Deck_Rail_Gap,
