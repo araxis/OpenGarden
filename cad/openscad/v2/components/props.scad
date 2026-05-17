@@ -3,6 +3,35 @@ function v2_component_prop(component, name, fallback, i = 0) =
   : component[i][0] == name ? component[i][1]
   : v2_component_prop(component, name, fallback, i + 1);
 
+function v2_component_type(component) =
+  let (raw_type = v2_component_prop(component, "type", "pot_rect"))
+    raw_type == "pot" ? "pot_rect" : raw_type;
+
+function v2_component_is_pot_type(comp_type) =
+  comp_type == "pot_rect" || comp_type == "pot_roundrect" || comp_type == "pot_circle" || comp_type == "pot_oval";
+
+function v2_component_is_supported_insert_type(comp_type) =
+  v2_component_is_pot_type(comp_type) || comp_type == "box";
+
+function v2_component_default_support_mode(comp_type) =
+  v2_component_is_supported_insert_type(comp_type) ? "deck" : "none";
+
+function v2_component_support_mode(component, comp_type = undef) =
+  let (safe_type = is_undef(comp_type) ? v2_component_type(component) : comp_type)
+    v2_component_prop(component, "support_mode", v2_component_default_support_mode(safe_type));
+
+function v2_component_default_insert_depth(comp_type, supported_insert_depth, utility_insert_depth = undef) =
+  v2_component_is_supported_insert_type(comp_type)
+    ? supported_insert_depth
+    : (!is_undef(utility_insert_depth) ? utility_insert_depth : supported_insert_depth);
+
+function v2_component_insert_depth(component, comp_type, supported_insert_depth, utility_insert_depth = undef) =
+  v2_component_prop(
+    component,
+    "insert_depth",
+    v2_component_default_insert_depth(comp_type, supported_insert_depth, utility_insert_depth)
+  );
+
 function v2_component_parent_center(component, shell_size, row_spec, col_spec, grid_padding) =
   let (
     row = v2_component_prop(component, "row", 1),

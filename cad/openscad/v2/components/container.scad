@@ -196,11 +196,12 @@ module ComponentSupportDeckSlats(
   embed,
   eps
 ) {
-  raw_type = v2_component_prop(component, "type", "pot_rect");
-  comp_type = raw_type == "pot" ? "pot_rect" : raw_type;
+  comp_type = v2_component_type(component);
+  support_mode = v2_component_support_mode(component, comp_type);
 
-  if (comp_type != "fill_tube") {
+  if (support_mode == "deck") {
     margin = v2_component_prop(component, "margin", 0);
+    insert_depth = v2_component_insert_depth(component, comp_type, default_insert_depth);
     center = v2_component_footprint_center(component, shell_size, row_spec, col_spec, grid_padding);
     cell_size = v2_component_footprint_size(component, shell_size, row_spec, col_spec, grid_padding);
     zone_size = [
@@ -213,7 +214,7 @@ module ComponentSupportDeckSlats(
       size=zone_size,
       container_h=container_h,
       floor=floor,
-      insert_depth=default_insert_depth,
+      insert_depth=insert_depth,
       support_clearance=support_clearance,
       rail_width=rail_width,
       rail_gap=rail_gap,

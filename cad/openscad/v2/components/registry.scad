@@ -11,7 +11,7 @@ include <../grid.scad>
 
 function v2_odd_count(n) = max(1, n % 2 == 0 ? n + 1 : n);
 function v2_is_pot_component(comp_type) =
-  comp_type == "pot_rect" || comp_type == "pot_roundrect" || comp_type == "pot_circle" || comp_type == "pot_oval";
+  v2_component_is_pot_type(comp_type);
 
 module v2_component_cut(
   component,
@@ -25,11 +25,10 @@ module v2_component_cut(
   default_cut_epsilon,
   shell_thickness
 ) {
-  raw_type = v2_component_prop(component, "type", "pot_rect");
-  comp_type = raw_type == "pot" ? "pot_rect" : raw_type;
+  comp_type = v2_component_type(component);
   fit_clearance = v2_component_prop(component, "clearance", default_clearance);
   cavity_height = v2_component_prop(component, "cavity_h", default_cavity_height);
-  insert_depth = v2_component_prop(component, "insert_depth", cavity_height);
+  insert_depth = v2_component_insert_depth(component, comp_type, default_cavity_height);
   taper = v2_component_prop(component, "taper", default_taper);
   margin = v2_component_prop(component, "margin", 0);
   corner_radius = v2_component_prop(component, "corner_radius", 12);
@@ -161,16 +160,15 @@ module v2_component_reference(
   default_hole_padding = 14,
   show_fill_tube_reference = false
 ) {
-  raw_type = v2_component_prop(component, "type", "pot_rect");
-  comp_type = raw_type == "pot" ? "pot_rect" : raw_type;
+  comp_type = v2_component_type(component);
   margin = v2_component_prop(component, "margin", 0);
   corner_radius = v2_component_prop(component, "corner_radius", 12);
   rim_w = v2_component_prop(component, "rim_w", v2_is_pot_component(comp_type) ? 4 : 0);
   rim_h = v2_component_prop(component, "rim_h", v2_is_pot_component(comp_type) ? 2 : 0);
   rim_chamfer = v2_component_prop(component, "rim_chamfer", 0.6);
   geom_epsilon = v2_component_prop(component, "geom_epsilon", 0.05);
-  cavity_h = v2_component_prop(component, "cavity_h", default_cavity_height);
-  insert_depth = v2_component_prop(component, "insert_depth", cavity_h);
+  insert_depth = v2_component_insert_depth(component, comp_type, default_cavity_height);
+  cavity_h = v2_component_prop(component, "cavity_h", insert_depth);
   pot_h = v2_component_prop(component, "pot_h", default_pot_height);
   center = v2_component_footprint_center(component, shell_size, row_spec, col_spec, grid_padding);
   cell_size = v2_component_footprint_size(component, shell_size, row_spec, col_spec, grid_padding);
